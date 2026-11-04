@@ -1,0 +1,455 @@
+{
+  "tables": [
+    {
+      "id": "roles",
+      "x": 30,
+      "y": 70,
+      "width": 370,
+      "fields": [
+        {
+          "id": "id",
+          "type": "INT",
+          "pk": true,
+          "fk": false,
+          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+        },
+        {
+          "id": "name",
+          "type": "VARCHAR(80)",
+          "pk": false,
+          "fk": false,
+          "origin": "Users_import.xlsx → Роль"
+        }
+      ],
+      "origin": "Users_import.xlsx → Роль"
+    },
+    {
+      "id": "users",
+      "x": 440,
+      "y": 70,
+      "width": 370,
+      "fields": [
+        {
+          "id": "id",
+          "type": "INT",
+          "pk": true,
+          "fk": false,
+          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+        },
+        {
+          "id": "login",
+          "type": "VARCHAR(100)",
+          "pk": false,
+          "fk": false,
+          "origin": "Users_import.xlsx → Фамилия, Имя, Отчетсво, Логин, Роль"
+        },
+        {
+          "id": "last_name",
+          "type": "VARCHAR(100)",
+          "pk": false,
+          "fk": false,
+          "origin": "Users_import.xlsx → Фамилия, Имя, Отчетсво, Логин, Роль"
+        },
+        {
+          "id": "first_name",
+          "type": "VARCHAR(100)",
+          "pk": false,
+          "fk": false,
+          "origin": "Users_import.xlsx → Фамилия, Имя, Отчетсво, Логин, Роль"
+        },
+        {
+          "id": "patronymic",
+          "type": "VARCHAR(100)",
+          "pk": false,
+          "fk": false,
+          "origin": "Users_import.xlsx → Фамилия, Имя, Отчетсво, Логин, Роль"
+        },
+        {
+          "id": "role_id",
+          "type": "INT",
+          "pk": false,
+          "fk": true,
+          "origin": "Users_import.xlsx → Фамилия, Имя, Отчетсво, Логин, Роль"
+        }
+      ],
+      "origin": "Users_import.xlsx → Фамилия, Имя, Отчетсво, Логин, Роль"
+    },
+    {
+      "id": "categories",
+      "x": 30,
+      "y": 425,
+      "width": 370,
+      "fields": [
+        {
+          "id": "id",
+          "type": "INT",
+          "pk": true,
+          "fk": false,
+          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+        },
+        {
+          "id": "name",
+          "type": "VARCHAR(100)",
+          "pk": false,
+          "fk": false,
+          "origin": "Products_import.xlsx → Категория"
+        }
+      ],
+      "origin": "Products_import.xlsx → Категория"
+    },
+    {
+      "id": "subcategories",
+      "x": 440,
+      "y": 425,
+      "width": 370,
+      "fields": [
+        {
+          "id": "id",
+          "type": "INT",
+          "pk": true,
+          "fk": false,
+          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+        },
+        {
+          "id": "category_id",
+          "type": "INT",
+          "pk": false,
+          "fk": true,
+          "origin": "Products_import.xlsx → Категория, Подкатегория"
+        },
+        {
+          "id": "name",
+          "type": "VARCHAR(100)",
+          "pk": false,
+          "fk": false,
+          "origin": "Products_import.xlsx → Категория, Подкатегория"
+        }
+      ],
+      "origin": "Products_import.xlsx → Категория, Подкатегория"
+    },
+    {
+      "id": "manufacturers",
+      "x": 440,
+      "y": 780,
+      "width": 370,
+      "fields": [
+        {
+          "id": "id",
+          "type": "INT",
+          "pk": true,
+          "fk": false,
+          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+        },
+        {
+          "id": "name",
+          "type": "VARCHAR(150)",
+          "pk": false,
+          "fk": false,
+          "origin": "Products_import.xlsx → Производство"
+        }
+      ],
+      "origin": "Products_import.xlsx → Производство"
+    },
+    {
+      "id": "products",
+      "x": 850,
+      "y": 425,
+      "width": 370,
+      "fields": [
+        {
+          "id": "id",
+          "type": "INT",
+          "pk": true,
+          "fk": false,
+          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+        },
+        {
+          "id": "subcategory_id",
+          "type": "INT",
+          "pk": false,
+          "fk": true,
+          "origin": "Products_import.xlsx → Наименование, Фото, Состав, Описание, Цена"
+        },
+        {
+          "id": "manufacturer_id",
+          "type": "INT",
+          "pk": false,
+          "fk": true,
+          "origin": "Products_import.xlsx → Наименование, Фото, Состав, Описание, Цена"
+        },
+        {
+          "id": "name",
+          "type": "VARCHAR(250)",
+          "pk": false,
+          "fk": false,
+          "origin": "Products_import.xlsx → Наименование, Фото, Состав, Описание, Цена"
+        },
+        {
+          "id": "image",
+          "type": "VARCHAR(250)",
+          "pk": false,
+          "fk": false,
+          "origin": "Products_import.xlsx → Наименование, Фото, Состав, Описание, Цена"
+        },
+        {
+          "id": "composition",
+          "type": "TEXT",
+          "pk": false,
+          "fk": false,
+          "origin": "Products_import.xlsx → Наименование, Фото, Состав, Описание, Цена"
+        },
+        {
+          "id": "description",
+          "type": "TEXT",
+          "pk": false,
+          "fk": false,
+          "origin": "Products_import.xlsx → Наименование, Фото, Состав, Описание, Цена"
+        },
+        {
+          "id": "price",
+          "type": "DECIMAL(12,2)",
+          "pk": false,
+          "fk": false,
+          "origin": "Products_import.xlsx → Наименование, Фото, Состав, Описание, Цена"
+        }
+      ],
+      "origin": "Products_import.xlsx → Наименование, Фото, Состав, Описание, Цена"
+    },
+    {
+      "id": "sizes",
+      "x": 1260,
+      "y": 780,
+      "width": 370,
+      "fields": [
+        {
+          "id": "id",
+          "type": "INT",
+          "pk": true,
+          "fk": false,
+          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+        },
+        {
+          "id": "label",
+          "type": "VARCHAR(10)",
+          "pk": false,
+          "fk": false,
+          "origin": "Sizes_import.xlsx → Размер"
+        },
+        {
+          "id": "sort_value",
+          "type": "DECIMAL(5,1)",
+          "pk": false,
+          "fk": false,
+          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+        }
+      ],
+      "origin": "Sizes_import.xlsx → Размер"
+    },
+    {
+      "id": "stock_items",
+      "x": 1260,
+      "y": 425,
+      "width": 370,
+      "fields": [
+        {
+          "id": "id",
+          "type": "INT",
+          "pk": true,
+          "fk": false,
+          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+        },
+        {
+          "id": "product_id",
+          "type": "INT",
+          "pk": false,
+          "fk": true,
+          "origin": "Stock_Items_import.xlsx → Модель, Производство, Размер, Остаток"
+        },
+        {
+          "id": "size_id",
+          "type": "INT",
+          "pk": false,
+          "fk": true,
+          "origin": "Stock_Items_import.xlsx → Модель, Производство, Размер, Остаток"
+        },
+        {
+          "id": "available",
+          "type": "INT",
+          "pk": false,
+          "fk": false,
+          "origin": "Stock_Items_import.xlsx → Модель, Производство, Размер, Остаток"
+        }
+      ],
+      "origin": "Stock_Items_import.xlsx → Модель, Производство, Размер, Остаток"
+    },
+    {
+      "id": "orders",
+      "x": 850,
+      "y": 70,
+      "width": 370,
+      "fields": [
+        {
+          "id": "id",
+          "type": "INT",
+          "pk": true,
+          "fk": false,
+          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+        },
+        {
+          "id": "order_date",
+          "type": "DATETIME",
+          "pk": false,
+          "fk": false,
+          "origin": "Orders_import.xlsx → Номер заказа, Дата, ФИО"
+        },
+        {
+          "id": "user_id",
+          "type": "INT",
+          "pk": false,
+          "fk": true,
+          "origin": "Orders_import.xlsx → Номер заказа, Дата, ФИО"
+        },
+        {
+          "id": "created_by",
+          "type": "INT",
+          "pk": false,
+          "fk": true,
+          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+        },
+        {
+          "id": "request_id",
+          "type": "CHAR(36)",
+          "pk": false,
+          "fk": false,
+          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+        },
+        {
+          "id": "stock_accounted",
+          "type": "BOOLEAN",
+          "pk": false,
+          "fk": false,
+          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+        }
+      ],
+      "origin": "Orders_import.xlsx → Номер заказа, Дата, ФИО"
+    },
+    {
+      "id": "order_items",
+      "x": 1260,
+      "y": 70,
+      "width": 370,
+      "fields": [
+        {
+          "id": "id",
+          "type": "INT",
+          "pk": true,
+          "fk": false,
+          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+        },
+        {
+          "id": "order_id",
+          "type": "INT",
+          "pk": false,
+          "fk": true,
+          "origin": "Orders_import.xlsx → Номер, Модель, Размер, Количество, Цена"
+        },
+        {
+          "id": "stock_id",
+          "type": "INT",
+          "pk": false,
+          "fk": true,
+          "origin": "Orders_import.xlsx → Номер, Модель, Размер, Количество, Цена"
+        },
+        {
+          "id": "quantity",
+          "type": "INT",
+          "pk": false,
+          "fk": false,
+          "origin": "Orders_import.xlsx → Номер, Модель, Размер, Количество, Цена"
+        },
+        {
+          "id": "unit_price",
+          "type": "DECIMAL(12,2)",
+          "pk": false,
+          "fk": false,
+          "origin": "Orders_import.xlsx → Номер, Модель, Размер, Количество, Цена"
+        }
+      ],
+      "origin": "Orders_import.xlsx → Номер, Модель, Размер, Количество, Цена"
+    }
+  ],
+  "links": [
+    {
+      "source": "users",
+      "field": "role_id",
+      "target": "roles",
+      "key": "id",
+      "cardinality": "N : 1"
+    },
+    {
+      "source": "subcategories",
+      "field": "category_id",
+      "target": "categories",
+      "key": "id",
+      "cardinality": "N : 1"
+    },
+    {
+      "source": "products",
+      "field": "subcategory_id",
+      "target": "subcategories",
+      "key": "id",
+      "cardinality": "N : 1"
+    },
+    {
+      "source": "products",
+      "field": "manufacturer_id",
+      "target": "manufacturers",
+      "key": "id",
+      "cardinality": "N : 1"
+    },
+    {
+      "source": "stock_items",
+      "field": "product_id",
+      "target": "products",
+      "key": "id",
+      "cardinality": "N : 1"
+    },
+    {
+      "source": "stock_items",
+      "field": "size_id",
+      "target": "sizes",
+      "key": "id",
+      "cardinality": "N : 1"
+    },
+    {
+      "source": "orders",
+      "field": "user_id",
+      "target": "users",
+      "key": "id",
+      "cardinality": "N : 1"
+    },
+    {
+      "source": "orders",
+      "field": "created_by",
+      "target": "users",
+      "key": "id",
+      "cardinality": "N : 1"
+    },
+    {
+      "source": "order_items",
+      "field": "order_id",
+      "target": "orders",
+      "key": "id",
+      "cardinality": "N : 1"
+    },
+    {
+      "source": "order_items",
+      "field": "stock_id",
+      "target": "stock_items",
+      "key": "id",
+      "cardinality": "N : 1"
+    }
+  ],
+  "width": 1680,
+  "height": 1160
+}

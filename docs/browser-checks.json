@@ -1,0 +1,258 @@
+{
+  "records": [
+    {
+      "width": 390,
+      "dark": false,
+      "state": "learn",
+      "documentWidth": 390
+    },
+    {
+      "width": 390,
+      "dark": false,
+      "state": "paused",
+      "documentWidth": 390
+    },
+    {
+      "width": 390,
+      "dark": false,
+      "state": "finished",
+      "documentWidth": 390
+    },
+    {
+      "width": 390,
+      "dark": false,
+      "state": "mock",
+      "documentWidth": 390
+    },
+    {
+      "width": 390,
+      "dark": false,
+      "state": "er",
+      "documentWidth": 390
+    },
+    {
+      "width": 390,
+      "dark": false,
+      "state": "presentation",
+      "documentWidth": 390
+    },
+    {
+      "width": 390,
+      "dark": false,
+      "state": "presentation-step",
+      "documentWidth": 390
+    },
+    {
+      "width": 390,
+      "dark": true,
+      "state": "learn",
+      "documentWidth": 390
+    },
+    {
+      "width": 390,
+      "dark": true,
+      "state": "paused",
+      "documentWidth": 390
+    },
+    {
+      "width": 390,
+      "dark": true,
+      "state": "finished",
+      "documentWidth": 390
+    },
+    {
+      "width": 390,
+      "dark": true,
+      "state": "mock",
+      "documentWidth": 390
+    },
+    {
+      "width": 390,
+      "dark": true,
+      "state": "er",
+      "documentWidth": 390
+    },
+    {
+      "width": 390,
+      "dark": true,
+      "state": "presentation",
+      "documentWidth": 390
+    },
+    {
+      "width": 390,
+      "dark": true,
+      "state": "presentation-step",
+      "documentWidth": 390
+    },
+    {
+      "width": 768,
+      "dark": false,
+      "state": "learn",
+      "documentWidth": 768
+    },
+    {
+      "width": 768,
+      "dark": false,
+      "state": "paused",
+      "documentWidth": 768
+    },
+    {
+      "width": 768,
+      "dark": false,
+      "state": "finished",
+      "documentWidth": 768
+    },
+    {
+      "width": 768,
+      "dark": false,
+      "state": "mock",
+      "documentWidth": 768
+    },
+    {
+      "width": 768,
+      "dark": false,
+      "state": "er",
+      "documentWidth": 768
+    },
+    {
+      "width": 768,
+      "dark": false,
+      "state": "presentation",
+      "documentWidth": 768
+    },
+    {
+      "width": 768,
+      "dark": false,
+      "state": "presentation-step",
+      "documentWidth": 768
+    },
+    {
+      "width": 768,
+      "dark": true,
+      "state": "learn",
+      "documentWidth": 768
+    },
+    {
+      "width": 768,
+      "dark": true,
+      "state": "paused",
+      "documentWidth": 768
+    },
+    {
+      "width": 768,
+      "dark": true,
+      "state": "finished",
+      "documentWidth": 768
+    },
+    {
+      "width": 768,
+      "dark": true,
+      "state": "mock",
+      "documentWidth": 768
+    },
+    {
+      "width": 768,
+      "dark": true,
+      "state": "er",
+      "documentWidth": 768
+    },
+    {
+      "width": 768,
+      "dark": true,
+      "state": "presentation",
+      "documentWidth": 768
+    },
+    {
+      "width": 768,
+      "dark": true,
+      "state": "presentation-step",
+      "documentWidth": 768
+    },
+    {
+      "width": 1440,
+      "dark": false,
+      "state": "learn",
+      "documentWidth": 1440
+    },
+    {
+      "width": 1440,
+      "dark": false,
+      "state": "paused",
+      "documentWidth": 1440
+    },
+    {
+      "width": 1440,
+      "dark": false,
+      "state": "finished",
+      "documentWidth": 1440
+    },
+    {
+      "width": 1440,
+      "dark": false,
+      "state": "mock",
+      "documentWidth": 1440
+    },
+    {
+      "width": 1440,
+      "dark": false,
+      "state": "er",
+      "documentWidth": 1440
+    },
+    {
+      "width": 1440,
+      "dark": false,
+      "state": "presentation",
+      "documentWidth": 1440
+    },
+    {
+      "width": 1440,
+      "dark": false,
+      "state": "presentation-step",
+      "documentWidth": 1440
+    },
+    {
+      "width": 1440,
+      "dark": true,
+      "state": "learn",
+      "documentWidth": 1440
+    },
+    {
+      "width": 1440,
+      "dark": true,
+      "state": "paused",
+      "documentWidth": 1440
+    },
+    {
+      "width": 1440,
+      "dark": true,
+      "state": "finished",
+      "documentWidth": 1440
+    },
+    {
+      "width": 1440,
+      "dark": true,
+      "state": "mock",
+      "documentWidth": 1440
+    },
+    {
+      "width": 1440,
+      "dark": true,
+      "state": "er",
+      "documentWidth": 1440
+    },
+    {
+      "width": 1440,
+      "dark": true,
+      "state": "presentation",
+      "documentWidth": 1440
+    },
+    {
+      "width": 1440,
+      "dark": true,
+      "state": "presentation-step",
+      "documentWidth": 1440
+    }
+  ],
+  "errors": [],
+  "microstepsChecked": 294
+}

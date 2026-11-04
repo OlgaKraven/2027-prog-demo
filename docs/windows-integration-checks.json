@@ -1,0 +1,61 @@
+{
+  "checks": [
+    {
+      "name": "previous calendar month across year",
+      "passed": true
+    },
+    {
+      "name": "discount and rounding",
+      "passed": true
+    },
+    {
+      "name": "quantity boundaries 3 4 5 6",
+      "passed": true
+    },
+    {
+      "name": "imported rows",
+      "passed": true
+    },
+    {
+      "name": "login without password and unknown login",
+      "passed": true
+    },
+    {
+      "name": "both discount branches",
+      "passed": true
+    },
+    {
+      "name": "combined filter search sort",
+      "passed": true
+    },
+    {
+      "name": "roles enforced at operation boundary",
+      "passed": true
+    },
+    {
+      "name": "reject invalid quantities",
+      "passed": true
+    },
+    {
+      "name": "atomic rollback when one position fails",
+      "passed": true
+    },
+    {
+      "name": "confirmation and duplicate request",
+      "passed": true
+    },
+    {
+      "name": "stored unit price and admin edit",
+      "passed": true
+    },
+    {
+      "name": "manager delete and repeat rejection",
+      "passed": true
+    },
+    {
+      "name": "order cancellation restores stock once",
+      "passed": true
+    }
+  ],
+  "integration": true
+}

@@ -1,0 +1,10 @@
+site/
+node_modules/
+output/
+**/bin/
+**/obj/
+**/.vs/
+**/*.user
+**/launchSettings.json
+__pycache__/
+.DS_Store

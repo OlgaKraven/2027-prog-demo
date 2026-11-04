@@ -1,0 +1,174 @@
+[
+  {
+    "path": "original/КИМ 09.02.07-2-2027 Том 1.pdf",
+    "sha256": "4e60c7c140a3a59701d758da9b471c1d7c895bbf57ac8aa986e7957fd0876db4"
+  },
+  {
+    "path": "original/Метод_рекомендации_Выпуск_09.02.07-2-2027.pdf",
+    "sha256": "6c92e69886930163733421de3c920d5feba41ac3862fac91e6a97ab6d53311a9"
+  },
+  {
+    "path": "original/Метод_рекомендации_СПО_09.02.07-2-2027.pdf",
+    "sha256": "cd0f975fb2e1d4378755e40eac9af5c01bf9d6e75a6e79f05e8ce1a1aef8a2b4"
+  },
+  {
+    "path": "original/Прил_ОЗ_КИМ_09.02.07-2-2027.zip",
+    "sha256": "43c76dbcf75551581bf533ab254bc327ebcad028da5a8ccba30446ab17fac9ed"
+  },
+  {
+    "path": "resources/Images/IMG_KB_164811.png",
+    "sha256": "27aae0bfb3f10225bea32a53969b00c476a81ac843af0bf9a36979dcfb0dfaf4"
+  },
+  {
+    "path": "resources/Images/IMG_KB_164816.png",
+    "sha256": "c5698322a9fc9b9686b0822f60661dd95c97006da9b0c83e3fb711d79b573352"
+  },
+  {
+    "path": "resources/Images/IMG_KB_185501.png",
+    "sha256": "c79883c2311c9d6b9c83a30da384b20eaa9c1eca85d1b57227f9a8721bd83cc1"
+  },
+  {
+    "path": "resources/Images/IMG_KS_195213.png",
+    "sha256": "dd0d27282ba520030898cfb8f9b0e0bc70e3fa4da0c6d7a90fc05faecc642246"
+  },
+  {
+    "path": "resources/Images/IMG_KS_195217.png",
+    "sha256": "24ae7c9d30e0561f29190e62d9915008b3a12f0d05a9ef34480fbbe84125fdec"
+  },
+  {
+    "path": "resources/Images/IMG_KS_195222.png",
+    "sha256": "640d2d92c3fcc517bcf8796235686de493d949a6691697fa4bcb7c5fca5a07d9"
+  },
+  {
+    "path": "resources/Images/IMG_KSd_185508.png",
+    "sha256": "e761a306cb2322541b1b2abc8fbf71da73846533ad4f70d44d93864765b038b7"
+  },
+  {
+    "path": "resources/Images/IMG_KSd_195207.png",
+    "sha256": "fe09ddd4fad387878875c56c91572cff5b6f577dd657044d53a2362f0d46e8c2"
+  },
+  {
+    "path": "resources/Images/IMG_KSho_185512.png",
+    "sha256": "8f782fdddb24775952ff01b69aa946535c5f9be508698736c992acdf8470ca50"
+  },
+  {
+    "path": "resources/Images/IMG_MB_174349.png",
+    "sha256": "96c95394a2f16aa432929a9d47e78c5ae52b80c37bb2b141dca1a8f4a580bc3a"
+  },
+  {
+    "path": "resources/Images/IMG_MB_191200.png",
+    "sha256": "cf176c025ed329447e6e6ce370c668d734a685cc89312edfbbf72871ebbd445a"
+  },
+  {
+    "path": "resources/Images/IMG_MB_191205.png",
+    "sha256": "6f41d8c040bbe896fe3acf51bdc6a285da9c452f819f8c33067b350b048de016"
+  },
+  {
+    "path": "resources/Images/IMG_MS_185531.png",
+    "sha256": "91fed44f8fbfc5256a5faa7e6f47b8801399d4a5c886b357f88b73d437259477"
+  },
+  {
+    "path": "resources/Images/IMG_MS_185532.png",
+    "sha256": "55b072aeb59bfd9c3674c8ed89008ee153fceeb2ea7b7c622776b1991b114ede"
+  },
+  {
+    "path": "resources/Images/IMG_MS_185533.png",
+    "sha256": "85012f17026663a8a4f758c815fcd6f7eaab01f6f78e8bd8f55c056b03ba3466"
+  },
+  {
+    "path": "resources/Images/IMG_MSho_190514.png",
+    "sha256": "4a0a26136d50cdfd258117c08ed53bea71ce57260de27338d4c7277bdd8d78e5"
+  },
+  {
+    "path": "resources/Images/IMG_MSho_190518.png",
+    "sha256": "b507a73c63b0254d420f3e0cdbe565d7cbdda20c565e2a2d136c80ce53ba5118"
+  },
+  {
+    "path": "resources/Images/IMG_MSho_191612.png",
+    "sha256": "4af3f43b571fad55dd9002f15096e0672011c9f61ee3cdec036509949e05da98"
+  },
+  {
+    "path": "resources/Images/IMG_WB_170859.png",
+    "sha256": "0574df85e9bc37132e0728a360141ae589126f43b513a0acd8c1c8782defc8b0"
+  },
+  {
+    "path": "resources/Images/IMG_WB_170905.png",
+    "sha256": "b1e076a5337a04da6dec66b7775d51bc05e85d8cb367ed84accc8135ff5630a9"
+  },
+  {
+    "path": "resources/Images/IMG_WB_170906.png",
+    "sha256": "285ccc09f34e044e62865ea16aa5321b1ac4887d6526912facea850b5722ed4f"
+  },
+  {
+    "path": "resources/Images/IMG_WS_174110.png",
+    "sha256": "293ce81ad7c57ca3639adff47deff08d8c239f0e58c12dd1eb2fdc2dd098048f"
+  },
+  {
+    "path": "resources/Images/IMG_WS_185528.png",
+    "sha256": "9387bad8d5e0be0e9da7b4fa1761321c348b4e9aa685059897110c5658db9993"
+  },
+  {
+    "path": "resources/Images/IMG_WS_185535.png",
+    "sha256": "b35b018f38e8764fc310b4b4af94a404683d3cd4fa188f743ffd6b1cdb7e21a1"
+  },
+  {
+    "path": "resources/Images/IMG_WS_185538.png",
+    "sha256": "4f3366362e7e54855564ef6539e960ab15b034ee9358174f7dfbdf7385f7ad6a"
+  },
+  {
+    "path": "resources/Images/IMG_WSd_174332.png",
+    "sha256": "98123995f0208cb763c70a16793e02d799c8cf3b8ba4c5ee5bb43a5ec8aa673d"
+  },
+  {
+    "path": "resources/Images/IMG_WSd_185156.png",
+    "sha256": "20cd3490dd91cbff006e9f2246b8697e8a4dac823fbe163bf06768aec79e5e82"
+  },
+  {
+    "path": "resources/Images/IMG_WSd_185551.png",
+    "sha256": "fe20c5cb428397047806abb3ae963a0824a00e85661b7c4b67e91d0d780af1a2"
+  },
+  {
+    "path": "resources/Images/IMG_WSho_174409.png",
+    "sha256": "9c3126946a55bfe9de5cd54e3e9454d4cbb31a0acd2e428dabac69d22080e266"
+  },
+  {
+    "path": "resources/Images/IMG_WSho_185202.png",
+    "sha256": "c2037d500f059f2f34e75271cedd4736c75740d3c2d7a9677e80dc9ba2dc6486"
+  },
+  {
+    "path": "resources/Images/IMG_WSho_185545.png",
+    "sha256": "ad7189caae29197372c7e94d3002cad3d84a354b23d3ce15e59433a0ee2a4ac5"
+  },
+  {
+    "path": "resources/Orders_import.xlsx",
+    "sha256": "8546066b769cf8bfb86f07696a0674c5ac825c1c94e9f5f8c5c524e57902e50a"
+  },
+  {
+    "path": "resources/Products_import.xlsx",
+    "sha256": "47973cf5fe5dd1b68437e73608d8facc5b4789b3acdc0f79f3bcf1e3aa147bb4"
+  },
+  {
+    "path": "resources/Sizes_import.xlsx",
+    "sha256": "45d1c933ad552b1a935f780ced4088e7710ede48196be54e9a2dd560e19a89af"
+  },
+  {
+    "path": "resources/Stock_Items_import.xlsx",
+    "sha256": "69fb40cd025089e265532ad47a5c581c1f16128661789c896949920c3a544954"
+  },
+  {
+    "path": "resources/Users_import.xlsx",
+    "sha256": "7af21a97d3a971c16d0bf7050887746729799deeb0a55f362dbb8d0cf62692b9"
+  },
+  {
+    "path": "resources/picture.png",
+    "sha256": "295f8b535c9a73428bdd1ac24ffa566ed92239698aa2c68d9977dbb469e4b623"
+  },
+  {
+    "path": "resources/Чудо Обувь.ico",
+    "sha256": "e5958b426b848708ef785d827b978036e7d6b2c9ced68dfea12f5f645a501239"
+  },
+  {
+    "path": "resources/Чудо Обувь.png",
+    "sha256": "fad64dabae49740689b474819366f764f520c44c2dbd4ba70537e32cb8b1c240"
+  }
+]

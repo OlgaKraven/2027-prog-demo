@@ -1,0 +1,8 @@
+* text=auto
+materials/original/** -text
+materials/resources/** -text
+*.png -text
+*.ico -text
+*.pdf -text
+*.zip -text
+*.xlsx -text

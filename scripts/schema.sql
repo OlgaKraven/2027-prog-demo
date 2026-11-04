@@ -1,0 +1,11 @@
+CREATE TABLE roles(id INT PRIMARY KEY, name VARCHAR(80) NOT NULL UNIQUE) ENGINE=InnoDB;
+CREATE TABLE users(id INT PRIMARY KEY,login VARCHAR(100) COLLATE utf8mb4_bin NOT NULL UNIQUE,last_name VARCHAR(100) NOT NULL,first_name VARCHAR(100) NOT NULL,patronymic VARCHAR(100) NOT NULL,role_id INT NOT NULL,FOREIGN KEY(role_id) REFERENCES roles(id)) ENGINE=InnoDB;
+CREATE TABLE categories(id INT PRIMARY KEY,name VARCHAR(100) NOT NULL UNIQUE) ENGINE=InnoDB;
+CREATE TABLE subcategories(id INT PRIMARY KEY,category_id INT NOT NULL,name VARCHAR(100) NOT NULL,UNIQUE(category_id,name),FOREIGN KEY(category_id) REFERENCES categories(id)) ENGINE=InnoDB;
+CREATE TABLE manufacturers(id INT PRIMARY KEY,name VARCHAR(150) NOT NULL UNIQUE) ENGINE=InnoDB;
+CREATE TABLE products(id INT PRIMARY KEY,subcategory_id INT NOT NULL,manufacturer_id INT NOT NULL,name VARCHAR(250) NOT NULL,image VARCHAR(250) NOT NULL,composition TEXT NOT NULL,description TEXT NOT NULL,price DECIMAL(12,2) NOT NULL CHECK(price>=0),UNIQUE(name,manufacturer_id),FOREIGN KEY(subcategory_id) REFERENCES subcategories(id),FOREIGN KEY(manufacturer_id) REFERENCES manufacturers(id)) ENGINE=InnoDB;
+CREATE TABLE sizes(id INT PRIMARY KEY,label VARCHAR(10) NOT NULL UNIQUE,sort_value DECIMAL(5,1) NOT NULL) ENGINE=InnoDB;
+CREATE TABLE stock_items(id INT PRIMARY KEY,product_id INT NOT NULL,size_id INT NOT NULL,available INT NOT NULL CHECK(available>=0),UNIQUE(product_id,size_id),FOREIGN KEY(product_id) REFERENCES products(id),FOREIGN KEY(size_id) REFERENCES sizes(id)) ENGINE=InnoDB;
+CREATE TABLE orders(id INT PRIMARY KEY AUTO_INCREMENT,order_date DATETIME NOT NULL,user_id INT NOT NULL,created_by INT NOT NULL,request_id CHAR(36) NULL UNIQUE,stock_accounted BOOLEAN NOT NULL DEFAULT 1,FOREIGN KEY(user_id) REFERENCES users(id),FOREIGN KEY(created_by) REFERENCES users(id)) ENGINE=InnoDB;
+CREATE TABLE order_items(id INT PRIMARY KEY AUTO_INCREMENT,order_id INT NOT NULL,stock_id INT NOT NULL,quantity INT NOT NULL CHECK(quantity>0),unit_price DECIMAL(12,2) NOT NULL CHECK(unit_price>=0),UNIQUE(order_id,stock_id),FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE CASCADE,FOREIGN KEY(stock_id) REFERENCES stock_items(id)) ENGINE=InnoDB;
+CREATE INDEX orders_by_date ON orders(order_date);

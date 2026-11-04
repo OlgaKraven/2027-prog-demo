@@ -1,0 +1,188 @@
+[
+  {
+    "id": 1,
+    "quantity": 120,
+    "price": "2190.00",
+    "discount": false
+  },
+  {
+    "id": 2,
+    "quantity": 4,
+    "price": "1867.50",
+    "discount": true
+  },
+  {
+    "id": 3,
+    "quantity": 60,
+    "price": "1492.50",
+    "discount": true
+  },
+  {
+    "id": 4,
+    "quantity": 30,
+    "price": "2617.50",
+    "discount": true
+  },
+  {
+    "id": 5,
+    "quantity": 15,
+    "price": "2392.50",
+    "discount": true
+  },
+  {
+    "id": 6,
+    "quantity": 12,
+    "price": "4290.00",
+    "discount": false
+  },
+  {
+    "id": 7,
+    "quantity": 16,
+    "price": "2790.00",
+    "discount": false
+  },
+  {
+    "id": 8,
+    "quantity": 28,
+    "price": "1690.00",
+    "discount": false
+  },
+  {
+    "id": 9,
+    "quantity": 21,
+    "price": "1792.50",
+    "discount": true
+  },
+  {
+    "id": 10,
+    "quantity": 24,
+    "price": "25000.00",
+    "discount": false
+  },
+  {
+    "id": 11,
+    "quantity": 4,
+    "price": "15000.00",
+    "discount": false
+  },
+  {
+    "id": 12,
+    "quantity": 15,
+    "price": "17000.00",
+    "discount": false
+  },
+  {
+    "id": 13,
+    "quantity": 50,
+    "price": "7500.00",
+    "discount": false
+  },
+  {
+    "id": 14,
+    "quantity": 3,
+    "price": "4200.00",
+    "discount": true
+  },
+  {
+    "id": 15,
+    "quantity": 69,
+    "price": "7130.00",
+    "discount": false
+  },
+  {
+    "id": 16,
+    "quantity": 75,
+    "price": "12340.00",
+    "discount": false
+  },
+  {
+    "id": 17,
+    "quantity": 16,
+    "price": "7757.00",
+    "discount": false
+  },
+  {
+    "id": 18,
+    "quantity": 18,
+    "price": "5662.50",
+    "discount": true
+  },
+  {
+    "id": 19,
+    "quantity": 4,
+    "price": "7087.50",
+    "discount": true
+  },
+  {
+    "id": 20,
+    "quantity": 20,
+    "price": "8565.00",
+    "discount": false
+  },
+  {
+    "id": 21,
+    "quantity": 64,
+    "price": "8765.00",
+    "discount": false
+  },
+  {
+    "id": 22,
+    "quantity": 6,
+    "price": "7795.00",
+    "discount": false
+  },
+  {
+    "id": 23,
+    "quantity": 72,
+    "price": "6550.00",
+    "discount": false
+  },
+  {
+    "id": 24,
+    "quantity": 300,
+    "price": "7890.00",
+    "discount": false
+  },
+  {
+    "id": 25,
+    "quantity": 9,
+    "price": "9567.00",
+    "discount": false
+  },
+  {
+    "id": 26,
+    "quantity": 69,
+    "price": "24569.00",
+    "discount": false
+  },
+  {
+    "id": 27,
+    "quantity": 45,
+    "price": "7616.25",
+    "discount": true
+  },
+  {
+    "id": 28,
+    "quantity": 3,
+    "price": "25625.00",
+    "discount": false
+  },
+  {
+    "id": 29,
+    "quantity": 2,
+    "price": "21500.00",
+    "discount": false
+  },
+  {
+    "id": 30,
+    "quantity": 40,
+    "price": "14567.00",
+    "discount": false
+  },
+  {
+    "id": 31,
+    "quantity": 60,
+    "price": "15670.00",
+    "discount": false
+  }
+]

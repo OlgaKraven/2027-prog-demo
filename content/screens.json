@@ -1,0 +1,22 @@
+{
+  "examples/WinForms/CatalogForm.cs": {
+    "file": "materials/screens/catalog-client.png",
+    "caption": "Каталог после входа клиента: ФИО, поиск, категория, сортировка и цены на контрольную дату."
+  },
+  "examples/WinForms/ProductForm.cs": {
+    "file": "materials/screens/product.png",
+    "caption": "Карточка модели из работающего приложения: описание, доступные размеры и количество."
+  },
+  "examples/WinForms/BasketForm.cs": {
+    "file": "materials/screens/basket.png",
+    "caption": "Оформление выбранной позиции в настоящем окне Windows. Сумма рассчитана на контрольную дату."
+  },
+  "login": {
+    "file": "materials/screens/login.png",
+    "caption": "Вход в приложение по исходному логину без пароля; на снимке учебный администратор."
+  },
+  "examples/WinForms/OrdersForm.cs": {
+    "file": "materials/screens/orders.png",
+    "caption": "Список заказов в окне администратора: новый заказ клиента и исходная история."
+  }
+}

@@ -1,0 +1,25 @@
+name: Проверка курса и приложения
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  validate:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet build examples/WinForms/ProgDemo.WinForms.csproj -c Release --nologo
+      - run: npm run build
+      - run: npm test
+      - run: dotnet run --project examples/Checks
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ProgDemo-Windows
+          path: examples/WinForms/bin/Release/net10.0-windows/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ProgDemo-Course
+          path: site/
