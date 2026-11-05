@@ -1,0 +1,12 @@
+{
+  "dataOnly": true,
+  "products": 31,
+  "sizes": 35,
+  "platform": "Windows",
+  "stock": 92,
+  "users": 20,
+  "sha256": "1ee2a550f2cdbb9195ad7333e245cafbff1a45d99c3075263dd9e418d2eb13f6",
+  "orders": 10,
+  "lines": 30,
+  "identicalMacSha256": "1ee2a550f2cdbb9195ad7333e245cafbff1a45d99c3075263dd9e418d2eb13f6"
+}

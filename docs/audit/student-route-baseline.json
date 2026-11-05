@@ -1,0 +1,643 @@
+{
+  "sourceCommit": "798a93dd4ae9881650029054a1e1cd648f1ccd6a",
+  "purpose": "Предыдущий маршрут до уточнения о визуальных конструкторах. Не является действующей инструкцией.",
+  "steps": [
+    {
+      "id": "documents-01",
+      "stage": "documents",
+      "title": "Откройте Windows и исходное задание",
+      "actions": [
+        "В запущенной Windows откройте Visual Studio.",
+        "Откройте «Материалы задания» на баннере и скачайте исходный комплект.",
+        "Прочитайте страницы 35–42 КИМ и приложение 1. Сохраните файлы в папку ProgDemo рядом с будущим решением."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "documents-02",
+      "stage": "documents",
+      "title": "Проверьте инструменты",
+      "actions": [
+        "В Visual Studio выберите Create a new project. Найдите Windows Forms App на C# без пометки .NET Framework.",
+        "Если шаблона нет, откройте Visual Studio Installer → Modify → .NET desktop development → Modify.",
+        "Запустите XAMPP Control Panel → MySQL → Start. Откройте Admin для phpMyAdmin."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "documents-03",
+      "stage": "documents",
+      "title": "Различайте приложение и СУБД",
+      "actions": [
+        "Выпишите сервер, порт, имя учебной базы и пользователя СУБД. Пароль храните локально.",
+        "Найдите isivanov, papetrov и asidorova в Users_import.xlsx: это администратор, менеджер и клиент.",
+        "Не добавляйте поле пароля и пазл покупателю."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "documents-04",
+      "stage": "documents",
+      "title": "Посмотрите пять таблиц Excel",
+      "actions": [
+        "Откройте Products, Stock_Items, Sizes, Users и Orders из ресурсов.",
+        "Сопоставьте одинаковую модель по имени и производителю.",
+        "Посчитайте: 31 модель, 92 позиции, 35 размеров, 20 пользователей, 10 заказов и 30 строк заказа."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "documents-05",
+      "stage": "documents",
+      "title": "Отделите оригиналы от исправленного импорта",
+      "actions": [
+        "Оставьте оригинальные XLSX без изменений.",
+        "В разделе «Примеры» прочитайте «Решения импорта».",
+        "Для сопоставления убирайте лишние пробелы только в производном ключе. Сокращение названия «Черные туфли…» сопоставьте явным правилом, а не поиском по похожести."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "documents-06",
+      "stage": "documents",
+      "title": "Выберите учебную дату расчёта",
+      "actions": [
+        "Сохраните исходные даты.",
+        "Для проверки примера задайте PROG_DEMO_DATE=2026-05-15 в профиле запуска Visual Studio.",
+        "Для обычной работы удалите эту переменную: приложение возьмёт сегодняшнюю дату."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M1-01",
+      "stage": "M1",
+      "title": "Выделите справочники",
+      "actions": [
+        "Откройте пошаговую ER.",
+        "Выделите роли, категории, подкатегории, производителей и размеры.",
+        "Назовите первичный ключ каждой таблицы и поля, которые должны быть уникальными."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M1-02",
+      "stage": "M1",
+      "title": "Отделите модель от размера",
+      "actions": [
+        "Создайте products для моделей и stock_items для размерных позиций.",
+        "В stock_items задайте product_id, size_id и available.",
+        "Добавьте UNIQUE(product_id,size_id) и ограничение available>=0."
+      ],
+      "file": "scripts/schema.sql",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M1-03",
+      "stage": "M1",
+      "title": "Проверьте третью нормальную форму",
+      "actions": [
+        "Пройдите связи products → subcategories → categories.",
+        "Пройдите order_items → stock_items → products.",
+        "Оставьте unit_price в строке заказа, чтобы новая скидка не меняла старую продажу."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M1-04",
+      "stage": "M1",
+      "title": "Создайте таблицы в правильном порядке",
+      "actions": [
+        "В phpMyAdmin выберите SQL.",
+        "Создайте отдельную базу prog_demo_sample с utf8mb4.",
+        "Введите определения scripts/schema.sql, просмотрите PK/FK и выполните их. Не запускайте повторно поверх заполненной базы."
+      ],
+      "file": "scripts/schema.sql",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M1-05",
+      "stage": "M1",
+      "title": "Разберите программный импорт",
+      "actions": [
+        "Откройте scripts/prepare_data.py в редакторе.",
+        "Найдите model(): нормализацию пробелов и явный словарь сокращённого названия.",
+        "Найдите stock_keys и user_keys: проверьте, откуда берутся ссылки строк заказа."
+      ],
+      "file": "scripts/prepare_data.py",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M1-06",
+      "stage": "M1",
+      "title": "Загрузите данные",
+      "actions": [
+        "В новой пустой базе откройте Import → content/sample.sql.",
+        "Если уже создали схему на предыдущем шаге, импортируйте только INSERT из sample.sql во вкладке SQL, начиная с START TRANSACTION.",
+        "Не выполняйте и импорт целого файла, и отдельные INSERT повторно."
+      ],
+      "file": "content/sample.sql",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M1-07",
+      "stage": "M1",
+      "title": "Проверьте данные запросами",
+      "actions": [
+        "В SQL выполните запросы ниже.",
+        "Сравните результат с пятью XLSX.",
+        "Если получилось 30 заказов, объедините повторяющиеся номера в один заголовок до импорта."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M1-08",
+      "stage": "M1",
+      "title": "Не списывайте исторические заказы второй раз",
+      "actions": [
+        "Проверьте, что у исходных orders stock_accounted=0.",
+        "У нового подтверждённого заказа оно будет равно 1.",
+        "При удалении возвращайте остаток только у заказа, который его действительно списывал."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M1-09",
+      "stage": "M1",
+      "title": "Сохраните ER и переносимый SQL",
+      "actions": [
+        "Откройте готовую ER и сохраните PDF из материалов.",
+        "Для самостоятельного решения сформируйте свою ER по собственной схеме.",
+        "В phpMyAdmin выберите Export → Custom → SQL, структуру и данные. Включите CREATE TABLE, сохраните файл."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M1-10",
+      "stage": "M1",
+      "title": "Проверьте себя: отсутствующая модель",
+      "actions": [
+        "Объясните, почему совпадения одного производителя недостаточно.",
+        "Попробуйте создать два одинаковых ключа «имя + производство» в копии данных.",
+        "Сопоставление должно остановиться с сообщением, а не выбрать первую запись."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M2-01",
+      "stage": "M2",
+      "title": "Создайте решение C#",
+      "actions": [
+        "Visual Studio → Create a new project → Windows Forms App → C#.",
+        "Имя ProgDemo.WinForms, имя решения ProgDemo, .NET 10.",
+        "В Solution Explorer удалите Form1.cs вместе с Designer/resx из нового пустого проекта. Все формы дальше создаются кодом."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M2-02",
+      "stage": "M2",
+      "title": "Добавьте библиотеку и ссылку",
+      "actions": [
+        "Правой кнопкой по Solution → Add → New Project → Class Library → ProgDemo.Core → .NET 10.",
+        "Правой кнопкой по ProgDemo.WinForms → Add → Project Reference → отметьте ProgDemo.Core → OK.",
+        "Удалите пустой Class1.cs. В создаваемых файлах библиотеки используйте namespace ProgDemo."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M2-03",
+      "stage": "M2",
+      "title": "Установите один провайдер",
+      "actions": [
+        "Правой кнопкой по ProgDemo.Core → Manage NuGet Packages → Browse.",
+        "Найдите MySqlConnector, выберите 2.6.1 → Install.",
+        "Если откроется Preview Changes, нажмите Apply; затем примите показанную лицензию."
+      ],
+      "file": "examples/Core/ProgDemo.Core.csproj",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M2-04",
+      "stage": "M2",
+      "title": "Создайте модели данных",
+      "actions": [
+        "В Core выберите Add → Class → Models.cs.",
+        "Замените содержимое кодом из файла для сверки.",
+        "Прочитайте каждый record и найдите соответствующие поля в ER."
+      ],
+      "file": "examples/Core/Models.cs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M2-05",
+      "stage": "M2",
+      "title": "Найдите границы предыдущего месяца",
+      "actions": [
+        "Найдите Rules.PreviousMonth.",
+        "Для 15.05.2026 ожидайте [01.04.2026;01.05.2026).",
+        "Для 05.01.2027 ожидайте [01.12.2026;01.01.2027)."
+      ],
+      "file": "examples/Core/Models.cs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M2-06",
+      "stage": "M2",
+      "title": "Рассчитайте скидку и два порога",
+      "actions": [
+        "Изучите Price, QuantityLabel и LowStock.",
+        "Для 100 рублей без заказов прошлого месяца получите 75 рублей.",
+        "Проверьте 3,4,5,6 пар: красный только при 3, «мало» до 5 включительно."
+      ],
+      "file": "examples/Core/Models.cs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M2-07",
+      "stage": "M2",
+      "title": "Создайте слой запросов",
+      "actions": [
+        "В Core добавьте Store.cs.",
+        "Поместите полный файл сверки и разберите Open, Command, Login и Categories.",
+        "Проверьте, что значения передаются как @p0… через AddWithValue, а не вставляются в SQL строкой."
+      ],
+      "file": "examples/Core/Store.cs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M2-08",
+      "stage": "M2",
+      "title": "Разберите запрос каталога",
+      "actions": [
+        "Найдите Catalog в Store.cs.",
+        "Проследите параметры начала/конца месяца, строки поиска и категории.",
+        "Проверьте сортировку уже рассчитанной цены со скидкой, а не базовой цены."
+      ],
+      "file": "examples/Core/Store.cs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M2-09",
+      "stage": "M2",
+      "title": "Создайте общую основу окон",
+      "actions": [
+        "В оконном проекте Add → Class → Ui.cs.",
+        "Поместите код Ui.cs из сверки.",
+        "В свойствах проекта сохраните UseWindowsForms=true; проверьте namespace ProgDemo.WinForms."
+      ],
+      "file": "examples/WinForms/Ui.cs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M2-10",
+      "stage": "M2",
+      "title": "Подключите исходные изображения",
+      "actions": [
+        "Создайте в выходных ресурсах Assets и Assets/Images либо подключите Content в csproj по примеру.",
+        "Скопируйте picture.png, «Чудо Обувь.png» и изображения из Images.",
+        "Настройте Copy to Output Directory → Copy if newer. Иконку задайте в свойствах приложения."
+      ],
+      "file": "examples/WinForms/ProgDemo.WinForms.csproj",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M2-11",
+      "stage": "M2",
+      "title": "Прочитайте карточку товара",
+      "actions": [
+        "Найдите Reload в CatalogForm.cs.",
+        "Сопоставьте три колонки TableLayoutPanel с макетом страницы 38.",
+        "Найдите LowStock для цвета строки и Picture для запасного изображения."
+      ],
+      "file": "examples/WinForms/CatalogForm.cs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M2-12",
+      "stage": "M2",
+      "title": "Подготовьте остальные окна перед главной формой",
+      "actions": [
+        "Сохраните примеры файлов окон для следующего этапа.",
+        "Сначала проверьте сборку Core: правой кнопкой по библиотеке → Build.",
+        "Продолжите к заданию 3, затем вернитесь к первому запуску после добавления всех окон."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M3-01",
+      "stage": "M3",
+      "title": "Проверьте вход без пароля",
+      "actions": [
+        "Найдите Login в Store.cs и CatalogForm.cs.",
+        "Проверьте сообщение для неизвестного логина.",
+        "При смене пользователя корзина очищается после предупреждения, чтобы заказ одного человека не попал другому."
+      ],
+      "file": "examples/WinForms/CatalogForm.cs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M3-02",
+      "stage": "M3",
+      "title": "Свяжите поиск, фильтр и сортировку",
+      "actions": [
+        "В CatalogForm найдите подписки на три события.",
+        "В Reload проверьте search.Text, category.Text и sort.SelectedIndex.",
+        "Для гостя фильтры отключены; после входа становятся доступны."
+      ],
+      "file": "examples/WinForms/CatalogForm.cs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M3-03",
+      "stage": "M3",
+      "title": "Добавьте карточку модели",
+      "actions": [
+        "Add → Class → ProductForm.cs; вставьте полный файл сверки.",
+        "Найдите store.Catalog и store.Sizes.",
+        "Проверьте поля описания, состава, производителя, размера и количества."
+      ],
+      "file": "examples/WinForms/ProductForm.cs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M3-04",
+      "stage": "M3",
+      "title": "Соберите заказ из нескольких позиций",
+      "actions": [
+        "Найдите обработчик добавления в CatalogForm.",
+        "Добавьте BasketForm.cs по сверке.",
+        "Проследите, как выбранная строка меняет количество или удаляется до сохранения."
+      ],
+      "file": "examples/WinForms/BasketForm.cs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M3-05",
+      "stage": "M3",
+      "title": "Сохраните цену на момент продажи",
+      "actions": [
+        "В PlaceOrder найдите unit_price.",
+        "Проследите получение базовой цены и проверку истории прошлого месяца.",
+        "Проверьте сумму как quantity×unit_price, а не как текст из Label."
+      ],
+      "file": "examples/Core/Store.cs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M3-06",
+      "stage": "M3",
+      "title": "Разберите транзакцию",
+      "actions": [
+        "Найдите BeginTransaction, Commit и Rollback.",
+        "Прочитайте FOR UPDATE и условное UPDATE с available>=quantity.",
+        "Разберите порядок блокировки по StockId: это снижает риск взаимной блокировки двух заказов."
+      ],
+      "file": "examples/Core/Store.cs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M3-07",
+      "stage": "M3",
+      "title": "Защитите повторное подтверждение",
+      "actions": [
+        "Найдите Guid request в BasketForm и UNIQUE request_id в ER/SQL.",
+        "Проследите существующий заказ по request_id в PlaceOrder.",
+        "После изменения корзины создаётся новый идентификатор."
+      ],
+      "file": "examples/WinForms/BasketForm.cs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M3-08",
+      "stage": "M3",
+      "title": "Обработайте отказ и ошибки",
+      "actions": [
+        "Найдите «Отказаться от заказа» и предупреждение перед очисткой.",
+        "Прочитайте Ui.Guard: заголовок, пиктограмму и полезный текст ошибки.",
+        "Проверьте отсутствие прямого вывода ConnectionString и MySqlException.Message."
+      ],
+      "file": "examples/WinForms/Ui.cs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M3-09",
+      "stage": "M3",
+      "title": "Соберите главный каталог",
+      "actions": [
+        "Создайте CatalogForm.cs по сверке.",
+        "Проверьте названия классов и namespace всех файлов.",
+        "Не добавляйте Designer.cs: элементы создаются в конструкторах кодом."
+      ],
+      "file": "examples/WinForms/CatalogForm.cs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M4-01",
+      "stage": "M4",
+      "title": "Ограничьте операции по роли",
+      "actions": [
+        "Найдите RequireUser, Orders, Customers и ChangeOrder.",
+        "Проверьте manager: просмотр, добавление, удаление заказа; admin: ещё дата и удаление строки.",
+        "Клиенту запрещено оформлять на другого пользователя."
+      ],
+      "file": "examples/Core/Store.cs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M4-02",
+      "stage": "M4",
+      "title": "Добавьте список и состав заказов",
+      "actions": [
+        "Создайте OrdersForm.cs по сверке.",
+        "Найдите параметр orderId в OrderLines.",
+        "Проверьте русские подписи столбцов и обновление после изменения."
+      ],
+      "file": "examples/WinForms/OrdersForm.cs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M4-03",
+      "stage": "M4",
+      "title": "Верните остаток ровно один раз",
+      "actions": [
+        "Найдите SELECT … FOR UPDATE заголовка заказа.",
+        "Проследите accounted и UPDATE available=available+quantity.",
+        "Проверьте, что удаление строки разрешено только администратору."
+      ],
+      "file": "examples/Core/Store.cs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M4-04",
+      "stage": "M4",
+      "title": "Создайте точку входа",
+      "actions": [
+        "Откройте Program.cs оконного проекта и замените кодом сверки.",
+        "Правой кнопкой по ProgDemo.WinForms → Set as Startup Project.",
+        "В меню Build → Build Solution проверьте отсутствие ошибок."
+      ],
+      "file": "examples/WinForms/Program.cs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M4-05",
+      "stage": "M4",
+      "title": "Запустите подключение и гостевой каталог",
+      "actions": [
+        "Нажмите F5. Введите реквизиты MySQL и базу prog_demo_sample.",
+        "Нажмите «Проверить и открыть».",
+        "Сверьте логотип, Calibri, белый/#D2F6E7/#70B2AF и строки каталога."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M4-06",
+      "stage": "M4",
+      "title": "Проверьте клиентский сценарий",
+      "actions": [
+        "Войдите asidorova; ФИО появится справа сверху.",
+        "Найдите модель, выберите размер и две пары; добавьте ещё одну модель.",
+        "Откройте «Мой заказ», измените количество, подтвердите. Вернитесь к каталогу и сравните остатки."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M4-07",
+      "stage": "M4",
+      "title": "Проверьте нехватку товара",
+      "actions": [
+        "В отдельной учебной копии выберите две позиции.",
+        "Уменьшите остаток второй в БД до количества меньше выбранного.",
+        "Подтвердите заказ и убедитесь, что ошибка объясняет обновление, а первая позиция не списана."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M4-08",
+      "stage": "M4",
+      "title": "Проверьте менеджера и администратора",
+      "actions": [
+        "Войдите papetrov: откройте заказы, создайте заказ на выбранного клиента и удалите его.",
+        "Войдите isivanov: откройте состав, измените дату и удалите строку.",
+        "Проверьте, что у менеджера нет изменения даты и удаления строки, а у клиента нет списка заказов."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M4-09",
+      "stage": "M4",
+      "title": "Проверьте приложение при масштабе Windows",
+      "actions": [
+        "Откройте Windows Settings → System → Display и посмотрите текущий Scale.",
+        "Проверьте все окна при вашем масштабе; уменьшите окно до минимального размера.",
+        "Длинное описание и список должны прокручиваться, кнопки оставаться доступными."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M4-10",
+      "stage": "M4",
+      "title": "Запустите прикладные проверки",
+      "actions": [
+        "Для готового примера откройте решение и выберите ProgDemo.Checks как стартовый проект.",
+        "Укажите отдельную тестовую базу в PROG_DEMO_CONNECTION через Project Properties → Debug → Open debug launch profiles UI → Environment variables.",
+        "Запустите проверки и прочитайте каждое PASS. Не направляйте их в рабочую базу."
+      ],
+      "file": "examples/Checks/Program.cs",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M4-11",
+      "stage": "M4",
+      "title": "Подготовьте исполняемый результат",
+      "actions": [
+        "В Visual Studio выберите Release → Build Solution.",
+        "Сохраните весь каталог вывода с exe, dll, runtimeconfig/deps и Assets, а не только exe.",
+        "Откройте exe в Windows из полученной папки. При отсутствии .NET используйте Publish с подходящим runtime и явно выбранным режимом автономности."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "M4-12",
+      "stage": "M4",
+      "title": "Передайте решение в репозиторий",
+      "actions": [
+        "Проверьте исходники, исполняемые файлы, SQL с данными, ER PDF и README.",
+        "Через Git Changes Visual Studio просмотрите изменённые файлы и исключите .vs, obj, локальные профили с паролями.",
+        "Создайте commit с понятным названием и отправьте в предоставленный экзаменационный репозиторий в пределах времени задания."
+      ],
+      "file": "",
+      "status": "pending",
+      "evidence": []
+    }
+  ]
+}

@@ -12,6 +12,13 @@ jobs:
         with:
           dotnet-version: '10.0.x'
       - run: dotnet build examples/WinForms/ProgDemo.WinForms.csproj -c Release --nologo
+      - run: dotnet run --project examples/Import -- materials/resources output/import-check prog_demo_student
+      - shell: pwsh
+        run: |
+          $r = Get-Content output/import-check/import-report.json -Raw | ConvertFrom-Json
+          if ($r.products -ne 31 -or $r.stock -ne 92 -or $r.sizes -ne 35 -or $r.users -ne 20 -or $r.orders -ne 10 -or $r.lines -ne 30) { throw "Source import counts differ" }
+          $sql = Get-Content output/import-check/data.sql -Raw
+          if ($sql -match '(?i)\b(CREATE|ALTER|DROP)\b') { throw "Importer must not change structure" }
       - run: npm run build
       - run: npm test
       - run: dotnet run --project examples/Checks

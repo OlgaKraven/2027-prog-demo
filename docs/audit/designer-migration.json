@@ -1,0 +1,28 @@
+{
+  "complete": false,
+  "requiredRoute": {
+    "forms": "Visual Studio Windows Forms Designer",
+    "database": "Visual table, key, relation and ER designers",
+    "code": "Queries, object functions, events, validation, import"
+  },
+  "verified": [
+    "New C# Windows Forms App project opened in Visual Studio 2026",
+    "Button added from Toolbox",
+    "Text property edited to Войти in Properties and saved by Designer",
+    "C# data-only importer executed on macOS and Windows with identical output SHA-256",
+    "49 revised web steps displayed at 390/768/1440 in both themes, 294 screen checks, no JavaScript errors"
+  ],
+  "notVerified": [
+    "All final forms migrated to Designer",
+    "All event bindings configured through Properties",
+    "Ten tables and constraints created through visual DB editors",
+    "DB relationship diagram created and exported",
+    "GUI SQL export restored in another empty database",
+    "Every student action repeated in Visual Studio"
+  ],
+  "evidence": [
+    "../../materials/screens/vs-designer-button.png",
+    "windows-data-import.json",
+    "../browser-checks.json"
+  ]
+}

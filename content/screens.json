@@ -18,5 +18,9 @@
   "examples/WinForms/OrdersForm.cs": {
     "file": "materials/screens/orders.png",
     "caption": "Список заказов в окне администратора: новый заказ клиента и исходная история."
+  },
+  "designer-button": {
+    "file": "materials/screens/vs-designer-button.png",
+    "caption": "Visual Studio 2026, реальный Designer: кнопка добавлена из Toolbox, свойство Text изменено на «Войти» через Properties. Это проверка одного компонента, не готовой формы."
   }
 }
