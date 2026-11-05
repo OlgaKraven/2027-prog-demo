@@ -1,0 +1,377 @@
+{
+  "complete": true,
+  "platform": "Darwin",
+  "dataOnly": true,
+  "independentCsvToSqlFieldComparison": true,
+  "variants": [
+    {
+      "variant": "V01",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "51475a54ed47a7047b2d38f64d3efe41b6c3504559b98ab44ab8c0301a4c495e"
+    },
+    {
+      "variant": "V02",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "053b23992b9c3f0a19138d3d7841de073e45df73f8302a0040e07c3dc410546c"
+    },
+    {
+      "variant": "V03",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "60c5680c9c0076991cef749cfec56b0cd4dda239bdfce7382f5cd6efb21c9d4c"
+    },
+    {
+      "variant": "V04",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "b5d5ec93e646cb13c9b3031baac5a6fa195ce2a9affded5a06c82aff5468ee69"
+    },
+    {
+      "variant": "V05",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "7fa9b881ea130ae958be011a433f268eb5e066a7ef7304d394e82d7df4833794"
+    },
+    {
+      "variant": "V06",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "895a01899ccc6b5f407da384d94e85d20feab98f9b4ac61fa613b1d2f095b790"
+    },
+    {
+      "variant": "V07",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "a3c18d62fef4a958131628e4c1fcdeb518c7d6242371fd21299ecc8c601599e7"
+    },
+    {
+      "variant": "V08",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "89c1818207158d9f9a3a307dc4f430afa61071afb9569e8f0ea636e4c5f0ed71"
+    },
+    {
+      "variant": "V09",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "1ff9e7f5a70ac5f2235f0441bb3c11281282fb41944e32fc33d84930b7520c98"
+    },
+    {
+      "variant": "V10",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "3c8ded905f3a0f57647a3ad5cc5110e5828d9766872d7fdd6ab2d94e3df40ea5"
+    },
+    {
+      "variant": "V11",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "92779f14518a0afe83cfb7c280be5663c3a124ef8e8e058caf86be6c8a79af18"
+    },
+    {
+      "variant": "V12",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "6ae4a21411e0cb869bfb23e480d040c882da43cc1338040c85a0af25e913b6fa"
+    },
+    {
+      "variant": "V13",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "52a46f6422702c6d051abf16cee833a2b9ce6217a2578f5ada3d072ece8d552d"
+    },
+    {
+      "variant": "V14",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "9f25cff7932a7d312a8126807bb7de5bbce36058be216da1a4becfefa2a71cef"
+    },
+    {
+      "variant": "V15",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "2d281a81c49b486bb17ac75875b25fe0791fc8eb743388a3f5fce954bd98c456"
+    },
+    {
+      "variant": "V16",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "575961a88ae429f262e9c72d8cd19324ba89fc65affcce4309f312412fa6ad1e"
+    },
+    {
+      "variant": "V17",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "ed2c566be942e42a545d6f2ad24f54d1642e3b9951bf111a34a22eb3c6a5c50a"
+    },
+    {
+      "variant": "V18",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "8db19f40beb4fa7dea07edb6f4b6560627fef2265212e292e5af8d679a7039d9"
+    },
+    {
+      "variant": "V19",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "2c1267d9099813e7cf24fa191bf2ed474c6d9872c49023113678932c4d80b153"
+    },
+    {
+      "variant": "V20",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "39d1579b21cb3737fd32a534c3a05e6c3e79c7737a932c5f2cb91abc56054e70"
+    },
+    {
+      "variant": "V21",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "1926fa8541ec7f4aa9a5822d43c49f5b5440d5d211baeb7604ff42bffbd69b5d"
+    },
+    {
+      "variant": "V22",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "3726f50e4dd89725f249205f5c06184160f2d004b50b23cb4f95f28ea657e2d7"
+    },
+    {
+      "variant": "V23",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "621ce180de12a4a8e1ecb2c406a30f57e151e61d66c57e6964ead76609d2f989"
+    },
+    {
+      "variant": "V24",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "7c7354a7f9e727f02ed59622f47470693cb8be6303633597e4301e64b02d18ac"
+    },
+    {
+      "variant": "V25",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "24e0bffa68f656a02f4b1b6c7553f8169e330c984736739fad0ef8a72a30818a"
+    },
+    {
+      "variant": "V26",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "5262151b40ce8f7766c79c9318d78a1511984699061c01d23a632abe00113ca2"
+    },
+    {
+      "variant": "V27",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "628f2de10f3daf1b9bddf1dbf67cb3eac6d3ad738c84d08b345aeb7902dc1dc4"
+    },
+    {
+      "variant": "V28",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "970e3acec4dd3bdf4fb0c3f613e5413edde66f9554441dd1bfe1a78f3333e791"
+    },
+    {
+      "variant": "V29",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "27fefdd39f9c05e45f0788dda104e6280409a53cce6365b5305d78b1db950d5f"
+    },
+    {
+      "variant": "V30",
+      "counts": {
+        "products": 31,
+        "stock": 92,
+        "sizes": 35,
+        "users": 20,
+        "orders": 10,
+        "items": 30
+      },
+      "sqlSha256": "75ec8c92629b9caed07ea29120ae0f9c8c9228360807e4bd906016ffcf7e622b"
+    }
+  ],
+  "negativeCases": [
+    "items.stock_id",
+    "stock.id",
+    "orders.stock_accounted",
+    "users.full_name",
+    "refuse-overwrite"
+  ],
+  "inputFilesUnchanged": 185,
+  "originalSqlSha256": "1ee2a550f2cdbb9195ad7333e245cafbff1a45d99c3075263dd9e418d2eb13f6"
+}

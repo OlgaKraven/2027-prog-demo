@@ -16,13 +16,14 @@ try
         string value=Console.ReadLine()?.Trim().Trim('"')??"";
         return value.Length==0?fallback:value;
     }
-    var input=Path.GetFullPath(Ask(0,"Папка с пятью распакованными XLSX:"));
+    var input=Path.GetFullPath(Ask(0,"Папка с пятью распакованными XLSX или шестью CSV авторского варианта:"));
     var output=Path.GetFullPath(Ask(1,"Папка для результата:",Path.Combine(input,"Prepared")));
     var database=Ask(2,"Имя пустой учебной базы, созданной в конструкторе (Enter — prog_demo_student):","prog_demo_student");
     if(!Regex.IsMatch(database,"^[a-z][a-z0-9_]{0,60}$"))throw new InvalidOperationException("Имя базы: латинская буква, затем строчные латинские буквы, цифры и _. Максимум 61 символ.");
     var data=new Dictionary<string,List<Dictionary<string,string>>>();
     var hashes=new Dictionary<string,string>();
-    foreach(var name in new[]{"Products","Stock_Items","Sizes","Users","Orders"})
+    if(File.Exists(Path.Combine(input,"products.csv")))data=CsvInput.ReadVariant(input,hashes);
+    else foreach(var name in new[]{"Products","Stock_Items","Sizes","Users","Orders"})
     {
         string file=Path.Combine(input,name+"_import.xlsx");
         if(!File.Exists(file))throw new InvalidOperationException("Не найден "+file+". Укажите папку, непосредственно содержащую XLSX, не внешний ZIP.");
@@ -94,7 +95,7 @@ try
     using(var f=new FileStream(result,FileMode.CreateNew,FileAccess.Write))using(var writer=new StreamWriter(f,new UTF8Encoding(false)))writer.Write(sql.ToString().Replace("\r\n","\n"));
     File.WriteAllText(Path.Combine(output,"import-report.json"),JsonSerializer.Serialize(new{products=products.Count,stock=stock.Count,sizes=sizes.Count,users=users.Count,orders=headers.Count,lines=lines.Count,corrections,sha256=hashes},new JsonSerializerOptions{WriteIndented=true}),new UTF8Encoding(false));
     Console.WriteLine($"Готово: {products.Count} модель, {stock.Count} позиции, {sizes.Count} размеров, {users.Count} пользователей, {headers.Count} заказов, {lines.Count} строк.");
-    Console.WriteLine("SQL: "+result+"\nВходные XLSX не изменены. Импортируйте data.sql в пустые таблицы базы, созданные конструктором; повторно поверх заполненной базы не запускайте.");
+    Console.WriteLine("SQL: "+result+"\nВходные файлы не изменены. Импортируйте data.sql в пустые таблицы базы, созданные конструктором; повторно поверх заполненной базы не запускайте.");
 }
 catch(Exception e) when(e is IOException or InvalidOperationException or FormatException or KeyNotFoundException or InvalidDataException or ArgumentException)
 {
