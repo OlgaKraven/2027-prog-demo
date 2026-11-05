@@ -10,19 +10,26 @@
     "Button added from Toolbox",
     "Text property edited to Войти in Properties and saved by Designer",
     "C# data-only importer executed on macOS and Windows with identical output SHA-256",
-    "49 revised web steps displayed at 390/768/1440 in both themes, 294 screen checks, no JavaScript errors"
+    "49 revised web steps displayed at 390/768/1440 in both themes, 294 screen checks, no JavaScript errors",
+    "Ten tables, 41 fields, 10 PK, 10 UNIQUE, 10 FK, four CHECK and date index created through DBeaver visual editors; actual server metadata compared with the ER model",
+    "Data-only C# import executed via DBeaver SQL Script in visually created schema; separate connection confirmed all ten table counts after commit",
+    "DB relationship diagram configured with types, nullability and Crow foot; arranged and exported to PNG through DBeaver; all ten tables and ten relations visually inspected",
+    "ConnectionForm, LoginForm and ProductForm created in Visual Studio Designer, including all components, named properties and event bindings; generated sources copied byte for byte; macOS Windows-targeting build passed with no warnings"
   ],
   "notVerified": [
     "All final forms migrated to Designer",
     "All event bindings configured through Properties",
-    "Ten tables and constraints created through visual DB editors",
-    "DB relationship diagram created and exported",
     "GUI SQL export restored in another empty database",
-    "Every student action repeated in Visual Studio"
+    "Every student action repeated in Visual Studio",
+    "ER diagram printed to PDF through Windows"
   ],
   "evidence": [
     "../../materials/screens/vs-designer-button.png",
     "windows-data-import.json",
-    "../browser-checks.json"
+    "../browser-checks.json",
+    "database-designer.json",
+    "../../materials/screens/dbeaver-er.png",
+    "designer-forms.json",
+    "student-walkthrough.json"
   ]
 }

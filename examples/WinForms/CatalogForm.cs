@@ -48,19 +48,12 @@ public sealed class CatalogForm:PageForm
     }
     private void Login()
     {
-        using var dialog=new PageForm("Вход по логину",600,480);
-        var panel=new FlowLayoutPanel{Dock=DockStyle.Fill,FlowDirection=FlowDirection.TopDown,Padding=new Padding(25)};
-        panel.Controls.Add(Ui.Label("Введите логин из списка пользователей. Пароль не требуется."));
-        var login=new TextBox{Width=300,Name="Login"};panel.Controls.Add(login);
-        panel.Controls.Add(Ui.Button("Войти",()=>{
-            var next=store.Login(login.Text)??throw new InvalidOperationException("Логин не найден. Проверьте написание по исходному списку пользователей.");
-            if(basket.Count>0&&MessageBox.Show("При смене пользователя незавершённый заказ будет очищен. Продолжить?","Смена пользователя",MessageBoxButtons.YesNo,MessageBoxIcon.Question)!=DialogResult.Yes)return;
-            user=next;basket.Clear();dialog.DialogResult=DialogResult.OK;
-        },true));
-        panel.Controls.Add(Ui.Button("Продолжить как гость",()=>{
-            if(basket.Count>0&&MessageBox.Show("Отменить незавершённый заказ и выйти?","Выход",MessageBoxButtons.YesNo,MessageBoxIcon.Question)!=DialogResult.Yes)return;
-            user=null;basket.Clear();dialog.DialogResult=DialogResult.OK;
-        }));dialog.Controls.Add(panel);dialog.ShowDialog(this);search.Clear();category.SelectedIndex=0;UpdateIdentity();Reload();
+        using var dialog=new LoginForm(store);
+        if(dialog.ShowDialog(this)!=DialogResult.OK)return;
+        if(basket.Count>0&&MessageBox.Show("При смене пользователя незавершённый заказ будет очищен. Продолжить?","Смена пользователя",MessageBoxButtons.YesNo,MessageBoxIcon.Question)!=DialogResult.Yes)return;
+        user=dialog.SelectedUser;
+        basket.Clear();search.Clear();category.SelectedIndex=0;
+        UpdateIdentity();Reload();
     }
     private void ResizeCards(){foreach(Control card in catalog.Controls)card.Width=Math.Max(300,catalog.ClientSize.Width-35);}
     private void Reload()

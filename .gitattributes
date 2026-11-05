@@ -6,3 +6,5 @@ materials/resources/** -text
 *.pdf -text
 *.zip -text
 *.xlsx -text
+examples/WinForms/*.Designer.cs -text
+examples/WinForms/*.resx -text

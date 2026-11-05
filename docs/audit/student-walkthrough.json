@@ -1,0 +1,264 @@
+{
+  "complete": false,
+  "route": "Visual Studio form/component designers and DBeaver table/relationship designers",
+  "methodologySha256": "4034a4e15bbc6c7e830afddc4257146056ea28231fdf35f2f96e29ecf4f61c86",
+  "steps": [
+    {
+      "id": "documents:1",
+      "title": "Откройте Windows и исходное задание",
+      "status": "pending"
+    },
+    {
+      "id": "documents:2",
+      "title": "Проверьте инструменты",
+      "status": "pending"
+    },
+    {
+      "id": "documents:3",
+      "title": "Различайте приложение и СУБД",
+      "status": "pending"
+    },
+    {
+      "id": "documents:4",
+      "title": "Посмотрите пять таблиц Excel",
+      "status": "pending"
+    },
+    {
+      "id": "documents:5",
+      "title": "Отделите оригиналы от исправленного импорта",
+      "status": "pending"
+    },
+    {
+      "id": "documents:6",
+      "title": "Выберите учебную дату расчёта",
+      "status": "pending"
+    },
+    {
+      "id": "M1:1",
+      "title": "Выделите справочники",
+      "status": "pending"
+    },
+    {
+      "id": "M1:2",
+      "title": "Отделите модель от размера",
+      "status": "pending"
+    },
+    {
+      "id": "M1:3",
+      "title": "Проверьте третью нормальную форму",
+      "status": "pending"
+    },
+    {
+      "id": "M1:4",
+      "title": "Создайте таблицы в правильном порядке",
+      "status": "verified",
+      "evidence": [
+        "database-designer.json"
+      ],
+      "note": "Ten tables and all constraints created with DBeaver editors; actual server metadata checked."
+    },
+    {
+      "id": "M1:5",
+      "title": "Разберите программный импорт",
+      "status": "pending"
+    },
+    {
+      "id": "M1:6",
+      "title": "Загрузите данные",
+      "status": "verified",
+      "evidence": [
+        "database-designer.json"
+      ],
+      "note": "Data-only C# SQL import executed through DBeaver; committed counts read from another connection."
+    },
+    {
+      "id": "M1:7",
+      "title": "Проверьте данные запросами",
+      "status": "verified",
+      "evidence": [
+        "database-designer.json"
+      ],
+      "note": "Counts and referential mappings verified against original input and actual server metadata."
+    },
+    {
+      "id": "M1:8",
+      "title": "Не списывайте исторические заказы второй раз",
+      "status": "pending"
+    },
+    {
+      "id": "M1:9",
+      "title": "Сохраните ER и переносимый SQL",
+      "status": "pending"
+    },
+    {
+      "id": "M1:10",
+      "title": "Проверьте себя: отсутствующая модель",
+      "status": "pending"
+    },
+    {
+      "id": "M2:1",
+      "title": "Создайте решение C#",
+      "status": "pending"
+    },
+    {
+      "id": "M2:2",
+      "title": "Добавьте библиотеку и ссылку",
+      "status": "pending"
+    },
+    {
+      "id": "M2:3",
+      "title": "Установите один провайдер",
+      "status": "pending"
+    },
+    {
+      "id": "M2:4",
+      "title": "Создайте модели данных",
+      "status": "pending"
+    },
+    {
+      "id": "M2:5",
+      "title": "Найдите границы предыдущего месяца",
+      "status": "pending"
+    },
+    {
+      "id": "M2:6",
+      "title": "Рассчитайте скидку и два порога",
+      "status": "pending"
+    },
+    {
+      "id": "M2:7",
+      "title": "Создайте слой запросов",
+      "status": "pending"
+    },
+    {
+      "id": "M2:8",
+      "title": "Разберите запрос каталога",
+      "status": "pending"
+    },
+    {
+      "id": "M2:9",
+      "title": "Оформите окна в конструкторе",
+      "status": "pending"
+    },
+    {
+      "id": "M2:10",
+      "title": "Подключите исходные изображения",
+      "status": "pending"
+    },
+    {
+      "id": "M2:11",
+      "title": "Создайте каталог в конструкторе",
+      "status": "pending"
+    },
+    {
+      "id": "M2:12",
+      "title": "Подготовьте остальные окна перед главной формой",
+      "status": "pending"
+    },
+    {
+      "id": "M3:1",
+      "title": "Проверьте вход без пароля",
+      "status": "pending"
+    },
+    {
+      "id": "M3:2",
+      "title": "Свяжите поиск, фильтр и сортировку",
+      "status": "pending"
+    },
+    {
+      "id": "M3:3",
+      "title": "Добавьте карточку модели",
+      "status": "pending"
+    },
+    {
+      "id": "M3:4",
+      "title": "Соберите заказ из нескольких позиций",
+      "status": "pending"
+    },
+    {
+      "id": "M3:5",
+      "title": "Сохраните цену на момент продажи",
+      "status": "pending"
+    },
+    {
+      "id": "M3:6",
+      "title": "Разберите транзакцию",
+      "status": "pending"
+    },
+    {
+      "id": "M3:7",
+      "title": "Защитите повторное подтверждение",
+      "status": "pending"
+    },
+    {
+      "id": "M3:8",
+      "title": "Обработайте отказ и ошибки",
+      "status": "pending"
+    },
+    {
+      "id": "M3:9",
+      "title": "Соберите главный каталог",
+      "status": "pending"
+    },
+    {
+      "id": "M4:1",
+      "title": "Ограничьте операции по роли",
+      "status": "pending"
+    },
+    {
+      "id": "M4:2",
+      "title": "Добавьте список и состав заказов",
+      "status": "pending"
+    },
+    {
+      "id": "M4:3",
+      "title": "Верните остаток ровно один раз",
+      "status": "pending"
+    },
+    {
+      "id": "M4:4",
+      "title": "Создайте точку входа",
+      "status": "pending"
+    },
+    {
+      "id": "M4:5",
+      "title": "Запустите подключение и гостевой каталог",
+      "status": "pending"
+    },
+    {
+      "id": "M4:6",
+      "title": "Проверьте клиентский сценарий",
+      "status": "pending"
+    },
+    {
+      "id": "M4:7",
+      "title": "Проверьте нехватку товара",
+      "status": "pending"
+    },
+    {
+      "id": "M4:8",
+      "title": "Проверьте менеджера и администратора",
+      "status": "pending"
+    },
+    {
+      "id": "M4:9",
+      "title": "Проверьте приложение при масштабе Windows",
+      "status": "pending"
+    },
+    {
+      "id": "M4:10",
+      "title": "Запустите прикладные проверки",
+      "status": "pending"
+    },
+    {
+      "id": "M4:11",
+      "title": "Подготовьте исполняемый результат",
+      "status": "pending"
+    },
+    {
+      "id": "M4:12",
+      "title": "Передайте решение в репозиторий",
+      "status": "pending"
+    }
+  ]
+}

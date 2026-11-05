@@ -1,0 +1,115 @@
+{
+  "complete": false,
+  "forms": [
+    {
+      "name": "ConnectionForm",
+      "createdWith": "Visual Studio 2026 Windows Forms Designer, Toolbox and Properties",
+      "components": {
+        "TextBox": 5,
+        "Label": 7,
+        "Button": 1
+      },
+      "eventsConfiguredWith": "Properties Events: Click",
+      "events": [
+        "connectButton.Click -> connectButton_Click"
+      ],
+      "acceptButton": "connectButton",
+      "designerDpi": 96,
+      "autoScaleDimensions": "8, 18",
+      "clientSize": "640, 570",
+      "font": "Calibri 11 pt",
+      "source": [
+        {
+          "path": "../../examples/WinForms/ConnectionForm.Designer.cs",
+          "sha256": "d5a68a5facba6a666aab7e4f2d78f820a5bfb6ddb469546d90685a7594b7f165"
+        },
+        {
+          "path": "../../examples/WinForms/ConnectionForm.resx",
+          "sha256": "a122f3e718c7a26b3b21f292ae61305dc66838bb76b93ed6a7669b2ab4ca3432"
+        }
+      ],
+      "screenshot": "../../materials/screens/vs-connection-designer.png",
+      "compileVerified": true,
+      "compilePlatform": "macOS, Windows targeting",
+      "runtimeWindowsVerified": false
+    },
+    {
+      "name": "LoginForm",
+      "createdWith": "Add New Item: Form (Windows Forms); Toolbox and Properties",
+      "components": {
+        "TextBox": 1,
+        "Label": 3,
+        "Button": 2
+      },
+      "eventsConfiguredWith": "Properties Events: Click",
+      "events": [
+        "loginButton.Click -> loginButton_Click",
+        "guestButton.Click -> guestButton_Click"
+      ],
+      "acceptButton": "loginButton",
+      "designerDpi": 96,
+      "autoScaleDimensions": "8, 18",
+      "clientSize": "490, 340",
+      "font": "Calibri 11 pt",
+      "source": [
+        {
+          "path": "../../examples/WinForms/LoginForm.Designer.cs",
+          "sha256": "e8027f300157a277f70fc0aeb72ec4e513de3b5965461431ee616454d29f5577"
+        },
+        {
+          "path": "../../examples/WinForms/LoginForm.resx",
+          "sha256": "a122f3e718c7a26b3b21f292ae61305dc66838bb76b93ed6a7669b2ab4ca3432"
+        }
+      ],
+      "screenshot": "../../materials/screens/vs-login-designer.png",
+      "compileVerified": true,
+      "runtimeWindowsVerified": false,
+      "compilePlatform": "macOS, Windows targeting"
+    },
+    {
+      "name": "ProductForm",
+      "createdWith": "Add New Item: Form (Windows Forms); Toolbox and Properties",
+      "components": {
+        "PictureBox": 1,
+        "Label": 4,
+        "ComboBox": 1,
+        "NumericUpDown": 1,
+        "Button": 2
+      },
+      "eventsConfiguredWith": "Properties Events",
+      "events": [
+        "sizeComboBox.SelectedIndexChanged -> sizeComboBox_SelectedIndexChanged",
+        "addButton.Click -> addButton_Click",
+        "backButton.Click -> backButton_Click",
+        "ProductForm.FormClosed -> ProductForm_FormClosed"
+      ],
+      "designerDpi": 96,
+      "autoScaleDimensions": "8, 18",
+      "clientSize": "700, 650",
+      "font": "Calibri 11 pt",
+      "source": [
+        {
+          "path": "../../examples/WinForms/ProductForm.Designer.cs",
+          "sha256": "eeba3f7a56fa400be465f463ce710dcc5845f31ddd8d1dd17cdb0a6eb70f4570"
+        },
+        {
+          "path": "../../examples/WinForms/ProductForm.resx",
+          "sha256": "a122f3e718c7a26b3b21f292ae61305dc66838bb76b93ed6a7669b2ab4ca3432"
+        }
+      ],
+      "screenshots": [
+        "../../materials/screens/vs-product-designer-top.png",
+        "../../materials/screens/vs-product-designer-bottom.png"
+      ],
+      "compileVerified": true,
+      "compilePlatform": "macOS, Windows targeting",
+      "runtimeWindowsVerified": false
+    }
+  ],
+  "remainingForms": [
+    "CatalogForm",
+    "BasketForm",
+    "OrdersForm",
+    "OrderDetailsForm"
+  ]
+}
