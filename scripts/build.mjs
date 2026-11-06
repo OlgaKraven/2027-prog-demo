@@ -18,7 +18,11 @@ for(const dir of ['examples','scripts'])walk(dir,(p,b)=>{if(/\.(cs|csproj|sql|py
 code['content/sample.sql']=fs.readFileSync('content/sample.sql','utf8');
 const variants=read('content/variants.json'),variantBriefs={};
 for(const v of variants){const dir='content/variants/'+v.id;variantBriefs[v.id]=fs.readFileSync(dir+'/Задание.md','utf8');const files={};walk(dir,(p,b)=>{if(!p.endsWith('.sql'))files[p.slice(dir.length+1)]=b;});walk('materials/resources',(p,b)=>{if(!p.endsWith('.xlsx'))files['Ресурсы/'+p.slice('materials/resources/'.length)]=b;});for(const name of ['description.html','style-guide.html'])files[name]=fs.readFileSync('materials/'+name);fs.writeFileSync(`${out}/downloads/exam-${v.id}.zip`,ExamCore.zip(files));}
-const example={};for(const dir of ['examples','materials/resources'])walk(dir,(p,b)=>example[p]=b);example['content/sample.sql']=fs.readFileSync('content/sample.sql');example['README.md']=fs.readFileSync('README.md');example['ProgDemo.sln']=fs.readFileSync('ProgDemo.sln');example['materials/ER.pdf']=fs.readFileSync('materials/ER.pdf');fs.writeFileSync(out+'/downloads/prog-demo-example.zip',ExamCore.zip(example));
+const example={};
+for(const dir of ['examples','materials'])walk(dir,(p,b)=>example[p]=b);
+walk('docs',(p,b)=>{if(/\.(md|json)$/.test(p))example[p]=b;});
+for(const file of ['content/sample.sql','README.md','ProgDemo.sln'])example[file]=fs.readFileSync(file);
+fs.writeFileSync(out+'/downloads/prog-demo-example.zip',ExamCore.zip(example));
 const original={};walk('materials/original',(p,b)=>original[p.slice('materials/original/'.length)]=b);fs.writeFileSync(out+'/downloads/original-inputs.zip',ExamCore.zip(original));
 const originals=fs.readdirSync('materials/original').map(name=>({name,path:'materials/original/'+name}));
 const release=['output/windows','examples/WinForms/bin/Release/net10.0-windows'].find(p=>fs.existsSync(p+'/ProgDemo.WinForms.exe'));

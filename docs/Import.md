@@ -22,7 +22,7 @@ dotnet new console --framework net10.0 --name ProgDemo.Import --output ProgDemo.
 
 ## Укажите входные файлы
 
-Для официального образца распакуйте [оригинальный комплект](../downloads/original-inputs.zip), затем ZIP приложения к заданию. Найдите папку, непосредственно содержащую Products_import.xlsx, Stock_Items_import.xlsx, Sizes_import.xlsx, Users_import.xlsx и Orders_import.xlsx. Папка, содержащая только внешний ZIP, не подойдёт.
+В архиве готового примера пять исходных XLSX лежат в materials/resources. Если у вас только [оригинальный комплект](https://olgakraven.github.io/2027-prog-demo/downloads/original-inputs.zip), распакуйте его, затем ZIP приложения к заданию. Найдите папку, непосредственно содержащую Products_import.xlsx, Stock_Items_import.xlsx, Sizes_import.xlsx, Users_import.xlsx и Orders_import.xlsx.
 
 Для своего учебного варианта распакуйте его отдельный комплект. Найдите рядом **products.csv**, **stock.csv**, **sizes.csv**, **users.csv**, **orders.csv**, **items.csv**. В начале выберите свой вариант на странице пробного экзамена: там скачивается именно его архив.
 
