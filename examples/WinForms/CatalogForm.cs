@@ -3,82 +3,132 @@ using System.Globalization;
 
 namespace ProgDemo.WinForms;
 
-public sealed class CatalogForm:PageForm
+public partial class CatalogForm : Form
 {
     private readonly Store store;
     private User? user;
-    private readonly List<BasketLine> basket=[];
-    private readonly FlowLayoutPanel catalog=new(){Dock=DockStyle.Fill,AutoScroll=true,FlowDirection=FlowDirection.TopDown,WrapContents=false,Padding=new Padding(10)};
-    private readonly Label identity=Ui.Label("Гость");
-    private readonly TextBox search=new(){Width=240,PlaceholderText="Название или описание"};
-    private readonly ComboBox category=new(){Width=200,DropDownStyle=ComboBoxStyle.DropDownList};
-    private readonly ComboBox sort=new(){Width=190,DropDownStyle=ComboBoxStyle.DropDownList};
-    private readonly FlowLayoutPanel filters=Ui.Row();
-    private readonly Button cartButton;
-    private readonly Button ordersButton;
+    private readonly List<BasketLine> basket = [];
     private readonly DateTime calculationDate;
-    private List<Product> products=[];
-    public CatalogForm(Store store,User? initialUser=null):base("Каталог обуви")
+    private bool ready;
+    private List<CatalogRow> rows = [];
+
+    private sealed class CatalogRow(Product product)
     {
-        this.store=store;user=initialUser;
-        calculationDate=DateTime.TryParseExact(Environment.GetEnvironmentVariable("PROG_DEMO_DATE"),"yyyy-MM-dd",CultureInfo.InvariantCulture,DateTimeStyles.None,out var fixedDate)?fixedDate:DateTime.Today;
-        var header=new TableLayoutPanel{Dock=DockStyle.Top,AutoSize=true,ColumnCount=3,Padding=new Padding(12),BackColor=Ui.Soft};
-        header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,100));header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));header.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        var logo=new PictureBox{Size=new Size(85,65),SizeMode=PictureBoxSizeMode.Zoom};
-        var path=Path.Combine(AppContext.BaseDirectory,"Assets","Чудо Обувь.png");if(File.Exists(path))logo.Image=Image.FromFile(path);
-        header.Controls.Add(logo);header.Controls.Add(Ui.Label("Чудо Обувь\nКаталог моделей и размеров"));header.Controls.Add(identity);
-        var actions=Ui.Row();
-        actions.Controls.Add(Ui.Button("Войти / сменить пользователя",Login));
-        cartButton=Ui.Button("Мой заказ (0)",OpenBasket,true);actions.Controls.Add(cartButton);
-        ordersButton=Ui.Button("Заказы клиентов",()=>{if(user is null)throw new InvalidOperationException("Войдите в систему.");using var form=new OrdersForm(store,user);form.ShowDialog(this);Reload();});actions.Controls.Add(ordersButton);
-        actions.Controls.Add(Ui.Button("Обновить каталог",Reload));actions.Controls.Add(Ui.Label("Дата расчёта: "+calculationDate.ToString("dd.MM.yyyy")));
-        filters.Controls.Add(Ui.Label("Поиск"));filters.Controls.Add(search);filters.Controls.Add(category);filters.Controls.Add(sort);
-        category.Items.Add("Все категории");
-        Ui.Guard(()=>{foreach(var c in store.Categories())category.Items.Add(c);});category.SelectedIndex=0;
-        sort.Items.AddRange(["Цена: по возрастанию","Цена: по убыванию"]);sort.SelectedIndex=0;
-        search.TextChanged+=(_,_)=>Ui.Guard(Reload);category.SelectedIndexChanged+=(_,_)=>Ui.Guard(Reload);sort.SelectedIndexChanged+=(_,_)=>Ui.Guard(Reload);
-        Controls.Add(catalog);Controls.Add(filters);Controls.Add(actions);Controls.Add(header);
-        catalog.SizeChanged+=(_,_)=>ResizeCards();Shown+=(_,_)=>Ui.Guard(Reload);
-        UpdateIdentity();
+        internal Product Model { get; } = product;
+        public Image Image { get; } = Ui.Picture(product.Image);
+        public string Details => $"{Model.Manufacturer} | {Model.Name}\nКатегория: {Model.Category}\nКоличество: {Rules.QuantityLabel(Model.Quantity)} ({Model.Quantity})\nСостав: {Model.Composition}";
+        public decimal Price => Model.Price;
     }
+
+    public CatalogForm(Store store, User? initialUser = null)
+    {
+        InitializeComponent();
+        this.store = store;
+        user = initialUser;
+        calculationDate = DateTime.TryParseExact(Environment.GetEnvironmentVariable("PROG_DEMO_DATE"),
+            "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var fixedDate)
+            ? fixedDate : DateTime.Today;
+        dateLabel.Text = "Дата расчёта: " + calculationDate.ToString("dd.MM.yyyy");
+        categoryComboBox.DataSource = new[] { "Все категории" }.Concat(store.Categories()).ToList();
+        sortComboBox.SelectedIndex = 0;
+        ready = true;
+        UpdateIdentity();
+        Ui.Guard(Reload);
+    }
+
     private void UpdateIdentity()
     {
-        identity.Text=user?.FullName??"Гость";filters.Enabled=user is not null;cartButton.Enabled=user is not null;ordersButton.Visible=user?.CanManage==true;
-        cartButton.Text=$"Мой заказ ({basket.Sum(x=>x.Quantity)})";
+        identityLabel.Text = user?.FullName ?? "Гость";
+        searchTextBox.Enabled = categoryComboBox.Enabled = sortComboBox.Enabled = user is not null;
+        cartButton.Enabled = user is not null;
+        ordersButton.Visible = user?.CanManage == true;
+        cartButton.Text = $"Мой заказ ({basket.Sum(x => x.Quantity)})";
     }
-    private void Login()
-    {
-        using var dialog=new LoginForm(store);
-        if(dialog.ShowDialog(this)!=DialogResult.OK)return;
-        if(basket.Count>0&&MessageBox.Show("При смене пользователя незавершённый заказ будет очищен. Продолжить?","Смена пользователя",MessageBoxButtons.YesNo,MessageBoxIcon.Question)!=DialogResult.Yes)return;
-        user=dialog.SelectedUser;
-        basket.Clear();search.Clear();category.SelectedIndex=0;
-        UpdateIdentity();Reload();
-    }
-    private void ResizeCards(){foreach(Control card in catalog.Controls)card.Width=Math.Max(300,catalog.ClientSize.Width-35);}
+
     private void Reload()
     {
-        products=store.Catalog(calculationDate,user is null?"":search.Text,user is null||category.SelectedIndex<=0?"":category.Text,user is not null&&sort.SelectedIndex==1);
-        foreach(Control c in catalog.Controls){foreach(var image in c.Controls.OfType<PictureBox>())image.Image?.Dispose();}
-        var old=catalog.Controls.Cast<Control>().ToList();catalog.Controls.Clear();foreach(var c in old)c.Dispose();
-        foreach(var product in products)
-        {
-            float dpi=DeviceDpi/96f;
-            var card=new TableLayoutPanel{Height=(int)(160*dpi),ColumnCount=3,Margin=new Padding(0,5,0,5),Padding=new Padding(10),BackColor=Rules.LowStock(product.Quantity)?ColorTranslator.FromHtml("#FF8080"):Color.White,BorderStyle=BorderStyle.FixedSingle,Cursor=Cursors.Hand};
-            card.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,130*dpi));card.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));card.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,180*dpi));
-            var image=new PictureBox{Dock=DockStyle.Fill,SizeMode=PictureBoxSizeMode.Zoom,Image=Ui.Picture(product.Image)};
-            var details=new Label{Dock=DockStyle.Fill,AutoEllipsis=true,Text=$"{product.Manufacturer} | {product.Name}\nКатегория: {product.Category}\nКоличество: {Rules.QuantityLabel(product.Quantity)} ({product.Quantity})\nСостав: {product.Composition}",Padding=new Padding(12,0,10,0)};
-            var price=new Label{Dock=DockStyle.Fill,Text=product.Price.ToString("N2")+" ₽",Font=new Font("Calibri",16,FontStyle.Bold),TextAlign=ContentAlignment.MiddleRight};
-            card.Controls.Add(image);card.Controls.Add(details);card.Controls.Add(price);
-            void Open(object? sender,EventArgs e)=>Ui.Guard(()=>{if(user is null)throw new InvalidOperationException("Войдите по логину, чтобы выбрать размер и оформить заказ.");using var form=new ProductForm(store,product,calculationDate,line=>{var existing=basket.FindIndex(x=>x.StockId==line.StockId);if(existing<0)basket.Add(line);else basket[existing]=basket[existing] with {Quantity=checked(basket[existing].Quantity+line.Quantity)};UpdateIdentity();});form.ShowDialog(this);});
-            card.Click+=Open;image.Click+=Open;details.Click+=Open;price.Click+=Open;catalog.Controls.Add(card);
-        }
-        if(products.Count==0)catalog.Controls.Add(Ui.Label("Товары не найдены. Измените строку поиска или выберите «Все категории»."));
-        ResizeCards();UpdateIdentity();
+        if (!ready) return;
+        var products = store.Catalog(calculationDate, user is null ? "" : searchTextBox.Text,
+            user is null || categoryComboBox.SelectedIndex <= 0 ? "" : categoryComboBox.Text,
+            user is not null && sortComboBox.SelectedIndex == 1);
+        var previous = rows;
+        rows = products.Select(p => new CatalogRow(p)).ToList();
+        catalogGrid.DataSource = rows;
+        foreach (var row in previous) row.Image.Dispose();
+        statusLabel.Text = rows.Count == 0
+            ? "Товары не найдены. Измените поиск или выберите «Все категории»."
+            : $"Найдено моделей: {rows.Count}. Двойной щелчок открывает выбор размера.";
+        UpdateIdentity();
     }
-    private void OpenBasket()
+
+    private void loginButton_Click(object sender, EventArgs e) => Ui.Guard(() =>
     {
-        if(user is null)throw new InvalidOperationException("Войдите по логину.");
-        using var form=new BasketForm(store,user,basket,calculationDate);form.ShowDialog(this);UpdateIdentity();Reload();
+        using var dialog = new LoginForm(store);
+        if (dialog.ShowDialog(this) != DialogResult.OK) return;
+        if (basket.Count > 0 && MessageBox.Show(
+            "При смене пользователя незавершённый заказ будет очищен. Продолжить?", "Смена пользователя",
+            MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
+        ready = false;
+        user = dialog.SelectedUser;
+        basket.Clear();
+        searchTextBox.Clear();
+        categoryComboBox.SelectedIndex = 0;
+        ready = true;
+        UpdateIdentity();
+        Reload();
+    });
+
+    private void cartButton_Click(object sender, EventArgs e) => Ui.Guard(() =>
+    {
+        if (user is null) throw new InvalidOperationException("Войдите по логину.");
+        using var form = new BasketForm(store, user, basket, calculationDate);
+        form.ShowDialog(this);
+        Reload();
+    });
+
+    private void ordersButton_Click(object sender, EventArgs e) => Ui.Guard(() =>
+    {
+        if (user is null) throw new InvalidOperationException("Войдите в систему.");
+        using var form = new OrdersForm(store, user);
+        form.ShowDialog(this);
+        Reload();
+    });
+
+    private void refreshButton_Click(object sender, EventArgs e) => Ui.Guard(Reload);
+    private void searchTextBox_TextChanged(object sender, EventArgs e) => Ui.Guard(Reload);
+    private void categoryComboBox_SelectedIndexChanged(object sender, EventArgs e) => Ui.Guard(Reload);
+    private void sortComboBox_SelectedIndexChanged(object sender, EventArgs e) => Ui.Guard(Reload);
+
+    private void catalogGrid_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+    {
+        if (e.RowIndex < 0 || catalogGrid.Rows[e.RowIndex].DataBoundItem is not CatalogRow row) return;
+        Ui.Guard(() =>
+        {
+            if (user is null)
+                throw new InvalidOperationException("Войдите по логину, чтобы выбрать размер и оформить заказ.");
+            using var form = new ProductForm(store, row.Model, calculationDate, line =>
+            {
+                int index = basket.FindIndex(x => x.StockId == line.StockId);
+                if (index < 0) basket.Add(line);
+                else basket[index] = basket[index] with { Quantity = checked(basket[index].Quantity + line.Quantity) };
+                UpdateIdentity();
+            });
+            form.ShowDialog(this);
+        });
+    }
+
+    private void catalogGrid_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+    {
+        if (e.RowIndex < 0 || catalogGrid.Rows[e.RowIndex].DataBoundItem is not CatalogRow row) return;
+        var color = Rules.LowStock(row.Model.Quantity) ? Color.FromArgb(255, 128, 128) : Color.White;
+        e.CellStyle!.BackColor = color;
+        e.CellStyle.SelectionBackColor = Rules.LowStock(row.Model.Quantity) ? color : Color.FromArgb(210, 246, 231);
+        e.CellStyle.ForeColor = e.CellStyle.SelectionForeColor = Color.Black;
+    }
+
+    private void CatalogForm_FormClosed(object sender, FormClosedEventArgs e)
+    {
+        foreach (var row in rows) row.Image.Dispose();
+        rows.Clear();
     }
 }

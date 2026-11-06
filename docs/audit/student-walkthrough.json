@@ -1,264 +1,469 @@
 {
-  "complete": false,
-  "route": "Visual Studio form/component designers and DBeaver table/relationship designers",
-  "methodologySha256": "4034a4e15bbc6c7e830afddc4257146056ea28231fdf35f2f96e29ecf4f61c86",
+  "complete": true,
+  "scope": "49 course steps reviewed; hands-on actions verified where applicable through Windows VM, DBeaver, Visual Studio or application checks. Exam submission is outside this sample.",
+  "methodologySha256": "343ba2b714ff6d0af845a2dce85146c13d70cc049dc221c3135172015e4adada",
   "steps": [
     {
       "id": "documents:1",
       "title": "Откройте Windows и исходное задание",
-      "status": "pending"
+      "status": "reviewed",
+      "note": "Том 1 и приложение сверены по SHA-256. Приложение запущено в Windows.",
+      "evidence": [
+        "student-route-baseline.json"
+      ]
     },
     {
       "id": "documents:2",
       "title": "Проверьте инструменты",
-      "status": "pending"
+      "status": "verified",
+      "note": "Visual Studio 2026, .NET 10, DBeaver и MariaDB использованы для сборки и проверки.",
+      "evidence": [
+        "designer-forms.json",
+        "database-designer.json"
+      ]
     },
     {
       "id": "documents:3",
       "title": "Различайте приложение и СУБД",
-      "status": "pending"
+      "status": "verified",
+      "note": "Окно подключения требует реквизиты сервера. Окно входа покупателя принимает исходный логин.",
+      "evidence": [
+        "../../materials/screens/connection.png",
+        "../../materials/screens/login.png"
+      ]
     },
     {
       "id": "documents:4",
       "title": "Посмотрите пять таблиц Excel",
-      "status": "pending"
+      "status": "reviewed",
+      "note": "Пять XLSX разобраны по колонкам, импортёр прочитал их в Windows.",
+      "evidence": [
+        "designer-restore.json"
+      ]
     },
     {
       "id": "documents:5",
       "title": "Отделите оригиналы от исправленного импорта",
-      "status": "pending"
+      "status": "verified",
+      "note": "Входные SHA совпали, исходный импорт выполнен в отдельную папку.",
+      "evidence": [
+        "designer-restore.json"
+      ]
     },
     {
       "id": "documents:6",
       "title": "Выберите учебную дату расчёта",
-      "status": "pending"
+      "status": "verified",
+      "note": "Правило предыдущего месяца и обе ветви скидки проверены на дате 15.05.2026. В интерфейсе также проверена текущая дата.",
+      "evidence": [
+        "designer-restore.json"
+      ]
     },
     {
       "id": "M1:1",
       "title": "Выделите справочники",
-      "status": "pending"
+      "status": "verified",
+      "note": "Справочники и ссылки проверены по структуре MariaDB.",
+      "evidence": [
+        "database-designer.json"
+      ]
     },
     {
       "id": "M1:2",
       "title": "Отделите модель от размера",
-      "status": "pending"
+      "status": "verified",
+      "note": "Модели, размеры и остатки разделены. Уникальность пары модель–размер проверена.",
+      "evidence": [
+        "database-designer.json"
+      ]
     },
     {
       "id": "M1:3",
       "title": "Проверьте третью нормальную форму",
-      "status": "pending"
+      "status": "reviewed",
+      "note": "Ключи и зависимости сверены с фактической ER и описанием полей.",
+      "evidence": [
+        "../../materials/screens/dbeaver-er.pdf",
+        "../Database-fields.md"
+      ]
     },
     {
       "id": "M1:4",
       "title": "Создайте таблицы в правильном порядке",
       "status": "verified",
+      "note": "Десять таблиц, 41 поле и ограничения созданы в конструкторах DBeaver.",
       "evidence": [
         "database-designer.json"
-      ],
-      "note": "Ten tables and all constraints created with DBeaver editors; actual server metadata checked."
+      ]
     },
     {
       "id": "M1:5",
       "title": "Разберите программный импорт",
-      "status": "pending"
+      "status": "verified",
+      "note": "Консольный импортёр запущен из Visual Studio. Получен SQL только с данными.",
+      "evidence": [
+        "designer-restore.json",
+        "../../materials/screens/vs-import-result.png"
+      ]
     },
     {
       "id": "M1:6",
       "title": "Загрузите данные",
       "status": "verified",
+      "note": "Скрипт INSERT исполнен в DBeaver. Счётчики проверены другим подключением.",
       "evidence": [
         "database-designer.json"
-      ],
-      "note": "Data-only C# SQL import executed through DBeaver; committed counts read from another connection."
+      ]
     },
     {
       "id": "M1:7",
       "title": "Проверьте данные запросами",
       "status": "verified",
+      "note": "Проверены количества десяти таблиц, после восстановления они совпали.",
       "evidence": [
-        "database-designer.json"
-      ],
-      "note": "Counts and referential mappings verified against original input and actual server metadata."
+        "designer-restore.json"
+      ]
     },
     {
       "id": "M1:8",
       "title": "Не списывайте исторические заказы второй раз",
-      "status": "pending"
+      "status": "verified",
+      "note": "Исторические записи импортированы с флагом stock_accounted=False. Возврат остатка проверен на новом заказе.",
+      "evidence": [
+        "designer-restore.json"
+      ]
     },
     {
       "id": "M1:9",
       "title": "Сохраните ER и переносимый SQL",
-      "status": "pending"
+      "status": "verified",
+      "note": "ER напечатана через Windows PDF. SQL выгружен нативным клиентом и восстановлен под новым именем.",
+      "evidence": [
+        "designer-restore.json"
+      ]
     },
     {
       "id": "M1:10",
       "title": "Проверьте себя: отсутствующая модель",
-      "status": "pending"
+      "status": "verified",
+      "note": "Импорт остановился при 0 и 2 соответствиях в копиях XLSX.",
+      "evidence": [
+        "designer-restore.json"
+      ]
     },
     {
       "id": "M2:1",
       "title": "Создайте решение C#",
-      "status": "pending"
+      "status": "verified",
+      "note": "Создан Windows Forms App через шаблон Visual Studio.",
+      "evidence": [
+        "designer-forms.json"
+      ]
     },
     {
       "id": "M2:2",
       "title": "Добавьте библиотеку и ссылку",
-      "status": "pending"
+      "status": "verified",
+      "note": "Создана библиотека .NET 10 и установлена ссылка на неё.",
+      "evidence": [
+        "../../materials/screens/vs-core-framework.png",
+        "../../materials/screens/vs-core-reference.png"
+      ]
     },
     {
       "id": "M2:3",
       "title": "Установите один провайдер",
-      "status": "pending"
+      "status": "verified",
+      "note": "Через NuGet установлен MySqlConnector 2.6.1.",
+      "evidence": [
+        "../../materials/screens/vs-mysqlconnector-preview.png"
+      ]
     },
     {
       "id": "M2:4",
       "title": "Создайте модели данных",
-      "status": "pending"
+      "status": "verified",
+      "note": "Обычный Models.cs добавлен в Core. Библиотека собрана в Visual Studio.",
+      "evidence": [
+        "../../materials/screens/vs-student-build.png"
+      ]
     },
     {
       "id": "M2:5",
       "title": "Найдите границы предыдущего месяца",
-      "status": "pending"
+      "status": "verified",
+      "note": "Границы предыдущего месяца подтверждены автоматической проверкой.",
+      "evidence": [
+        "designer-restore.json"
+      ]
     },
     {
       "id": "M2:6",
       "title": "Рассчитайте скидку и два порога",
-      "status": "pending"
+      "status": "verified",
+      "note": "Скидка, округление, границы остатка и подписи количества проверены.",
+      "evidence": [
+        "designer-restore.json"
+      ]
     },
     {
       "id": "M2:7",
       "title": "Создайте слой запросов",
-      "status": "pending"
+      "status": "verified",
+      "note": "Обычный Store.cs добавлен в библиотеку. Параметризованный вход и операции проверены на MariaDB.",
+      "evidence": [
+        "designer-restore.json"
+      ]
     },
     {
       "id": "M2:8",
       "title": "Разберите запрос каталога",
-      "status": "pending"
+      "status": "verified",
+      "note": "Каталог читает импортированные остатки и учитывает обе ветви скидки.",
+      "evidence": [
+        "designer-restore.json",
+        "../../materials/screens/catalog-client.png"
+      ]
     },
     {
       "id": "M2:9",
       "title": "Оформите окна в конструкторе",
-      "status": "pending"
+      "status": "verified",
+      "note": "Свойства и обработчики семи окон сохранены Designer.",
+      "evidence": [
+        "designer-forms.json"
+      ]
     },
     {
       "id": "M2:10",
       "title": "Подключите исходные изображения",
-      "status": "pending"
+      "status": "verified",
+      "note": "31 фото и заглушка скопированы при сборке, значок задан через Properties.",
+      "evidence": [
+        "../../materials/screens/vs-application-icon.png",
+        "designer-restore.json"
+      ]
     },
     {
       "id": "M2:11",
       "title": "Создайте каталог в конструкторе",
-      "status": "pending"
+      "status": "verified",
+      "note": "Состав, фото и цена читаемы при 200%. Высота исправлена через Properties.",
+      "evidence": [
+        "../../materials/screens/catalog-guest.png",
+        "designer-forms.json"
+      ]
     },
     {
       "id": "M2:12",
       "title": "Подготовьте остальные окна перед главной формой",
-      "status": "pending"
+      "status": "verified",
+      "note": "Вспомогательные формы открыты в работающем приложении.",
+      "evidence": [
+        "designer-forms.json"
+      ]
     },
     {
       "id": "M3:1",
       "title": "Проверьте вход без пароля",
-      "status": "pending"
+      "status": "verified",
+      "note": "Логин без пароля, неизвестный логин и права гостя проверены.",
+      "evidence": [
+        "../../materials/screens/login.png",
+        "designer-restore.json"
+      ]
     },
     {
       "id": "M3:2",
       "title": "Свяжите поиск, фильтр и сортировку",
-      "status": "pending"
+      "status": "verified",
+      "note": "Проверены пустой результат, выбор категории, сортировка и совместный запрос.",
+      "evidence": [
+        "../../materials/screens/catalog-filter-sort.png",
+        "designer-restore.json"
+      ]
     },
     {
       "id": "M3:3",
       "title": "Добавьте карточку модели",
-      "status": "pending"
+      "status": "verified",
+      "note": "В окне модели проверены фото, размер и добавление.",
+      "evidence": [
+        "../../materials/screens/product.png"
+      ]
     },
     {
       "id": "M3:4",
       "title": "Соберите заказ из нескольких позиций",
-      "status": "pending"
+      "status": "verified",
+      "note": "В корзине получены две позиции. Изменение количества пересчитало сумму.",
+      "evidence": [
+        "../../materials/screens/basket.png"
+      ]
     },
     {
       "id": "M3:5",
       "title": "Сохраните цену на момент продажи",
-      "status": "pending"
+      "status": "verified",
+      "note": "Цена сохранена в order_items и читается при просмотре состава.",
+      "evidence": [
+        "designer-restore.json",
+        "../../materials/screens/order-details.png"
+      ]
     },
     {
       "id": "M3:6",
       "title": "Разберите транзакцию",
-      "status": "pending"
+      "status": "verified",
+      "note": "При ошибке второй позиции первая не списана, заказа и строк нет.",
+      "evidence": [
+        "designer-restore.json"
+      ]
     },
     {
       "id": "M3:7",
       "title": "Защитите повторное подтверждение",
-      "status": "pending"
+      "status": "verified",
+      "note": "Повтор с тем же идентификатором запроса возвращает существующий заказ.",
+      "evidence": [
+        "designer-restore.json"
+      ]
     },
     {
       "id": "M3:8",
       "title": "Обработайте отказ и ошибки",
-      "status": "pending"
+      "status": "verified",
+      "note": "Проверены возврат к выбору, подтверждённая отмена и ошибка устаревшего остатка.",
+      "evidence": [
+        "designer-restore.json",
+        "../../materials/screens/stock-race.png"
+      ]
     },
     {
       "id": "M3:9",
       "title": "Соберите главный каталог",
-      "status": "pending"
+      "status": "verified",
+      "note": "Основная форма открывает нужные окна с учётом роли.",
+      "evidence": [
+        "designer-forms.json"
+      ]
     },
     {
       "id": "M4:1",
       "title": "Ограничьте операции по роли",
-      "status": "pending"
+      "status": "verified",
+      "note": "Границы прав проверены запросами и видимостью действий в UI.",
+      "evidence": [
+        "designer-restore.json",
+        "../../materials/screens/manager-order-details.png"
+      ]
     },
     {
       "id": "M4:2",
       "title": "Добавьте список и состав заказов",
-      "status": "pending"
+      "status": "verified",
+      "note": "Открыты список и состав заказа. Администратор изменил дату и удалил строку.",
+      "evidence": [
+        "../../materials/screens/orders.png",
+        "../../materials/screens/order-details.png"
+      ]
     },
     {
       "id": "M4:3",
       "title": "Верните остаток ровно один раз",
-      "status": "pending"
+      "status": "verified",
+      "note": "Удаление и повторное удаление не возвращают остаток дважды.",
+      "evidence": [
+        "designer-restore.json"
+      ]
     },
     {
       "id": "M4:4",
       "title": "Создайте точку входа",
-      "status": "pending"
+      "status": "verified",
+      "note": "Точка входа открылась через F5 и через Release exe.",
+      "evidence": [
+        "../../materials/screens/connection.png",
+        "../../materials/screens/vs-release-catalog.png"
+      ]
     },
     {
       "id": "M4:5",
       "title": "Запустите подключение и гостевой каталог",
-      "status": "pending"
+      "status": "verified",
+      "note": "Подключение к созданной и восстановленной базе. Гость увидел 31 модель.",
+      "evidence": [
+        "../../materials/screens/catalog-guest.png",
+        "../../materials/screens/vs-release-catalog.png"
+      ]
     },
     {
       "id": "M4:6",
       "title": "Проверьте клиентский сценарий",
-      "status": "pending"
+      "status": "verified",
+      "note": "Клиент оформил заказ. Список и состав отобразили его с правильным итогом.",
+      "evidence": [
+        "../../materials/screens/orders.png",
+        "../../materials/screens/order-details.png"
+      ]
     },
     {
       "id": "M4:7",
       "title": "Проверьте нехватку товара",
-      "status": "pending"
+      "status": "verified",
+      "note": "Заказ с двумя позициями отклонён после уменьшения остатка. Состояние проверено отдельным запросом.",
+      "evidence": [
+        "designer-restore.json",
+        "../../materials/screens/stock-race.png"
+      ]
     },
     {
       "id": "M4:8",
       "title": "Проверьте менеджера и администратора",
-      "status": "pending"
+      "status": "verified",
+      "note": "Менеджер создал и удалил заказ. Администратор изменил дату и удалил позицию своего тестового заказа.",
+      "evidence": [
+        "designer-restore.json",
+        "../../materials/screens/manager-order-details.png"
+      ]
     },
     {
       "id": "M4:9",
       "title": "Проверьте приложение при масштабе Windows",
-      "status": "pending"
+      "status": "reviewed",
+      "note": "Семь окон просмотрены на Windows при 200%. Отдельные прогоны на других масштабах не выполнялись.",
+      "evidence": [
+        "designer-forms.json"
+      ]
     },
     {
       "id": "M4:10",
       "title": "Запустите прикладные проверки",
-      "status": "pending"
+      "status": "verified",
+      "note": "14 прикладных проверок прошли на восстановленной базе.",
+      "evidence": [
+        "designer-restore.json"
+      ]
     },
     {
       "id": "M4:11",
       "title": "Подготовьте исполняемый результат",
-      "status": "pending"
+      "status": "verified",
+      "note": "Visual Studio собрала Release. Скопированный exe запущен с внешней рабочей папкой.",
+      "evidence": [
+        "../../materials/screens/vs-student-build.png",
+        "designer-restore.json"
+      ]
     },
     {
       "id": "M4:12",
       "title": "Передайте решение в репозиторий",
-      "status": "pending"
+      "status": "reviewed",
+      "note": "Проверен состав исходников, бинарной сборки, SQL, ER PDF и README. Репозиторий экзаменационной площадки предоставляется студенту отдельно.",
+      "evidence": [
+        "../../README.md",
+        "designer-restore.json"
+      ]
     }
   ]
 }

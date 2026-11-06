@@ -1,23 +1,16 @@
 {
-  "complete": false,
+  "complete": true,
+  "scope": "Seven WinForms forms, Designer source parity, Windows build and runtime open",
   "forms": [
     {
       "name": "ConnectionForm",
       "createdWith": "Visual Studio 2026 Windows Forms Designer, Toolbox and Properties",
-      "components": {
-        "TextBox": 5,
-        "Label": 7,
-        "Button": 1
-      },
-      "eventsConfiguredWith": "Properties Events: Click",
       "events": [
-        "connectButton.Click -> connectButton_Click"
+        [
+          "connectButton.Click",
+          "connectButton_Click"
+        ]
       ],
-      "acceptButton": "connectButton",
-      "designerDpi": 96,
-      "autoScaleDimensions": "8, 18",
-      "clientSize": "640, 570",
-      "font": "Calibri 11 pt",
       "source": [
         {
           "path": "../../examples/WinForms/ConnectionForm.Designer.cs",
@@ -29,28 +22,23 @@
         }
       ],
       "screenshot": "../../materials/screens/vs-connection-designer.png",
-      "compileVerified": true,
-      "compilePlatform": "macOS, Windows targeting",
-      "runtimeWindowsVerified": false
+      "runtimeScreenshot": "../../materials/screens/connection.png",
+      "compilePlatform": "Windows 11 ARM64, Visual Studio 2026, .NET 10",
+      "runtimeWindowsVerified": true
     },
     {
       "name": "LoginForm",
-      "createdWith": "Add New Item: Form (Windows Forms); Toolbox and Properties",
-      "components": {
-        "TextBox": 1,
-        "Label": 3,
-        "Button": 2
-      },
-      "eventsConfiguredWith": "Properties Events: Click",
+      "createdWith": "Visual Studio 2026 Windows Forms Designer, Toolbox and Properties",
       "events": [
-        "loginButton.Click -> loginButton_Click",
-        "guestButton.Click -> guestButton_Click"
+        [
+          "loginButton.Click",
+          "loginButton_Click"
+        ],
+        [
+          "guestButton.Click",
+          "guestButton_Click"
+        ]
       ],
-      "acceptButton": "loginButton",
-      "designerDpi": 96,
-      "autoScaleDimensions": "8, 18",
-      "clientSize": "490, 340",
-      "font": "Calibri 11 pt",
       "source": [
         {
           "path": "../../examples/WinForms/LoginForm.Designer.cs",
@@ -62,31 +50,31 @@
         }
       ],
       "screenshot": "../../materials/screens/vs-login-designer.png",
-      "compileVerified": true,
-      "runtimeWindowsVerified": false,
-      "compilePlatform": "macOS, Windows targeting"
+      "runtimeScreenshot": "../../materials/screens/login.png",
+      "compilePlatform": "Windows 11 ARM64, Visual Studio 2026, .NET 10",
+      "runtimeWindowsVerified": true
     },
     {
       "name": "ProductForm",
-      "createdWith": "Add New Item: Form (Windows Forms); Toolbox and Properties",
-      "components": {
-        "PictureBox": 1,
-        "Label": 4,
-        "ComboBox": 1,
-        "NumericUpDown": 1,
-        "Button": 2
-      },
-      "eventsConfiguredWith": "Properties Events",
+      "createdWith": "Visual Studio 2026 Windows Forms Designer, Toolbox and Properties",
       "events": [
-        "sizeComboBox.SelectedIndexChanged -> sizeComboBox_SelectedIndexChanged",
-        "addButton.Click -> addButton_Click",
-        "backButton.Click -> backButton_Click",
-        "ProductForm.FormClosed -> ProductForm_FormClosed"
+        [
+          "sizeComboBox.SelectedIndexChanged",
+          "sizeComboBox_SelectedIndexChanged"
+        ],
+        [
+          "addButton.Click",
+          "addButton_Click"
+        ],
+        [
+          "backButton.Click",
+          "backButton_Click"
+        ],
+        [
+          "FormClosed",
+          "ProductForm_FormClosed"
+        ]
       ],
-      "designerDpi": 96,
-      "autoScaleDimensions": "8, 18",
-      "clientSize": "700, 650",
-      "font": "Calibri 11 pt",
       "source": [
         {
           "path": "../../examples/WinForms/ProductForm.Designer.cs",
@@ -97,19 +85,190 @@
           "sha256": "a122f3e718c7a26b3b21f292ae61305dc66838bb76b93ed6a7669b2ab4ca3432"
         }
       ],
-      "screenshots": [
-        "../../materials/screens/vs-product-designer-top.png",
-        "../../materials/screens/vs-product-designer-bottom.png"
+      "screenshot": "../../materials/screens/vs-product-designer.png",
+      "runtimeScreenshot": "../../materials/screens/product.png",
+      "compilePlatform": "Windows 11 ARM64, Visual Studio 2026, .NET 10",
+      "runtimeWindowsVerified": true
+    },
+    {
+      "name": "CatalogForm",
+      "createdWith": "Visual Studio 2026 Windows Forms Designer, Toolbox and Properties",
+      "events": [
+        [
+          "loginButton.Click",
+          "loginButton_Click"
+        ],
+        [
+          "cartButton.Click",
+          "cartButton_Click"
+        ],
+        [
+          "ordersButton.Click",
+          "ordersButton_Click"
+        ],
+        [
+          "refreshButton.Click",
+          "refreshButton_Click"
+        ],
+        [
+          "searchTextBox.TextChanged",
+          "searchTextBox_TextChanged"
+        ],
+        [
+          "categoryComboBox.SelectedIndexChanged",
+          "categoryComboBox_SelectedIndexChanged"
+        ],
+        [
+          "sortComboBox.SelectedIndexChanged",
+          "sortComboBox_SelectedIndexChanged"
+        ],
+        [
+          "catalogGrid.CellDoubleClick",
+          "catalogGrid_CellDoubleClick"
+        ],
+        [
+          "catalogGrid.CellFormatting",
+          "catalogGrid_CellFormatting"
+        ],
+        [
+          "FormClosed",
+          "CatalogForm_FormClosed"
+        ]
       ],
-      "compileVerified": true,
-      "compilePlatform": "macOS, Windows targeting",
-      "runtimeWindowsVerified": false
+      "source": [
+        {
+          "path": "../../examples/WinForms/CatalogForm.Designer.cs",
+          "sha256": "21395bfd0d2cfc3b99a6956b1c01ce38a6b1f738f1f63aaacf2edc1e1cdea218"
+        },
+        {
+          "path": "../../examples/WinForms/CatalogForm.resx",
+          "sha256": "6e19cfef6714fd5dda29228a38649650fd6aab0fdbee133fbd375f9f2e7f51bc"
+        }
+      ],
+      "screenshot": "../../materials/screens/vs-catalog-designer-top.png",
+      "runtimeScreenshot": "../../materials/screens/catalog-client.png",
+      "compilePlatform": "Windows 11 ARM64, Visual Studio 2026, .NET 10",
+      "runtimeWindowsVerified": true
+    },
+    {
+      "name": "BasketForm",
+      "createdWith": "Visual Studio 2026 Windows Forms Designer, Toolbox and Properties",
+      "events": [
+        [
+          "quantityButton.Click",
+          "quantityButton_Click"
+        ],
+        [
+          "removeButton.Click",
+          "removeButton_Click"
+        ],
+        [
+          "backButton.Click",
+          "backButton_Click"
+        ],
+        [
+          "cancelButton.Click",
+          "cancelButton_Click"
+        ],
+        [
+          "confirmButton.Click",
+          "confirmButton_Click"
+        ],
+        [
+          "basketGrid.SelectionChanged",
+          "basketGrid_SelectionChanged"
+        ]
+      ],
+      "source": [
+        {
+          "path": "../../examples/WinForms/BasketForm.Designer.cs",
+          "sha256": "cb6547ff04392e4951dedf8eb4cb5dfa170f252eb98713f1bafe7599baa8e290"
+        },
+        {
+          "path": "../../examples/WinForms/BasketForm.resx",
+          "sha256": "f1200f1195130b929dfa339b98ecc29bd7a68f65cd251d529fa64d780a21a105"
+        }
+      ],
+      "screenshot": "../../materials/screens/vs-basket-designer-top.png",
+      "runtimeScreenshot": "../../materials/screens/basket.png",
+      "compilePlatform": "Windows 11 ARM64, Visual Studio 2026, .NET 10",
+      "runtimeWindowsVerified": true
+    },
+    {
+      "name": "OrdersForm",
+      "createdWith": "Visual Studio 2026 Windows Forms Designer, Toolbox and Properties",
+      "events": [
+        [
+          "detailsButton.Click",
+          "detailsButton_Click"
+        ],
+        [
+          "addOrderButton.Click",
+          "addOrderButton_Click"
+        ],
+        [
+          "deleteOrderButton.Click",
+          "deleteOrderButton_Click"
+        ],
+        [
+          "backButton.Click",
+          "backButton_Click"
+        ]
+      ],
+      "source": [
+        {
+          "path": "../../examples/WinForms/OrdersForm.Designer.cs",
+          "sha256": "2feeab2952c9d2edaea720a68a3cf3447b1327d2824b05f526016f8426b2123a"
+        },
+        {
+          "path": "../../examples/WinForms/OrdersForm.resx",
+          "sha256": "3682bb8be68c51f238a5bee171dcaddb5ab0a95be13e2c74b8e7b1b0b556beda"
+        }
+      ],
+      "screenshot": "../../materials/screens/vs-orders-designer.png",
+      "runtimeScreenshot": "../../materials/screens/orders.png",
+      "compilePlatform": "Windows 11 ARM64, Visual Studio 2026, .NET 10",
+      "runtimeWindowsVerified": true
+    },
+    {
+      "name": "OrderDetailsForm",
+      "createdWith": "Visual Studio 2026 Windows Forms Designer, Toolbox and Properties",
+      "events": [
+        [
+          "changeDateButton.Click",
+          "changeDateButton_Click"
+        ],
+        [
+          "deleteLineButton.Click",
+          "deleteLineButton_Click"
+        ],
+        [
+          "backButton.Click",
+          "backButton_Click"
+        ]
+      ],
+      "source": [
+        {
+          "path": "../../examples/WinForms/OrderDetailsForm.Designer.cs",
+          "sha256": "f1b1776a8cf35c551fa2395dacb6cacb009a2ff16cebafff829fc47dfe5cedb2"
+        },
+        {
+          "path": "../../examples/WinForms/OrderDetailsForm.resx",
+          "sha256": "0a8b8caf8a855257dec89913e4910d61c2b53a4340cb6107744285b5c2006742"
+        }
+      ],
+      "screenshot": "../../materials/screens/vs-order-details-designer.png",
+      "runtimeScreenshot": "../../materials/screens/order-details.png",
+      "compilePlatform": "Windows 11 ARM64, Visual Studio 2026, .NET 10",
+      "runtimeWindowsVerified": true
     }
   ],
-  "remainingForms": [
-    "CatalogForm",
-    "BasketForm",
-    "OrdersForm",
-    "OrderDetailsForm"
-  ]
+  "studentSolution": {
+    "coreReference": true,
+    "targetFramework": "net10.0",
+    "mySqlConnector": "2.6.1",
+    "imagesCopied": 31,
+    "placeholderCopied": true,
+    "releaseBuilt": true
+  }
 }

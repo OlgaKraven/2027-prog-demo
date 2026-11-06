@@ -9,11 +9,11 @@
   },
   "examples/WinForms/BasketForm.cs": {
     "file": "materials/screens/basket.png",
-    "caption": "Оформление выбранной позиции в настоящем окне Windows. Сумма рассчитана на контрольную дату."
+    "caption": "Две размерные позиции, клиент, количество и сумма в работающей форме заказа."
   },
   "login": {
     "file": "materials/screens/login.png",
-    "caption": "Вход в приложение по исходному логину без пароля; на снимке учебный администратор."
+    "caption": "Вход в приложение по исходному логину без пароля. На снимке вводится учебный логин клиента."
   },
   "examples/WinForms/OrdersForm.cs": {
     "file": "materials/screens/orders.png",
@@ -22,5 +22,41 @@
   "designer-button": {
     "file": "materials/screens/vs-designer-button.png",
     "caption": "Visual Studio 2026, реальный Designer: кнопка добавлена из Toolbox, свойство Text изменено на «Войти» через Properties. Это проверка одного компонента, не готовой формы."
+  },
+  "designer-connection": {
+    "file": "materials/screens/vs-connection-designer.png",
+    "caption": "Подключение: компоненты, свойства и событие созданы в конструкторе Visual Studio."
+  },
+  "designer-login": {
+    "file": "materials/screens/vs-login-designer.png",
+    "caption": "Конструктор входа: одно поле логина и две кнопки."
+  },
+  "designer-product": {
+    "file": "materials/screens/vs-product-designer-top.png",
+    "caption": "Конструктор карточки модели: изображение, описание и выбор размера."
+  },
+  "designer-basket": {
+    "file": "materials/screens/vs-basket-designer-top.png",
+    "caption": "Конструктор корзины: покупатель, количество и фиксированные колонки."
+  },
+  "designer-orders": {
+    "file": "materials/screens/vs-orders-designer.png",
+    "caption": "Конструктор списка заказов: кнопки операций и четыре колонки."
+  },
+  "designer-catalog": {
+    "file": "materials/screens/vs-catalog-designer-top.png",
+    "caption": "Конструктор каталога: исходный логотип, ФИО, поиск, фильтр и сортировка."
+  },
+  "examples/WinForms/OrderDetailsForm.cs": {
+    "file": "materials/screens/order-details.png",
+    "caption": "Состав созданного тестового заказа в форме из Visual Studio Designer: дата, позиции, сумма и действия администратора."
+  },
+  "examples/WinForms/ConnectionForm.cs": {
+    "file": "materials/screens/connection.png",
+    "caption": "Подключение работающего приложения к своей базе. Пароль СУБД не относится ко входу покупателя."
+  },
+  "stock-race": {
+    "file": "materials/screens/stock-race.png",
+    "caption": "Приложение отклоняет заказ после изменения остатка в отдельной учебной базе."
   }
 }

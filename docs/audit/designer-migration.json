@@ -1,5 +1,5 @@
 {
-  "complete": false,
+  "complete": true,
   "requiredRoute": {
     "forms": "Visual Studio Windows Forms Designer",
     "database": "Visual table, key, relation and ER designers",
@@ -14,14 +14,16 @@
     "Ten tables, 41 fields, 10 PK, 10 UNIQUE, 10 FK, four CHECK and date index created through DBeaver visual editors; actual server metadata compared with the ER model",
     "Data-only C# import executed via DBeaver SQL Script in visually created schema; separate connection confirmed all ten table counts after commit",
     "DB relationship diagram configured with types, nullability and Crow foot; arranged and exported to PNG through DBeaver; all ten tables and ten relations visually inspected",
-    "ConnectionForm, LoginForm and ProductForm created in Visual Studio Designer, including all components, named properties and event bindings; generated sources copied byte for byte; macOS Windows-targeting build passed with no warnings"
+    "All seven forms and fixed grid columns created through Visual Studio Designer. Events assigned in Properties. Windows Release built and launched.",
+    "Actual DBeaver ER printed to PDF in Windows",
+    "Native MariaDB structure/data export restored in a new database and 14 checks passed",
+    "Import run interactively from Visual Studio and malformed XLSX cases rejected",
+    "Release app tested with restored data, real role logins and concurrent stock change"
   ],
   "notVerified": [
-    "All final forms migrated to Designer",
-    "All event bindings configured through Properties",
-    "GUI SQL export restored in another empty database",
-    "Every student action repeated in Visual Studio",
-    "ER diagram printed to PDF through Windows"
+    "DBeaver native Backup/Restore dialogs (the documented validated route uses MariaDB native clients)",
+    "Windows display scales other than 200%",
+    "Submission to an examination-provided repository"
   ],
   "evidence": [
     "../../materials/screens/vs-designer-button.png",
@@ -30,6 +32,8 @@
     "database-designer.json",
     "../../materials/screens/dbeaver-er.png",
     "designer-forms.json",
+    "student-walkthrough.json",
+    "designer-restore.json",
     "student-walkthrough.json"
   ]
 }

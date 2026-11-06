@@ -7,6 +7,8 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 // No Excel installation, Python or additional NuGet package is needed.
+Console.InputEncoding = Encoding.UTF8;
+Console.OutputEncoding = Encoding.UTF8;
 try
 {
     string Ask(int index,string prompt,string fallback="")
@@ -14,6 +16,8 @@ try
         if(args.Length>index)return args[index];
         Console.WriteLine(prompt);
         string value=Console.ReadLine()?.Trim().Trim('"')??"";
+        if(value.Length==0 && fallback.Length==0)
+            throw new InvalidOperationException("Укажите путь к папке с исходными файлами.");
         return value.Length==0?fallback:value;
     }
     var input=Path.GetFullPath(Ask(0,"Папка с пятью распакованными XLSX или шестью CSV авторского варианта:"));

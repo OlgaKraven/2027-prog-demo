@@ -2,40 +2,112 @@ using ProgDemo;
 
 namespace ProgDemo.WinForms;
 
-public sealed class BasketForm:PageForm
+public partial class BasketForm : Form
 {
-    private readonly Store store;private readonly User actor;private readonly List<BasketLine> basket;private readonly DateTime date;
-    private readonly DataGridView grid=Ui.Grid();private readonly Label total=Ui.Label("");
-    private readonly ComboBox customer=new(){DropDownStyle=ComboBoxStyle.DropDownList,Width=300,DisplayMember="FullName"};
-    private readonly NumericUpDown quantity=new(){Minimum=1,Maximum=100000,Value=1,Width=110};
-    private Guid request=Guid.NewGuid();
-    public BasketForm(Store store,User actor,List<BasketLine> basket,DateTime date):base("Оформление заказа",1000,700)
+    private readonly Store store;
+    private readonly User actor;
+    private readonly List<BasketLine> basket;
+    private readonly DateTime date;
+    private Guid request = Guid.NewGuid();
+
+    private sealed record BasketRow(int StockId, string Product, string Size, int Quantity, decimal Price)
     {
-        this.store=store;this.actor=actor;this.basket=basket;this.date=date;
-        var actions=Ui.Row();actions.Controls.Add(Ui.Label("Клиент:"));customer.DataSource=actor.CanManage?store.Customers(actor):new List<User>{actor};customer.SelectedItem=((List<User>)customer.DataSource).Find(x=>x.Id==actor.Id);actions.Controls.Add(customer);
-        var controls=Ui.Row();controls.Controls.Add(quantity);controls.Controls.Add(Ui.Button("Изменить количество",()=>{var i=grid.CurrentRow?.Index??-1;if(i<0)throw new InvalidOperationException("Выберите строку заказа.");basket[i]=basket[i] with{Quantity=(int)quantity.Value};Reload();}));
-        controls.Controls.Add(Ui.Button("Удалить позицию",()=>{var i=grid.CurrentRow?.Index??-1;if(i<0)throw new InvalidOperationException("Выберите строку заказа.");basket.RemoveAt(i);Reload();}));controls.Controls.Add(total);
-        var bottom=Ui.Row();bottom.Dock=DockStyle.Bottom;
-        bottom.Controls.Add(Ui.Button("Назад к выбору",Close));
-        bottom.Controls.Add(Ui.Button("Отказаться от заказа",()=>{if(MessageBox.Show("Очистить выбранные позиции? Остатки ещё не списывались.","Отмена заказа",MessageBoxButtons.YesNo,MessageBoxIcon.Question)!=DialogResult.Yes)return;basket.Clear();DialogResult=DialogResult.Cancel;}));
-        Button? confirm=null;
-        confirm=Ui.Button("Подтвердить заказ",()=>{
-            if(customer.SelectedItem is not User target)throw new InvalidOperationException("Выберите клиента.");
-            if(basket.Count==0)throw new InvalidOperationException("Добавьте хотя бы одну пару обуви.");
-            confirm!.Enabled=false;
-            try{int id=store.PlaceOrder(actor,target.Id,basket,request,date);basket.Clear();MessageBox.Show($"Заказ №{id} оформлен. Остатки обновлены.","Заказ сохранён",MessageBoxButtons.OK,MessageBoxIcon.Information);DialogResult=DialogResult.OK;}
-            finally{if(!IsDisposed)confirm.Enabled=true;}
-        },true);bottom.Controls.Add(confirm);
-        Controls.Add(grid);Controls.Add(controls);Controls.Add(actions);Controls.Add(bottom);Reload();
+        public decimal Total => Quantity * Price;
     }
+
+    public BasketForm(Store store, User actor, List<BasketLine> basket, DateTime date)
+    {
+        InitializeComponent();
+        this.store = store;
+        this.actor = actor;
+        this.basket = basket;
+        this.date = date;
+        var customers = actor.CanManage ? store.Customers(actor) : new List<User> { actor };
+        customerComboBox.DisplayMember = nameof(User.FullName);
+        customerComboBox.DataSource = customers;
+        customerComboBox.SelectedItem = customers.Find(x => x.Id == actor.Id) ?? customers.FirstOrDefault();
+        customerComboBox.Enabled = actor.CanManage;
+        Reload();
+    }
+
     private void Reload()
     {
-        // A changed basket is a new request. A retry of the same basket retains its token.
-        request=Guid.NewGuid();
-        var products=store.Catalog(date).ToDictionary(p=>p.Id);var available=products.Values.SelectMany(p=>store.Sizes(p.Id)).ToDictionary(s=>s.Id);
-        var rows=basket.Select(x=>{
-            available.TryGetValue(x.StockId,out var s);Product? p=s is null?null:products[s.ProductId];
-            return new {Позиция=x.StockId,Модель=p?.Name??"Позиция закончилась — удалите или обновите выбор",Размер=s?.Size??"—",Количество=x.Quantity,Цена=p?.Price??0,Сумма=(p?.Price??0)*x.Quantity};
-        }).ToList();grid.DataSource=rows;if(grid.Columns["Модель"] is {} model)model.FillWeight=350;if(grid.Columns["Позиция"] is {} code)code.FillWeight=40;total.Text=$"Итого: {rows.Sum(x=>x.Сумма):N2} ₽";
+        // Changing the basket starts a new request; retrying confirmation keeps its token.
+        request = Guid.NewGuid();
+        var products = store.Catalog(date).ToDictionary(p => p.Id);
+        var available = products.Values.SelectMany(p => store.Sizes(p.Id)).ToDictionary(s => s.Id);
+        var rows = basket.Select(line =>
+        {
+            available.TryGetValue(line.StockId, out var stock);
+            Product? product = stock is null ? null : products[stock.ProductId];
+            return new BasketRow(line.StockId,
+                product?.Name ?? "Позиция закончилась — удалите или обновите выбор",
+                stock?.Size ?? "—", line.Quantity, product?.Price ?? 0);
+        }).ToList();
+        basketGrid.DataSource = rows;
+        totalLabel.Text = $"Итого: {rows.Sum(x => x.Total):N2} ₽";
     }
+
+    private int SelectedIndex()
+    {
+        if (basketGrid.CurrentRow?.DataBoundItem is not BasketRow row)
+            throw new InvalidOperationException("Выберите строку заказа.");
+        int index = basket.FindIndex(x => x.StockId == row.StockId);
+        if (index < 0)
+            throw new InvalidOperationException("Строка уже удалена. Обновите корзину.");
+        return index;
+    }
+
+    private void basketGrid_SelectionChanged(object sender, EventArgs e)
+    {
+        if (basketGrid.CurrentRow?.DataBoundItem is BasketRow row)
+            quantityNumericUpDown.Value = Math.Clamp(row.Quantity,
+                quantityNumericUpDown.Minimum, quantityNumericUpDown.Maximum);
+    }
+
+    private void quantityButton_Click(object sender, EventArgs e) => Ui.Guard(() =>
+    {
+        int index = SelectedIndex();
+        basket[index] = basket[index] with { Quantity = (int)quantityNumericUpDown.Value };
+        Reload();
+    });
+
+    private void removeButton_Click(object sender, EventArgs e) => Ui.Guard(() =>
+    {
+        basket.RemoveAt(SelectedIndex());
+        Reload();
+    });
+
+    private void backButton_Click(object sender, EventArgs e) => Close();
+
+    private void cancelButton_Click(object sender, EventArgs e)
+    {
+        if (MessageBox.Show("Очистить выбранные позиции? Остатки ещё не списывались.", "Отмена заказа",
+            MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+            return;
+        basket.Clear();
+        DialogResult = DialogResult.Cancel;
+    }
+
+    private void confirmButton_Click(object sender, EventArgs e) => Ui.Guard(() =>
+    {
+        if (customerComboBox.SelectedItem is not User target)
+            throw new InvalidOperationException("Выберите клиента.");
+        if (basket.Count == 0)
+            throw new InvalidOperationException("Добавьте хотя бы одну пару обуви.");
+        confirmButton.Enabled = false;
+        try
+        {
+            int id = store.PlaceOrder(actor, target.Id, basket, request, date);
+            basket.Clear();
+            MessageBox.Show($"Заказ №{id} оформлен. Остатки обновлены.", "Заказ сохранён",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            DialogResult = DialogResult.OK;
+        }
+        finally
+        {
+            if (!IsDisposed)
+                confirmButton.Enabled = true;
+        }
+    });
 }

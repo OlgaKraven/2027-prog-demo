@@ -1,0 +1,76 @@
+{
+  "backupSha256": "acb916622adb4de8cf9d2a386481e266ef8677596ce84bf4d12757e97b514d5f",
+  "target": "prog_demo_checks_designer_20261105",
+  "counts": [
+    "roles\t3",
+    "users\t20",
+    "categories\t3",
+    "subcategories\t11",
+    "manufacturers\t16",
+    "products\t31",
+    "sizes\t35",
+    "stock_items\t92",
+    "orders\t10",
+    "order_items\t30"
+  ],
+  "source": "prog_demo_student_20261105",
+  "checks": [
+    "PASS previous calendar month across year",
+    "PASS discount and rounding",
+    "PASS quantity boundaries 3 4 5 6",
+    "PASS imported rows",
+    "PASS login without password and unknown login",
+    "PASS both discount branches",
+    "PASS combined filter search sort",
+    "PASS roles enforced at operation boundary",
+    "PASS reject invalid quantities",
+    "PASS atomic rollback when one position fails",
+    "PASS confirmation and duplicate request",
+    "PASS stored unit price and admin edit",
+    "PASS manager delete and repeat rejection",
+    "PASS order cancellation restores stock once"
+  ],
+  "method": "MariaDB native mysqldump/mysql in Windows, source schema created in DBeaver",
+  "erPdf": {
+    "source": "../../materials/screens/dbeaver-er.png",
+    "path": "../../materials/screens/dbeaver-er.pdf",
+    "printer": "Microsoft Print to PDF",
+    "paper": "A3 landscape",
+    "pages": 1,
+    "sha256": "2bddd5f2c9aa0801b9c317acbb99927c281d3aad84afa5afc4f70ae6a908be44"
+  },
+  "visualStudioImport": {
+    "sqlSha256": "bf53144604bf0f3719459680454b70547d44b65ca40db3015bb752c6fa22bdda",
+    "sourceHashesMatch": true,
+    "screenshot": "../../materials/screens/vs-import-result.png"
+  },
+  "stockRace": {
+    "secondStockRestored": true,
+    "firstStockUnchanged": true,
+    "orders": 10,
+    "secondPosition": 9,
+    "firstPosition": 23,
+    "lines": 30
+  },
+  "importRejected": [
+    {
+      "exitCode": 1,
+      "case": "missing",
+      "sqlCreated": false,
+      "matches": 0
+    },
+    {
+      "exitCode": 1,
+      "case": "duplicate",
+      "sqlCreated": false,
+      "matches": 2
+    }
+  ],
+  "releaseRun": {
+    "assetCount": 31,
+    "sha256": "ee4a36e851837202b8ffc1f6e81ef195ace75e822c0fc78065c58f58d86a8263",
+    "workingDirectoryOutsideApp": true,
+    "runtime": "Windows 11 ARM64",
+    "modelsDisplayed": 31
+  }
+}
