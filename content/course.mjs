@@ -124,8 +124,7 @@ export const stages=[
         ],
         "check": "Если у модели два размера, в products одна строка с одним фото, а в stock_items две строки с разными остатками.",
         "file": "",
-        "code": "",
-        "erStep": 2
+        "code": ""
       },
       {
         "title": "Постройте ER-схему",

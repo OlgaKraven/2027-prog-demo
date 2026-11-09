@@ -64,7 +64,9 @@ for(const width of [390,768,1440])for(const dark of [false,true]){
  assert(await importerFile.isVisible());
  assert.match(await importerFile.getAttribute('href'),/code\/examples\/Import\/CsvInput\.cs\.txt$/);
  await page.locator('#lesson-steps').click();await page.locator('[data-jump-step="1"]').click();
- await page.getByRole('button',{name:'Построить ER-схему',exact:true}).click();
+ assert.equal(await page.getByRole('button',{name:'Построить ER-схему',exact:true}).count(),0);
+ await page.getByRole('button',{name:'Следующий шаг',exact:true}).click();
+ assert(await page.locator('#er-workspace').isVisible());
  assert.equal(await page.locator('dialog[open]').count(),0);
  await page.locator('#er-next').click();
  assert(await page.locator('#er-select-roles').isVisible());

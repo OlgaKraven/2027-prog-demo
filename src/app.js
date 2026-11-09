@@ -301,7 +301,6 @@ function explain(s,database=false) {
     <h3>${database?'Что сделать':'Что сделать самостоятельно'}</h3>
     ${!s.details||s.detailsSupplement?`<ol>${s.actions.map(a=>`<li>${E(a)}</li>`).join('')}</ol>`:''}
     ${s.details?`<div class="step-instructions">${s.details.map((section,i)=>`${i?`<h4>${E(section)}</h4>`: ''}${D.lessonDetails[section]}`).join('')}</div>`:''}
-    ${s.erStep===undefined?'':btn('Построить ER-схему',`data-step="${s.erStep}"`)}
     ${s.erWorkspace?'<section class="er-workspace" id="er-workspace" aria-label="Построение ER-схемы"></section>':''}
     ${s.code?`<pre tabindex="0">${E(s.code)}</pre>`:''}
     ${s.file&&!s.details?`<details><summary>Полный файл для сверки · ${E(s.file)}</summary><p>Сначала разберите действие и поля. Сверка показывает итоговый файл, включая последующие операции.</p><pre tabindex="0">${E(D.code[s.file]||'')}</pre></details>`:''}
