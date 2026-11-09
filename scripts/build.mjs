@@ -1,8 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
-import {stages,tasks,criteria} from '../content/course.mjs';
+import {stages,tasks,criteria,sourceWorkbooks,stageOutputs} from '../content/course.mjs';
 import {buildGuideRedirects,renderLessonDetails} from './render_guides.mjs';
+import {buildLessonSlides} from './lesson_slides.mjs';
 import '../src/core.js';
 const localNames = new Set(['bin', 'obj', '.vs', '__pycache__', '.ds_store', 'thumbs.db', 'launchsettings.json']);
 function isCourseFile(file) {
@@ -17,6 +18,12 @@ fs.cpSync('materials',out+'/materials',{recursive:true,filter:isCourseFile});
 fs.rmSync(out+'/docs',{recursive:true,force:true});fs.mkdirSync(out+'/docs',{recursive:true});
 fs.copyFileSync('docs/launch.html',out+'/docs/launch.html');
 buildGuideRedirects(out+'/docs');
+for(const file of ['docs/launch.html','materials/description.html','materials/style-guide.html']){
+  const target=out+'/'+file;
+  const html=fs.readFileSync(target,'utf8').replace('<style>', '<link rel="stylesheet" href="../typography.css"><style>')
+    .replace('</style>', 'body{font:var(--text-body)/1.6 var(--font-ui)}h1{font-size:var(--text-page)}h2{font-size:var(--text-section)}code,pre{font-family:var(--font-code)}</style>');
+  fs.writeFileSync(target,html);
+}
 fs.mkdirSync(out+'/downloads',{recursive:true});
 const read=p=>JSON.parse(fs.readFileSync(p,'utf8'));
 const code={};
@@ -62,21 +69,23 @@ fs.writeFileSync(out+'/downloads/prog-demo-example.zip',ExamCore.zip(example));
 fs.rmSync(out+'/downloads/prog-demo-windows.zip',{force:true});
 const screens=fs.existsSync('content/screens.json')?read('content/screens.json'):{};
 const launchGuide=fs.readFileSync('docs/launch.html','utf8').match(/<body>\s*<h1>.*?<\/h1>([\s\S]*?)<\/body>/i)[1];
-const lessonDetails={};
+const lessonBlocks={};
 for(const guide of ['Forms-designer','Visual-Studio','DBeaver','Database-fields','Import']){
   for(const [title,html] of Object.entries(renderLessonDetails(fs.readFileSync(`docs/${guide}.md`,'utf8')))){
-    if(Object.hasOwn(lessonDetails,title))throw new Error('Раздел повторяется: '+title);
-    lessonDetails[title]=html;
+    if(Object.hasOwn(lessonBlocks,title))throw new Error('Раздел повторяется: '+title);
+    lessonBlocks[title]=html;
   }
 }
 const usedDetails=stages.flatMap(stage=>stage.steps.flatMap(step=>step.details||[]));
-if(usedDetails.length!==Object.keys(lessonDetails).length||
+if(usedDetails.length!==Object.keys(lessonBlocks).length||
    new Set(usedDetails).size!==usedDetails.length||
-   usedDetails.some(section=>!lessonDetails[section])){
+   usedDetails.some(section=>!lessonBlocks[section])){
   throw new Error('Каждый раздел инструкции должен соответствовать одной карточке маршрута');
 }
-const data={lessonDetails,workbooks:read('content/workbooks.json'),launchGuide,stages,tasks,criteria,variants,variantBriefs,variantTasks,code,windowsBuild:!!release,kim:'materials/original/КИМ 09.02.07-2-2027 Том 1.pdf',er:read('content/er.json'),erSvg:fs.readFileSync('materials/ER.svg','utf8'),screens};
+const lessonDetails=Object.fromEntries(Object.entries(lessonBlocks).map(([title,blocks])=>[title,blocks.join('\n')]));
+const data={lessonDetails,sourceWorkbooks,stageOutputs,workbooks:read('content/workbooks.json'),launchGuide,stages,tasks,criteria,variants,variantBriefs,variantTasks,code,windowsBuild:!!release,kim:'materials/original/КИМ 09.02.07-2-2027 Том 1.pdf',er:read('content/er.json'),erSvg:fs.readFileSync('materials/ER.svg','utf8'),screens};
 fs.writeFileSync(out+'/content.js','globalThis.COURSE='+JSON.stringify(data)+';');
+const previousIndexes=[0,1];
 const slides = [{kind:'cover',chapter:'intro',title:'Демонстрационный экзамен'}];
 const chapters = [{id:'intro',label:'Демонстрационный экзамен',index:0}];
 slides.push({
@@ -86,29 +95,26 @@ slides.push({
   links:[['Условие КИМ',data.kim+'#page=35'],['Готовый пример','./?mode=examples']]
 });
 for (const stage of stages) {
-  chapters.push({id:stage.id,label:stage.title,index:slides.length});
+  const chapter={id:stage.id,label:stage.title,index:slides.length,steps:[]};
+  chapters.push(chapter);
+  previousIndexes.push(slides.length);
   slides.push({kind:'section',chapter:stage.id,title:stage.title,body:stage.output});
-  for (const step of stage.steps) {
-    const image = screens[step.shot||step.file];
-    const links = step.details
-      ? [['Карточка шага', './?'+new URLSearchParams({mode:'learn',module:stage.id,view:'steps',card:step.details[0]})]]
-      : step.guide?[[step.guide.title,step.guide.path]]:[];
-    const slide = {
-      kind:'content',chapter:stage.id,title:step.title,body:step.why,actions:step.actions,check:step.check,
-      ...(image?{image}:{}), ...(links.length?{links}:{})
-    };
-    const textLength = [step.why,...step.actions,step.check].join(' ').length;
-    if (image && textLength>650) {
-      slides.push({kind:slide.kind,chapter:stage.id,title:step.title,body:step.why,image});
-      slides.push({...slide,title:step.title+' · порядок действий',body:undefined,image:undefined});
-    } else {
-      slides.push(slide);
-    }
-    if (step.code) slides.push({kind:'code',chapter:stage.id,title:'Код · '+step.title,code:step.code});
+  for (const [index,step] of stage.steps.entries()) {
+    chapter.steps.push({title:step.title,index:slides.length});
+    const oldImage=screens[step.shot||step.file];
+    previousIndexes.push(slides.length);
+    if(oldImage&&[step.why,...step.actions,step.check].join(' ').length>650)previousIndexes.push(slides.length);
+    if(step.code)previousIndexes.push(slides.length);
+    const stepSlides=buildLessonSlides(stage,step,index,screens,lessonBlocks);
+    if(stepSlides.length>1)stepSlides[0].demo=slides.length+1;
+    slides.push(...stepSlides);
   }
+  const title='Что сохранить';
+  chapter.steps.push({title,index:slides.length});
+  slides.push({kind:'content',chapter:stage.id,title,items:stageOutputs[stage.id].map(([name,note])=>name+' · '+note)});
 }
 fs.writeFileSync(out+'/deck-data.js','globalThis.TEACHER_DECK='+JSON.stringify({
-  code:'09.02.07-2-2027',stackName:'Windows Forms + MySQL / MariaDB',chapters,slides
+  code:'09.02.07-2-2027',stackName:'Windows Forms + MySQL / MariaDB',chapters,slides,previousIndexes
 })+';');
 for (const page of ['index.html','deck.html']) {
   const html=fs.readFileSync(out+'/'+page,'utf8').replace(/\b(src|href)="([^"?]+\.(?:js|css))"/g,

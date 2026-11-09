@@ -54,7 +54,7 @@ export function renderLessonDetails(markdown) {
   const cards={};
   for(let i=0;i<sections.length;i+=2){
     const section=i===0&&introduction?introduction+'\n\n'+sections[i+1]:sections[i+1];
-    cards[sections[i]]=renderBlocks(section).join('\n');
+    cards[sections[i]]=renderBlocks(section);
   }
   return cards;
 }

@@ -10,7 +10,7 @@
   const audience=params.has('audience'), printable=params.has('print');
   const chapters=Object.fromEntries(deck.chapters.map(x=>[x.id,x.label]));
   let profile=Object.fromEntries(profileKeys.map(key=>[key,get('teacher:'+profileKeys.indexOf(key),'')]));
-  const savedIndex=get('deck-slide',0);
+  const savedIndex=get('deck-route-slide',deck.previousIndexes?.[get('deck-slide',0)]??0);
   let dark=get('dark',false), index=!audience&&Number.isInteger(savedIndex)
     ?Math.max(0,Math.min(deck.slides.length-1,savedIndex)):0;
   let channel, target, laser=false, channelId;
@@ -51,7 +51,11 @@
     const refs=slide.resources?.length?'<p class="resources">Откройте: '+slide.resources.map(esc).join(' · ')+'</p>':'';
     const subtitle=slide.heading?'<h2>'+esc(slide.heading)+'</h2>':'';
     const prose=why+paragraphs+actionList(slide.actions)+check(slide)+note+refs+drawLinks(slide,interactive);
+    const demo=interactive&&Number.isInteger(slide.demo)
+      ? '<button type="button" class="step-demo" data-demo="'+slide.demo+'">Демонстрация шага</button>' : '';
     let body=subtitle+prose;
+    if(slide.detailHtml)body=subtitle+'<div class="slide-detail-body">'+slide.detailHtml+'</div>';
+    if(slide.items)body='<ul>'+slide.items.map(item=>'<li>'+esc(item)+'</li>').join('')+'</ul>'+prose;
     if(slide.image){
       const image=picture(slide,interactive);
       body=slide.actions?.length||slide.body||slide.check?'<div class="visual-grid"><div>'+subtitle+prose+'</div>'+image+'</div>':subtitle+'<div class="visual-only">'+image+'</div>'+prose;
@@ -59,7 +63,7 @@
     if(slide.facts)body='<div class="facts-grid">'+slide.facts.map(([value,label])=>'<div class="fact"><strong>'+esc(value)+'</strong><span>'+esc(label)+'</span></div>').join('')+'</div>'+prose;
     if(slide.rows)body='<table class="'+(slide.rows.length>7?'compact-table':'')+'"><thead><tr>'+slide.columns.map(x=>'<th scope="col">'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+slide.rows.map(([label,value])=>'<tr><th scope="row">'+esc(label)+'</th><td>'+esc(value)+'</td></tr>').join('')+'</tbody></table>'+prose;
     if(slide.code)body=(interactive?'<button class="copy-code" type="button">Копировать код</button>':'')+'<pre><code>'+esc(slide.code)+'</code></pre>';
-    return '<article class="slide slide-'+slide.kind+'">'+head+(slide.kind==='section'?'<i class="chevron" aria-hidden="true"></i>':'')+'<div class="slide-content">'+title+body+'</div>'+foot+'</article>';
+    return '<article class="slide slide-'+slide.kind+'">'+head+(slide.kind==='section'?'<i class="chevron" aria-hidden="true"></i>':'')+'<div class="slide-content">'+title+body+demo+'</div>'+foot+'</article>';
   }
   function printPages(){
     by('print-pages').innerHTML=deck.slides.map((slide,i)=>'<div class="slide-frame">'+render(slide,i,false)+'</div>').join('');
@@ -78,6 +82,7 @@
       (slide.body?'<p>'+esc(slide.body)+'</p>':'')+(slide.actions?.length?'<p><strong>Покажите группе</strong></p>'+actionList(slide.actions):'')+
       (slide.note?'<p>'+esc(slide.note)+'</p>':'')+(slide.check?'<p class="speaker-check"><strong>Что проверить:</strong> '+esc(slide.check)+'</p>':'')+
       (deck.slides[index+1]?'<p><strong>Далее:</strong> '+esc(deck.slides[index+1].title)+'</p>':'');
+    frame.querySelector('[data-demo]')?.addEventListener('click',()=>go(slide.demo,true));
     frame.querySelector('[data-picture]')?.addEventListener('click',()=>{
       by('visual').querySelector('figure').innerHTML='<img src="'+esc(slide.image.file)+'" alt="'+esc(slide.image.caption)+'"><figcaption>'+esc(slide.image.caption)+'</figcaption>';
       open('visual');
@@ -97,7 +102,7 @@
   }
   function go(value,focus){
     index=Math.min(deck.slides.length-1,Math.max(0,value));
-    put('deck-slide',index);
+    put('deck-route-slide',index);
     draw(focus);sendState();
   }
   function open(id){
@@ -152,11 +157,22 @@
     dialog.querySelector('[data-close]').onclick=()=>dialog.close();
     dialog.onclose=()=>lastFocus?.focus({preventScroll:true});
   });
-  by('contents-open').onclick=()=>open('contents');
+  by('contents-open').onclick=()=>{
+    by('step-jump').value='';
+    open('contents');
+  };
+  const stepJump=by('step-jump');
+  stepJump.innerHTML='<option value="">Выберите шаг</option>'+deck.chapters.filter(chapter=>chapter.steps?.length).map(chapter=>
+    '<optgroup label="'+esc(chapter.label)+'">'+chapter.steps.map(({title,index},i)=>
+      '<option value="'+index+'">'+(i+1)+'. '+esc(title)+'</option>').join('')+'</optgroup>').join('');
+  function goFromContents(value){
+    lastFocus=frame;
+    by('contents').close();
+    go(Number(value),true);
+  }
+  stepJump.onchange=()=>{if(stepJump.value)goFromContents(stepJump.value);};
   by('chapters').innerHTML=deck.chapters.map(x=>'<button type="button" data-slide="'+x.index+'">'+esc(x.label)+'</button>').join('');
-  by('chapters').querySelectorAll('button').forEach(button=>button.onclick=()=>{
-    by('contents').close();go(Number(button.dataset.slide),true);
-  });
+  by('chapters').querySelectorAll('button').forEach(button=>button.onclick=()=>goFromContents(button.dataset.slide));
   by('more-open').onclick=()=>{
     profileKeys.forEach(key=>{form.elements.namedItem(key).value=profile[key];});
     open('more');

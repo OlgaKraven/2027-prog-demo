@@ -21,13 +21,6 @@
   --inverse-line: #798ba4;
   --inverse-accent: #ff9cb6;
   --dialog-scrim: rgb(14 20 30 / 62%);
-  --font-ui: system-ui, sans-serif;
-  --font-code: ui-monospace, SFMono-Regular, Consolas, monospace;
-  --text-page: 1.75rem;
-  --text-card: 1.5rem;
-  --text-section: 1.125rem;
-  --text-body: 1rem;
-  --text-control: .875rem;
 }
 body.dark {
   --red: #ff9cb6;
@@ -43,8 +36,8 @@ body.dark {
   --stage-active: #303d50;
   color-scheme: dark;
 }
-body { font: var(--text-body)/1.6 var(--font-ui); }
-code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(--font-code); }
+body { font: var(--text-body)/1.6 var(--font-ui); font-variant-numeric: lining-nums; }
+code, pre, .lesson-code { font-family: var(--font-code); }
 
 .shell { max-width: 1360px; }
 .top { min-height: 0; padding-block: 16px; }
@@ -82,7 +75,7 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
   border-radius: 6px;
   background: var(--paper);
   color: var(--ink);
-  font-size: .8125rem;
+  font-size: var(--text-caption);
   white-space: nowrap;
   pointer-events: none;
 }
@@ -137,7 +130,7 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
   border-radius: 7px;
   background: var(--inverse-soft);
   color: var(--inverse-text);
-  font-size: .875rem;
+  font-size: var(--text-control);
   font-weight: 600;
 }
 .banner-facts span { color: var(--inverse-muted); font-weight: 400; }
@@ -281,7 +274,7 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
   gap: 0 8px;
   margin-bottom: 8px;
 }
-.stage-nav-caption span { color: var(--muted); font-size: .75rem; }
+.stage-nav-caption span { color: var(--muted); font-size: var(--text-caption); }
 .stage-nav-list { display: grid; gap: 6px; list-style: none; padding: 0; margin: 0; }
 .stage-nav-list li { position: relative; min-width: 0; }
 .stage-nav-list li:not(:last-child)::after {
@@ -322,7 +315,7 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
   background: var(--paper);
   border: 1px solid var(--workspace-line);
   border-radius: 50%;
-  font-size: .8125rem;
+  font-size: var(--text-caption);
   font-weight: 700;
 }
 .stage-nav-marker svg {
@@ -341,9 +334,9 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
   color: var(--accent-text);
 }
 .stage-nav-node[data-completed][aria-current="step"] .stage-nav-marker { outline: 1px solid var(--red); outline-offset: 2px; }
-.stage-nav-label { font-size: .875rem; line-height: 1.28; overflow-wrap: anywhere; }
+.stage-nav-label { font-size: var(--text-control); line-height: 1.28; overflow-wrap: anywhere; }
 .stage-nav-node[aria-current="step"] :is(.stage-nav-label,.stage-nav-short) { color: var(--red); }
-.stage-nav-label small { display: block; color: var(--muted); font-size: .75rem; margin-top: 3px; }
+.stage-nav-label small { display: block; color: var(--muted); font-size: var(--text-caption); margin-top: 3px; }
 .stage-nav-short { display: none; }
 @media (min-width: 701px) and (min-height: 570px) {
   .stage-nav { position: sticky; top: 16px; max-height: calc(100dvh - 32px); overflow: auto; }
@@ -363,7 +356,7 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
     text-align: center;
   }
   .stage-nav-label { display: none; }
-  .stage-nav-short { display: block; font-size: .6875rem; line-height: 1.2; }
+  .stage-nav-short { display: block; font-size: var(--text-caption); line-height: 1.2; }
 }
 @media print { .stage-nav { display: none; } }
 
@@ -372,7 +365,7 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
 }
 .criteria-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
 .criteria-heading h2 { margin: 0; }
-.criteria-heading span { font-size: .875rem; font-weight: 650; color: var(--red); }
+.criteria-heading span { font-size: var(--text-control); font-weight: 650; color: var(--red); }
 .criteria-source { color: var(--muted); margin: 8px 0 16px; }
 .criteria-table-wrap { border: 1px solid var(--workspace-line); border-radius: 10px; overflow: hidden; }
 .overview-criteria .criteria-table {
@@ -385,7 +378,7 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
   min-width: 0;
   padding: 10px clamp(8px, 1.5vw, 14px);
   border: 0;
-  font-size: .9375rem;
+  font-size: var(--text-control);
   overflow-wrap: anywhere;
 }
 .criteria-table :is(th,td):last-child {
@@ -393,7 +386,7 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
   white-space: nowrap;
   border-inline-start: 1px solid var(--line);
   text-align: right;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 .criteria-table :is(tbody,tfoot) tr > * { border-top: 1px solid var(--line); }
 .criteria-table :is(thead,tfoot) tr > * { background: var(--soft); font-weight: 700; }
@@ -404,7 +397,7 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
 }
 
 .artifact-list{display:grid;gap:14px}.artifact-list a{overflow-wrap:anywhere}
-.lesson-explanation pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px}.lesson-explanation details pre{max-height:650px;overflow:auto}.step-result{border-left:1px solid var(--red);background:var(--soft);padding:16px;margin:24px 0}
+.lesson-explanation pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:var(--text-control)}.lesson-explanation details pre{max-height:650px;overflow:auto}.step-result{border-left:1px solid var(--red);background:var(--soft);padding:16px;margin:24px 0}
 .lesson-explanation summary{overflow-wrap:anywhere}
 .course-dialog{max-height:94dvh}.modal-body{overflow:auto}.deck-slide{align-items:start}.deck-slide .microshot img{max-height:62vh;object-fit:contain}.deck-slide pre{white-space:pre-wrap;overflow-wrap:anywhere}.deck-slide>div{min-width:0}.deck-controls{position:sticky;bottom:0;background:var(--paper);border-top:1px solid var(--line);z-index:3}.deck-controls label{width:100%}
 .er-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(250px,1fr);gap:22px;align-items:start}.er-diagram{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff}.er-diagram svg{width:100%;height:auto;min-width:650px;display:block}.er-tables{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.er-card{border:1px solid var(--line);border-radius:12px;overflow:hidden}.er-card h3{background:var(--soft);padding:12px;margin:0}.er-field{display:block;width:100%;padding:10px;border:0;border-top:1px solid var(--line);background:var(--paper);color:var(--ink);font:inherit;text-align:left;overflow-wrap:anywhere;cursor:pointer}.er-origin{background:var(--soft);padding:18px;border-radius:12px;white-space:pre-wrap;overflow-wrap:anywhere}.er-controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
@@ -437,7 +430,7 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
 .route-layout.lesson-layout { padding-top: 0; }
 .lesson-card { padding: clamp(14px, 2.4vw, 22px); border: 1px solid var(--workspace-line); border-radius: 14px; }
 .lesson-card > h2 { margin: 0; }
-.lesson-card > .task-meta { margin: 6px 0 0; font-size: .8125rem; }
+.lesson-card > .task-meta { margin: 6px 0 0; font-size: var(--text-caption); }
 .lesson-views { display: flex; flex-wrap: wrap; gap: 0 14px; margin: 8px 0 16px; border-bottom: 1px solid var(--workspace-line); }
 .lesson-views .btn {
   margin: 0;
@@ -467,7 +460,7 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
 @media (max-width: 520px) {
   .top { align-items: flex-start; }
   .brand { gap: 8px; }
-  .brand strong { font-size: .8125rem; line-height: 1.3; }
+  .brand strong { font-size: var(--text-caption); line-height: 1.3; }
   .top-tools { gap: 4px; }
   .hero.study-intro { grid-template-columns: minmax(0,1fr); }
   .hero.study-intro .banner-mascot { max-width: 144px; }
@@ -535,7 +528,7 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
   color: var(--inverse-muted);
   font-size: var(--text-control);
 }
-.timer-task output { color: var(--inverse-text); font: 1.125rem/1.2 var(--font-code); font-variant-numeric: tabular-nums; }
+.timer-task output { color: var(--inverse-text); font: 650 var(--text-section)/1.2 var(--font-ui); font-variant-numeric: lining-nums tabular-nums; }
 .training-compact .training-timer-controls, .attempt-actions {
   display: flex;
   flex-wrap: wrap;
@@ -603,8 +596,8 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
   border: 1px solid var(--red);
   border-radius: 50%;
   color: var(--red);
-  font-size: .875rem;
-  font-variant-numeric: tabular-nums;
+  font-size: var(--text-control);
+  font-variant-numeric: lining-nums tabular-nums;
 }
 .step-heading #lesson-steps, .study-controls [data-step] {
   display: grid;
@@ -694,7 +687,7 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
 .er-origin h4 code { font-size: inherit; overflow-wrap: anywhere; }
 .er-origin section { margin-top: 12px; }
 .er-origin h5, .er-origin p { margin: 0; }
-.er-origin h5 { margin-bottom: 4px; font-size: .88em; }
+.er-origin h5 { margin-bottom: 4px; font-size: var(--text-control); }
 .er-origin .btn { margin: 8px 0 0; }
 .er-sql-properties { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 4px 10px; margin: 0; }
 .er-sql-properties dd { margin: 0; }
@@ -706,3 +699,23 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
 .step-instructions .lesson-data-table td { min-width: 8rem; }
 
 .step-instructions .lesson-data-table { max-height: none; }
+
+
+.shell .btn, .course-dialog .btn, .shell :is(select,input), .course-dialog :is(select,input) {
+  font-size: var(--text-control);
+}
+.shell :is(th,td), .course-dialog :is(th,td) {
+  font-size: var(--text-control);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.shell :is(.brand small, .section-code, .task-meta, .eyebrow, .small, .timer-hint, figcaption),
+.course-dialog :is(.tour-position, figcaption) { font-size: var(--text-caption); }
+#main h4, .course-dialog h4 { font-size: var(--text-body); }
+#main h5 { font-size: var(--text-control); }
+#main :is(pre,.lesson-code), .course-dialog pre.code-preview { font-family: var(--font-code); font-size: var(--text-control); }
+.training-timer-top .training-clock { font-family: var(--font-ui); font-weight: 700; font-variant-numeric: lining-nums tabular-nums; }
+.er-live-diagram svg text { font-family: var(--font-ui); }
+.course-tour .tour-position { color: var(--muted); margin: 0 0 4px; }
+.course-tour h3 { font-size: var(--text-section); margin: 0; }
+.course-tour ul { padding-inline-start: 1.2em; }
+.course-tour li + li { margin-top: .6em; }

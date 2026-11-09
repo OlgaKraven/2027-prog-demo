@@ -1,5 +1,13 @@
 import tasks from './tasks.json' with {type:'json'};
 export {tasks};
+export const sourceWorkbooks = ['Products_import.xlsx','Stock_Items_import.xlsx','Sizes_import.xlsx','Users_import.xlsx','Orders_import.xlsx'];
+export const stageOutputs = {
+  documents: [['Рабочая папка','для проекта и исходных файлов'], ...sourceWorkbooks.map(name=>[name,'исходная книга Excel'])],
+  M1: [['ER-диаграмма.pdf','таблицы, поля, ключи и связи'], ['SQL-скрипт','структура базы и исходные данные']],
+  M2: [['Проект Windows Forms','каталог и расчёт скидки'], ['Результаты проверки','цены, доступность размеров и остатки']],
+  M3: [['Проект Windows Forms','вход, поиск, карточка и корзина'], ['Контрольный заказ','дата, позиции и обновлённый остаток']],
+  M4: [['Исходники','проект и README с функциональностью'], ['Папка Release','исполняемые файлы и ресурсы'], ['SQL и ER PDF','материалы для восстановления и проверки базы']]
+};
 export const stages=[
   {
     "id": "documents",

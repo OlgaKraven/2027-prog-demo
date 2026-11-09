@@ -74,15 +74,8 @@ function stageNavigation(items, active, practice = false) {
     }).join('')}</ol>
   </nav>`;
 }
-const sourceWorkbooks = ['Products_import.xlsx','Stock_Items_import.xlsx','Sizes_import.xlsx','Users_import.xlsx','Orders_import.xlsx'];
+const {sourceWorkbooks,stageOutputs}=D;
 const preparation = 'Компания «Чудо Обувь» занимается продажей обуви. В четырёх заданиях вы подготовите базу данных, создадите каталог, реализуете оформление заказов и добавите управление заказами для менеджера и администратора.';
-const stageOutputs = {
-  documents: [['Рабочая папка','для проекта и исходных файлов'], ...sourceWorkbooks.map(name=>[name,'исходная книга Excel'])],
-  M1: [['ER-диаграмма.pdf','таблицы, поля, ключи и связи'], ['SQL-скрипт','структура базы и исходные данные']],
-  M2: [['Проект Windows Forms','каталог и расчёт скидки'], ['Результаты проверки','цены, доступность размеров и остатки']],
-  M3: [['Проект Windows Forms','вход, поиск, карточка и корзина'], ['Контрольный заказ','дата, позиции и обновлённый остаток']],
-  M4: [['Исходники','проект и README с функциональностью'], ['Папка Release','исполняемые файлы и ресурсы'], ['SQL и ER PDF','материалы для восстановления и проверки базы']]
-};
 function stageTiming(id) {
   const task = D.tasks.find(entry=>entry.id===id);
   return task ? task.minutes+' мин' : 'Перед началом';
@@ -111,7 +104,9 @@ function savedLessonStep(id) {
 }
 const requestedCard=new URLSearchParams(location.search).get('card');
 if(mode==='learn'&&learningView==='steps'&&requestedCard){
-  const index=current().steps.findIndex(step=>requestedCard==='designer'?step.details:step.details?.includes(requestedCard));
+  const steps=current().steps;
+  const index=/^\d+$/.test(requestedCard)?Math.min(Number(requestedCard),steps.length)
+    : steps.findIndex(step=>requestedCard==='designer'?step.details:step.details?.includes(requestedCard));
   if(index>=0)set(lessonStepKey(stage),index);
 }
 function resumeView(id) {
@@ -567,7 +562,60 @@ function showMaterial(file) {
   const dialog=modal(file.name,'<div class="material-preview"></div>');
   drawMaterial(dialog.querySelector('.material-preview'),file,false);
 }
-function tour(kind='site'){const steps=kind==='lesson'?['Выберите этап в навигации. Чтобы посмотреть весь путь, вернитесь к карте обучения.','Прочитайте «Как это понять», выполните самостоятельные действия и проверьте результат.','Если на шаге есть ссылка на исходник, используйте его для сверки с собственным решением.','Шаг и отметка самостоятельного выполнения сохраняются в этом браузере.']:['Обучение ведёт от исходных данных к работающей программе.','Тренировка использует официальный образец и позволяет поставить работу на паузу.','Пробный экзамен содержит 30 авторских комплектов с отдельными попытками и непрерывным временем.','В примерах доступны исходный код и ER, преподавателю — показ актуальных учебных шагов.'];let i=0;const d=modal('Гид по курсу','','course-tour');function draw(){d.querySelector('.modal-body').innerHTML=`<p class="section-code">${i+1} / ${steps.length}</p><p>${E(steps[i])}</p><div class="button-row">${btn('Назад',`id="tour-prev" ${i===0?'disabled':''}`)}${btn(i===steps.length-1?'Готово':'Далее','id="tour-next"',true)}</div>`;d.querySelector('#tour-prev').onclick=()=>{i--;draw();};d.querySelector('#tour-next').onclick=()=>{if(i===steps.length-1)d.close();else{i++;draw();}};}draw();}
+const tourTopics = [
+  {title:'С чего начать',mode:'overview',items:[
+    'На «Обзоре» проверьте тему, время и критерии оценки. На базовом уровне четыре задания, 210 минут и 75 баллов.',
+    'В «Обучении» откройте карту. Сначала подготовьте Windows и исходники, затем переходите к базе, каталогу, заказу и сдаче.'
+  ]},
+  {title:'Условие и исходные файлы',mode:'learn',items:[
+    'Выберите этап на карте и откройте «Условие и файлы». В начале этапа указан список материалов для этого задания.',
+    'КИМ открывается на нужной странице. Для книг Excel можно посмотреть первые строки или скачать книгу целиком. ZIP с исходными файлами находится в подготовке.'
+  ]},
+  {title:'Как проходить шаги',mode:'learn',items:[
+    'Выполните действие на карточке и сверьте результат. Стрелки ведут назад и вперёд. Кнопка «Все шаги» открывает список карточек этапа.',
+    'В «Справке» есть объяснения и типичные ситуации с решениями. На последней карточке «Что сохранить» отметьте этап выполненным.',
+    'Текущая карточка и отметки сохраняются в этом браузере. С карты можно продолжить с последнего открытого шага.'
+  ]},
+  {title:'Как разобрать ER-схему',mode:'learn',items:[
+    'В задании «База данных и импорт» откройте шаг «Постройте ER-схему». Двигайтесь по этапам стрелками или выбирайте нужную таблицу и поле.',
+    'Справа показаны назначение, источник и свойства поля. Для сверки переключитесь на готовую схему или скачайте её в PDF.'
+  ]},
+  {title:'Тренировка по образцу',mode:'training',items:[
+    'Используйте официальный образец «Чудо Обувь». Переключайте задания слева, отмечайте результаты в «Самопроверке» и при необходимости открывайте подсказки.',
+    'Таймер тренировки можно остановить и продолжить. После завершения или сброса доступна новая попытка.'
+  ]},
+  {title:'Пробный экзамен',mode:'mock',items:[
+    'До старта выберите один из 30 вариантов, прочитайте его условие и скачайте ZIP рядом с выбором варианта.',
+    'После начала 210 минут идут непрерывно, даже если закрыть страницу. Для самопроверки используйте отметки по каждому заданию.'
+  ]},
+  {title:'Готовый пример',mode:'examples',items:[
+    'Скачайте ZIP с решением Visual Studio, SQL и программой Windows. В инструкции указано, как восстановить учебную базу и запустить приложение.',
+    'Откройте исходный файл в браузере, посмотрите ER-схему или сравните окна со снимками работающего приложения.'
+  ]},
+  {title:'Материалы для преподавателя',mode:'teacher',items:[
+    'Откройте презентацию и выберите этап или шаг через «Содержание». Действия, таблицы и снимки показываются на слайдах демонстрации.',
+    'Заполните данные для титульного слайда. «Режим показа» открывает отдельное окно для аудитории, а сценарий остаётся у преподавателя. Для PDF откройте версию для печати.'
+  ]}
+];
+function tour(){
+  let index=0;
+  const dialog=modal('Гид по курсу','','course-tour');
+  const body=dialog.querySelector('.modal-body');
+  function draw(focus){
+    const topic=tourTopics[index];
+    const section=modes.find(([id])=>id===topic.mode)[1];
+    body.innerHTML=`<p class="tour-position">Раздел ${index+1} из ${tourTopics.length}</p>
+      <h3 tabindex="-1">${E(topic.title)}</h3>
+      <ul>${topic.items.map(text=>`<li>${E(text)}</li>`).join('')}</ul>
+      <p><a href="?mode=${topic.mode}${topic.mode==='learn'?'&amp;view=map':''}">Открыть раздел «${E(section)}»</a></p>
+      <div class="button-row">${btn('Назад',`id="tour-prev" ${index===0?'disabled':''}`)}
+        ${btn(index===tourTopics.length-1?'Готово':'Далее','id="tour-next"',true)}</div>`;
+    body.querySelector('#tour-prev').onclick=()=>{index--;draw(true);};
+    body.querySelector('#tour-next').onclick=()=>{if(index===tourTopics.length-1)dialog.close();else{index++;draw(true);}};
+    if(focus)body.querySelector('h3').focus();
+  }
+  draw(true);
+}
 function er(workspace) {
   const embedded=Boolean(workspace);
   const dialog=embedded?null:modal('Построение ER-схемы','<section class="er-workspace" aria-label="Построение ER-схемы"></section>');
@@ -787,7 +835,7 @@ function render() {
       <a class="brand" href="?mode=overview"><span class="brand-emblem">ДЭ</span><span><strong>09.02.07 · Информационные системы и программирование</strong><small>Программист · 2027</small></span></a>
       <div class="top-tools">
         ${iconButton(dark?'Включить светлую тему':'Включить тёмную тему',dark?toolIcons.sun:toolIcons.moon,'id="theme"')}
-        ${iconButton('Тур по сайту',toolIcons.tour,'data-guide="site" aria-haspopup="dialog"')}
+        ${iconButton('Гид по курсу',toolIcons.tour,'id="tour-open" aria-haspopup="dialog"')}
       </div>
     </header>
     <nav class="site-nav" aria-label="Основные разделы">${modes.map(([id,title])=>iconButton(title,modeIcons[id],`data-mode="${id}" ${mode===id||(mode==='criteria'&&id==='overview')?'aria-current="page"':''}`)).join('')}</nav>
@@ -838,7 +886,7 @@ function bind() {
     render();
     root.querySelector(`.stage-nav [data-task="${index}"]`).focus({preventScroll:true});
   });
-  root.querySelectorAll('[data-guide]').forEach(button=>button.onclick=()=>tour(button.dataset.guide));
+  document.getElementById('tour-open').onclick=tour;
   root.querySelectorAll('[data-check]').forEach(input=>input.onchange=()=>{
     set('check:'+scope()+':'+input.dataset.check,input.checked);
     root.querySelector('#training-check-count').textContent=root.querySelectorAll('[data-check]:checked').length+' из '+root.querySelectorAll('[data-check]').length;
