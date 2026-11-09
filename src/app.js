@@ -91,21 +91,27 @@ function stageTitle(item) {
   return item.module+(item.id==='documents'?'':' · '+stageTiming(item.id));
 }
 const previousLessonSteps={
-  M1:[0,1,2,3,8,10,11,12,13,16,17],
+  documents:[0,1,3,4,5,6,7],
+  M1:[0,1,2,3,17,20,21,22,23,19,26],
   M2:[0,1,2,3,4,5,6,7,8,11,13,15,16],
   M3:[0,1,2,3,5,6,7,8,9,10],
-  M4:[0,1,5,6,7,8,9,10,11,12,13,14,15]
+  M4:[0,1,5,6,7,8,9,10,11,12,13,14,16]
 };
-const lessonStepKey=id=>previousLessonSteps[id]?'step:'+id+':cards':'step:'+id;
+const databaseCards=[0,1,2,3,13,14,15,16,17,18,20,21,22,23,24,25,19,26];
+const lessonStepKey=id=>['M1','M4'].includes(id)?'step:'+id+':route':previousLessonSteps[id]?'step:'+id+':cards':'step:'+id;
 function savedLessonStep(id) {
   const saved=get(lessonStepKey(id));
   if(saved!==null||!previousLessonSteps[id])return saved;
+  if(id==='M1'||id==='M4'){
+    const intermediate=get('step:'+id+':cards');
+    if(intermediate!==null)return id==='M1'?(databaseCards[intermediate]??0):Math.min(intermediate===15?16:intermediate,16);
+  }
   const previous=get('step:'+id);
   return previous===null?null:(previousLessonSteps[id][previous]??0);
 }
 const requestedCard=new URLSearchParams(location.search).get('card');
 if(mode==='learn'&&learningView==='steps'&&requestedCard){
-  const index=current().steps.findIndex(step=>requestedCard==='designer'?step.designer:step.designer===requestedCard);
+  const index=current().steps.findIndex(step=>requestedCard==='designer'?step.details:step.details?.includes(requestedCard));
   if(index>=0)set(lessonStepKey(stage),index);
 }
 function resumeView(id) {
@@ -288,34 +294,18 @@ function bindHelpTopics() {
   });
 }
 function shot(s){const x=D.screens[s.shot||s.file];return x?`<figure class="microshot"><button class="image-open" data-image="${E(x.file)}" aria-label="Увеличить: ${E(x.caption)}"><img src="${E(x.file)}" alt="${E(x.caption)}" loading="lazy"></button><figcaption>${E(x.caption)}</figcaption></figure>`:'';}
-function lessonDataTable(data) {
-  if(!data)return '';
-  const {headers,rows}=data==='foreignKeys'?{
-    headers:['Дочерний столбец','Ссылается на','On Delete'],
-    rows:D.er.links.map(link=>[
-      link.source+'.'+link.field,link.target+'.'+link.key,
-      link.source==='order_items'&&link.field==='order_id'?'Cascade':'No Action'
-    ])
-  }:data;
-  return `<div class="material-table lesson-data-table" tabindex="0" aria-label="Параметры шага">
-    <table><thead><tr>${headers.map(label=>`<th scope="col">${E(label)}</th>`).join('')}</tr></thead>
-    <tbody>${rows.map(row=>`<tr>${row.map(value=>`<td><code>${E(value)}</code></td>`).join('')}</tr>`).join('')}</tbody>
-    </table></div>`;
-}
 function explain(s,database=false) {
   const reason=`<p class="lesson-reason"><strong>Зачем это нужно.</strong> ${E(s.why)}</p>`;
-  const guide=s.guide?`<div class="button-row">${link(s.guide.title,s.guide.path)}</div>`:'';
   return `<section class="lesson-explanation">
     ${database?'':`<h3>Как это понять</h3><p>${E(s.why)}</p>`}
     <h3>${database?'Что сделать':'Что сделать самостоятельно'}</h3>
-    ${!s.designer||s.designerSupplement?`<ol>${s.actions.map(a=>`<li>${E(a)}</li>`).join('')}</ol>`:''}
-    ${s.designer?`<div class="designer-instructions">${D.designerCards[s.designer]}</div>`:''}
+    ${!s.details||s.detailsSupplement?`<ol>${s.actions.map(a=>`<li>${E(a)}</li>`).join('')}</ol>`:''}
+    ${s.details?`<div class="step-instructions">${s.details.map((section,i)=>`${i?`<h4>${E(section)}</h4>`: ''}${D.lessonDetails[section]}`).join('')}</div>`:''}
     ${s.erStep===undefined?'':btn('Построить ER-схему',`data-step="${s.erStep}"`)}
     ${s.erWorkspace?'<section class="er-workspace" id="er-workspace" aria-label="Построение ER-схемы"></section>':''}
     ${s.code?`<pre tabindex="0">${E(s.code)}</pre>`:''}
-    ${s.relatedFile?btn('Открыть '+E(s.relatedFile.split('/').pop()),'id="step-related-file"'):''}
-    ${s.file&&!s.designer?`<details><summary>Полный файл для сверки · ${E(s.file)}</summary><p>Сначала разберите действие и поля. Сверка показывает итоговый файл, включая последующие операции.</p><pre tabindex="0">${E(D.code[s.file]||'')}</pre></details>`:''}
-    ${lessonDataTable(s.table)}${guide}${s.designer?'':shot(s)}
+    ${s.file&&!s.details?`<details><summary>Полный файл для сверки · ${E(s.file)}</summary><p>Сначала разберите действие и поля. Сверка показывает итоговый файл, включая последующие операции.</p><pre tabindex="0">${E(D.code[s.file]||'')}</pre></details>`:''}
+    ${s.details?'':shot(s)}
     <div class="step-result"><strong>${database?'Как проверить результат':'Проверьте себя'}</strong><p>${E(s.check)}</p></div>
     ${database?reason:''}</section>`;
 }
@@ -529,7 +519,7 @@ function examples() {
           <table aria-label="Учебные записи"><thead><tr><th scope="col">Роль</th><th scope="col">Логин</th></tr></thead>
           <tbody>${exampleAccounts.map(([role,login])=>`<tr><th scope="row">${role}</th><td><code>${login}</code></td></tr>`).join('')}</tbody></table>
         </div>
-        <div class="example-actions">${btn('Построить ER-схему','id="er-launch"')}${link('ER · PDF','materials/ER.pdf')}${link('Решения импорта','docs/import-decisions.html')}</div>
+        <div class="example-actions">${btn('Построить ER-схему','id="er-launch"')}${link('ER · PDF','materials/ER.pdf')}</div>
       </article>
       <article class="route-panel">
         <h2>Внутри проекта</h2><p>Откройте файл, чтобы прочитать и скопировать код.</p>
@@ -578,7 +568,7 @@ function showMaterial(file) {
   const dialog=modal(file.name,'<div class="material-preview"></div>');
   drawMaterial(dialog.querySelector('.material-preview'),file,false);
 }
-function tour(kind='site'){const steps=kind==='lesson'?['Выберите этап в навигации. Чтобы посмотреть весь путь, вернитесь к карте обучения.','Прочитайте «Как это понять», выполните самостоятельные действия и проверьте результат.','Полный файл для сверки раскрывается отдельно. Не заменяйте разбор простым копированием.','Шаг и отметка самостоятельного выполнения сохраняются в этом браузере.']:['Обучение ведёт от исходных данных к работающей программе.','Тренировка использует официальный образец и позволяет поставить работу на паузу.','Пробный экзамен содержит 30 авторских комплектов с отдельными попытками и непрерывным временем.','В примерах доступны исходный код и ER, преподавателю — показ актуальных учебных шагов.'];let i=0;const d=modal('Гид по курсу','','course-tour');function draw(){d.querySelector('.modal-body').innerHTML=`<p class="section-code">${i+1} / ${steps.length}</p><p>${E(steps[i])}</p><div class="button-row">${btn('Назад',`id="tour-prev" ${i===0?'disabled':''}`)}${btn(i===steps.length-1?'Готово':'Далее','id="tour-next"',true)}</div>`;d.querySelector('#tour-prev').onclick=()=>{i--;draw();};d.querySelector('#tour-next').onclick=()=>{if(i===steps.length-1)d.close();else{i++;draw();}};}draw();}
+function tour(kind='site'){const steps=kind==='lesson'?['Выберите этап в навигации. Чтобы посмотреть весь путь, вернитесь к карте обучения.','Прочитайте «Как это понять», выполните самостоятельные действия и проверьте результат.','Если на шаге есть ссылка на исходник, используйте его для сверки с собственным решением.','Шаг и отметка самостоятельного выполнения сохраняются в этом браузере.']:['Обучение ведёт от исходных данных к работающей программе.','Тренировка использует официальный образец и позволяет поставить работу на паузу.','Пробный экзамен содержит 30 авторских комплектов с отдельными попытками и непрерывным временем.','В примерах доступны исходный код и ER, преподавателю — показ актуальных учебных шагов.'];let i=0;const d=modal('Гид по курсу','','course-tour');function draw(){d.querySelector('.modal-body').innerHTML=`<p class="section-code">${i+1} / ${steps.length}</p><p>${E(steps[i])}</p><div class="button-row">${btn('Назад',`id="tour-prev" ${i===0?'disabled':''}`)}${btn(i===steps.length-1?'Готово':'Далее','id="tour-next"',true)}</div>`;d.querySelector('#tour-prev').onclick=()=>{i--;draw();};d.querySelector('#tour-next').onclick=()=>{if(i===steps.length-1)d.close();else{i++;draw();}};}draw();}
 function er(workspace) {
   const embedded=Boolean(workspace);
   const dialog=embedded?null:modal('Построение ER-схемы','<section class="er-workspace" aria-label="Построение ER-схемы"></section>');
@@ -885,10 +875,6 @@ function bind() {
     set('dark',dark);
     render();
     document.getElementById('theme').focus({preventScroll:true});
-  });
-  on('step-related-file',()=>{
-    const path=current().steps[stepIndex()].relatedFile;
-    showMaterial({name:path.split('/').pop(),path});
   });
   bindMaterialReaders(root);
   bindHelpTopics();

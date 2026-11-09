@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {stages,tasks,criteria} from '../content/course.mjs';
-import {buildGuides,renderDesignerCards} from './render_guides.mjs';
+import {buildGuideRedirects,renderLessonDetails} from './render_guides.mjs';
 import '../src/core.js';
 const localNames = new Set(['bin', 'obj', '.vs', '__pycache__', '.ds_store', 'thumbs.db', 'launchsettings.json']);
 function isCourseFile(file) {
@@ -15,8 +15,8 @@ for(const f of fs.readdirSync('src'))fs.copyFileSync('src/'+f,out+'/'+f);
 fs.rmSync(out+'/materials',{recursive:true,force:true});
 fs.cpSync('materials',out+'/materials',{recursive:true,filter:isCourseFile});
 fs.rmSync(out+'/docs',{recursive:true,force:true});fs.mkdirSync(out+'/docs',{recursive:true});
-for(const f of ['launch.html','import-decisions.html'])fs.copyFileSync('docs/'+f,out+'/docs/'+f);
-buildGuides(out+'/docs');
+fs.copyFileSync('docs/launch.html',out+'/docs/launch.html');
+buildGuideRedirects(out+'/docs');
 fs.mkdirSync(out+'/downloads',{recursive:true});
 const read=p=>JSON.parse(fs.readFileSync(p,'utf8'));
 const code={};
@@ -62,14 +62,20 @@ fs.writeFileSync(out+'/downloads/prog-demo-example.zip',ExamCore.zip(example));
 fs.rmSync(out+'/downloads/prog-demo-windows.zip',{force:true});
 const screens=fs.existsSync('content/screens.json')?read('content/screens.json'):{};
 const launchGuide=fs.readFileSync('docs/launch.html','utf8').match(/<body>\s*<h1>.*?<\/h1>([\s\S]*?)<\/body>/i)[1];
-const designerCards=renderDesignerCards(fs.readFileSync('docs/Forms-designer.md','utf8'));
-const usedDesignerSections=stages.flatMap(stage=>stage.steps.flatMap(step=>step.designer?[step.designer]:[]));
-if (usedDesignerSections.length!==Object.keys(designerCards).length||
-    new Set(usedDesignerSections).size!==usedDesignerSections.length||
-    usedDesignerSections.some(section=>!designerCards[section])) {
-  throw new Error('Каждый раздел конструктора должен соответствовать одной карточке маршрута');
+const lessonDetails={};
+for(const guide of ['Forms-designer','Visual-Studio','DBeaver','Database-fields','Import']){
+  for(const [title,html] of Object.entries(renderLessonDetails(fs.readFileSync(`docs/${guide}.md`,'utf8')))){
+    if(Object.hasOwn(lessonDetails,title))throw new Error('Раздел повторяется: '+title);
+    lessonDetails[title]=html;
+  }
 }
-const data={designerCards,workbooks:read('content/workbooks.json'),launchGuide,stages,tasks,criteria,variants,variantBriefs,variantTasks,code,windowsBuild:!!release,kim:'materials/original/КИМ 09.02.07-2-2027 Том 1.pdf',er:read('content/er.json'),erSvg:fs.readFileSync('materials/ER.svg','utf8'),screens};
+const usedDetails=stages.flatMap(stage=>stage.steps.flatMap(step=>step.details||[]));
+if(usedDetails.length!==Object.keys(lessonDetails).length||
+   new Set(usedDetails).size!==usedDetails.length||
+   usedDetails.some(section=>!lessonDetails[section])){
+  throw new Error('Каждый раздел инструкции должен соответствовать одной карточке маршрута');
+}
+const data={lessonDetails,workbooks:read('content/workbooks.json'),launchGuide,stages,tasks,criteria,variants,variantBriefs,variantTasks,code,windowsBuild:!!release,kim:'materials/original/КИМ 09.02.07-2-2027 Том 1.pdf',er:read('content/er.json'),erSvg:fs.readFileSync('materials/ER.svg','utf8'),screens};
 fs.writeFileSync(out+'/content.js','globalThis.COURSE='+JSON.stringify(data)+';');
 const slides = [{kind:'cover',chapter:'intro',title:'Демонстрационный экзамен'}];
 const chapters = [{id:'intro',label:'Демонстрационный экзамен',index:0}];
@@ -84,8 +90,8 @@ for (const stage of stages) {
   slides.push({kind:'section',chapter:stage.id,title:stage.title,body:stage.output});
   for (const step of stage.steps) {
     const image = screens[step.shot||step.file];
-    const links = step.designer
-      ? [['Карточка шага', './?'+new URLSearchParams({mode:'learn',module:stage.id,view:'steps',card:step.designer})]]
+    const links = step.details
+      ? [['Карточка шага', './?'+new URLSearchParams({mode:'learn',module:stage.id,view:'steps',card:step.details[0]})]]
       : step.guide?[[step.guide.title,step.guide.path]]:[];
     const slide = {
       kind:'content',chapter:stage.id,title:step.title,body:step.why,actions:step.actions,check:step.check,

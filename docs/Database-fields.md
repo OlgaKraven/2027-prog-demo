@@ -4,10 +4,15 @@
 
 ## roles
 
+В столбце NULL значение NO означает включённый флажок Not Null. FK показывает будущую связь. Добавьте внешние ключи после создания всех таблиц. У идентификаторов оставляйте Auto Increment выключенным, кроме orders.id и order_items.id.
+
 | Field | Data Type | NULL | Key |
 | --- | --- | --- | --- |
 | id | INT | NO | PK |
 | name | VARCHAR(80) | NO |  |
+
+
+У поля `name` выберите Unique Key.
 
 ## users
 
@@ -20,12 +25,20 @@
 | patronymic | VARCHAR(100) | NO |  |
 | role_id | INT | NO | FK: roles.id |
 
+
+У поля `login` выберите Unique Key. У `users.login` нужно сравнение с учётом регистра. После сохранения таблицы дважды щёлкните поле `login` в Columns (или View Column / F4). Откроется **отдельная вкладка**, а не окно создания поля. Выберите Charset `utf8mb4`, Collation `utf8mb4_bin`, Save → проверьте сформированное изменение собственной таблицы → Execute. Вернитесь к вкладке `users`.
+
+![Свойства существующего поля login](../materials/screens/dbeaver-login-collation.png)
+
 ## categories
 
 | Field | Data Type | NULL | Key |
 | --- | --- | --- | --- |
 | id | INT | NO | PK |
 | name | VARCHAR(100) | NO |  |
+
+
+У поля `name` выберите Unique Key.
 
 ## subcategories
 
@@ -41,6 +54,9 @@
 | --- | --- | --- | --- |
 | id | INT | NO | PK |
 | name | VARCHAR(150) | NO |  |
+
+
+У поля `name` выберите Unique Key.
 
 ## products
 
@@ -63,6 +79,9 @@
 | label | VARCHAR(10) | NO |  |
 | sort_value | DECIMAL(5,1) | NO |  |
 
+
+У поля `label` выберите Unique Key. Тип DECIMAL(5,1) сохраняет дробные размеры.
+
 ## stock_items
 
 | Field | Data Type | NULL | Key |
@@ -83,6 +102,9 @@
 | request_id | CHAR(36) | YES |  |
 | stock_accounted | BOOLEAN | NO |  |
 
+
+У `id` включите Auto Increment. У `stock_accounted` задайте Default 1. У `request_id` выберите Unique Key. После выбора Unique Key повторно проверьте Not Null. У `orders.request_id` флажок должен быть снят, хотя поле уникальное: исходные заказы не имеют идентификатора повторного запроса. В SQL Preview у строки `request_id char(36)` не должно быть `NOT NULL`. Если редактор сохранил этот атрибут, до импорта откройте поле `request_id` через View Column (F4), снимите **Not Null** и снова проверьте предпросмотр перед Execute.
+
 ## order_items
 
 | Field | Data Type | NULL | Key |
@@ -93,15 +115,4 @@
 | quantity | INT | NO |  |
 | unit_price | DECIMAL(12,2) | NO |  |
 
-## Дополнительные свойства
-
-- Auto Increment включён у `orders.id` и `order_items.id`; остальные ID импортируются явно.
-- У `users.login`: Charset `utf8mb4`, Collation `utf8mb4_bin`, чтобы регистр логина имел значение.
-- У `orders.stock_accounted`: Default `1`. Для импортированной истории записывается `0`, чтобы не списывать остатки повторно.
-- Уникальны `roles.name`, `users.login`, `categories.name`, `manufacturers.name`, `sizes.label` и `orders.request_id`.
-- Составные UNIQUE: `subcategories(category_id,name)`, `products(name,manufacturer_id)`, `stock_items(product_id,size_id)`, `order_items(order_id,stock_id)`.
-- CHECK: `products.price>=0`, `stock_items.available>=0`, `order_items.quantity>0`, `order_items.unit_price>=0`.
-- У связи `order_items.order_id → orders.id` задайте On Delete CASCADE. Остальные связи используют запрет удаления связанных родительских записей.
-- Создайте индекс `orders_order_date_IDX` по `orders.order_date`.
-
-Для составного UNIQUE выбирайте несколько полей одного ограничения в Constraints. Два отдельных уникальных поля не заменяют уникальность их сочетания.
+У `id` включите Auto Increment.

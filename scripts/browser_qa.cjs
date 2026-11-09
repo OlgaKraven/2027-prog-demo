@@ -35,7 +35,7 @@ for(const width of [390,768,1440])for(const dark of [false,true]){
    await page.locator('#lesson-steps').click();
    await page.locator('[data-jump-step="'+n+'"]').click();
    assert(await page.locator('#lesson-step-title').innerText());
-   assert((await page.locator('.lesson-explanation :is(ol li, .designer-instructions p, .designer-instructions pre)').count())>0);
+   assert((await page.locator('.lesson-explanation :is(ol li, .step-instructions p, .step-instructions pre, .step-instructions tbody tr)').count())>0,`У шага ${s.id}/${n+1} отсутствует содержимое`);
    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
    microstepsChecked++;
   }
@@ -60,9 +60,9 @@ for(const width of [390,768,1440])for(const dark of [false,true]){
  await page.getByRole('button',{name:'Следующий шаг',exact:true}).click();
  assert(await page.getByRole('heading',{name:/Задайте составную уникальность/}).isVisible());
  await page.locator('#lesson-steps').click();await page.getByRole('button',{name:'Создайте консольный импортёр',exact:true}).click();
- await page.getByRole('button',{name:'Открыть CsvInput.cs',exact:true}).click();
- assert.match(await page.locator('dialog[open] .code-preview').innerText(),/class CsvInput/);
- await page.keyboard.press('Escape');
+ const importerFile=page.getByRole('link',{name:'CsvInput.cs',exact:true});
+ assert(await importerFile.isVisible());
+ assert.match(await importerFile.getAttribute('href'),/code\/examples\/Import\/CsvInput\.cs\.txt$/);
  await page.locator('#lesson-steps').click();await page.locator('[data-jump-step="1"]').click();
  await page.getByRole('button',{name:'Построить ER-схему',exact:true}).click();
  assert.equal(await page.locator('dialog[open]').count(),0);

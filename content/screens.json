@@ -102,5 +102,29 @@
   "db-date-index": {
     "file": "materials/screens/dbeaver-date-index.png",
     "caption": "В обычном индексе по order_date флажок Unique выключен."
+  },
+  "vs-empty-form": {
+    "file": "materials/screens/vs-empty-form-designer.png",
+    "caption": "Пустая Form1 открыта в конструкторе Visual Studio."
+  },
+  "vs-core-reference": {
+    "file": "materials/screens/vs-core-reference.png",
+    "caption": "Ссылка на ProgDemo.Core в оконном проекте."
+  },
+  "vs-connector": {
+    "file": "materials/screens/vs-mysqlconnector-preview.png",
+    "caption": "Установка MySqlConnector в ProgDemo.Core."
+  },
+  "vs-icon": {
+    "file": "materials/screens/vs-application-icon.png",
+    "caption": "Значок приложения выбран в свойствах проекта."
+  },
+  "vs-student-build": {
+    "file": "materials/screens/vs-student-build.png",
+    "caption": "Сборка студенческого решения в Visual Studio."
+  },
+  "vs-release": {
+    "file": "materials/screens/vs-release-catalog.png",
+    "caption": "Каталог запущен из отдельной папки Release на восстановленной базе."
   }
 }
