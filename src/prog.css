@@ -684,3 +684,9 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
 .er-zoom-controls { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .er-zoom-controls .btn { margin: 0; }
 .er-live-diagram svg { max-width: none; }
+.er-workspace { container-type: inline-size; }
+.er-live-diagram { scroll-behavior: auto; }
+.er-live-diagram svg [data-er-active-table] > rect:first-of-type { stroke: #a20e24; stroke-width: 4; }
+@container (max-width: 620px) {
+  .er-workspace .er-grid { grid-template-columns: minmax(0,1fr); }
+}

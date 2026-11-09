@@ -51,6 +51,20 @@ for(const width of [390,768,1440])for(const dark of [false,true]){
  assert.equal(await page.locator('dialog[open]').count(),0);
  await page.locator('#er-next').click();
  assert(await page.locator('#er-select-roles').isVisible());
+ const assertErPosition=async id=>{
+   await page.waitForFunction(id=>{
+     const title=document.getElementById('er-select-'+id);
+     const diagram=document.querySelector('.er-live-diagram');
+     if(!title||!diagram)return false;
+     const a=title.getBoundingClientRect(), b=diagram.getBoundingClientRect();
+     return a.left>=b.left-1&&a.right<=b.right+1&&a.top>=b.top-1&&a.bottom<=b.bottom+1;
+   },id);
+ };
+ await page.locator('#er-jump').selectOption({label:'19. manufacturers'});
+ await assertErPosition('manufacturers');
+ await page.locator('#er-next').click();await assertErPosition('manufacturers-id');
+ await page.locator('#er-prev').click();await assertErPosition('manufacturers');
+ await page.reload();await assertErPosition('manufacturers');
  await page.locator('#er-full').click();await shot('er');
  await page.locator('#er-select-products-image').focus();await page.keyboard.press('Enter');
  assert(await page.locator('.er-origin').getByText('products.image',{exact:true}).isVisible());

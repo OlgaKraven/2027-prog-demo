@@ -648,6 +648,7 @@ function er(workspace) {
       diagram.querySelectorAll('svg > g > g').forEach((group,i)=>{
         const candidate=tables[i];
         if(!visibleTables.includes(candidate)){group.remove();return;}
+        if(candidate===table)group.setAttribute('data-er-active-table','');
         const rows=group.querySelectorAll('text');
         selectPart(rows[0],parts.find(part=>part.table===candidate&&!part.field));
         candidate.fields.forEach((row,j)=>{
@@ -665,10 +666,19 @@ function er(workspace) {
       const baseWidth=Math.min(width,1250);
       const focusElement=()=>{
         const selectedNode=diagram.querySelector('[aria-pressed="true"]');
-        if(!selectedNode)return;
-        const bounds=selectedNode.getBoundingClientRect(), viewport=box.getBoundingClientRect();
-        box.scrollBy(bounds.left+bounds.width/2-viewport.left-viewport.width/2,
-          bounds.top+bounds.height/2-viewport.top-viewport.height/2);
+        if(!selectedNode||!box.isConnected)return;
+        const group=selectedNode.closest('[data-er-active-table]');
+        const viewport=box.getBoundingClientRect();
+        const heading=selectedNode.getBoundingClientRect(), card=group.getBoundingClientRect();
+        const left=card.width<=box.clientWidth
+          ? card.left+(card.width-box.clientWidth)/2 : heading.left-12;
+        const top=card.height<=box.clientHeight
+          ? card.top+(card.height-box.clientHeight)/2 : heading.top-12;
+        box.scrollTo({
+          left:box.scrollLeft+left-viewport.left-box.clientLeft,
+          top:box.scrollTop+top-viewport.top-box.clientTop,
+          behavior:'instant'
+        });
       };
       const scale=()=>{
         diagram.style.minWidth='0';
@@ -677,7 +687,7 @@ function er(workspace) {
       };
       scale();
       box.scrollTo(...scroll);
-      if(['er-jump','er-next','er-prev'].includes(focusId))focusElement();
+      if(!full||selected)requestAnimationFrame(focusElement);
       on('er-focus',focusElement);
       on('er-smaller',()=>{fit=false;zoom=Math.max(.4,zoom-.15);scale();});
       on('er-larger',()=>{fit=false;zoom=Math.min(2,zoom+.15);scale();});
