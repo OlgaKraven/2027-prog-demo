@@ -62,7 +62,7 @@
             // 
             availableLabel.Location = new Point(24, 380);
             availableLabel.Name = "availableLabel";
-            availableLabel.Size = new Size(652, 30);
+            availableLabel.Size = new Size(652, 46);
             availableLabel.TabIndex = 2;
             availableLabel.Text = "Доступные размеры";
             // 

@@ -30,6 +30,30 @@ if(!string.IsNullOrWhiteSpace(connection))
     Check("confirmation and duplicate request",()=>{id=store.PlaceOrder(client,client.Id,[new(position.Id,1)],request,date);Assert(store.PlaceOrder(client,client.Id,[new(position.Id,1)],request,date)==id,"Duplicate request");Assert(store.Sizes(selected.Id).Single(x=>x.Id==position.Id).Available==before-1,"Stock");});
     Check("stored unit price and admin edit",()=>{var lines=store.OrderLines(admin,id);Assert(lines.Count==1&&lines[0].Price==selected.Price,"Stored price");store.ChangeDate(admin,id,date.AddDays(2));Assert(store.Orders(admin).Single(x=>x.Id==id).Date==date.AddDays(2),"Edit date");store.DeleteLine(admin,id,lines[0].Id);Assert(store.Sizes(selected.Id).Single(x=>x.Id==position.Id).Available==before,"Return line stock");});
     Check("manager delete and repeat rejection",()=>{store.DeleteOrder(manager,id);Denied(()=>store.DeleteOrder(manager,id));Assert(store.Sizes(selected.Id).Single(x=>x.Id==position.Id).Available==before,"Double return");});
+    Check("exhausted size stays in the range but cannot be ordered", () =>
+    {
+        int order = store.PlaceOrder(client, client.Id, [new(position.Id, before)], Guid.NewGuid(), date);
+        try
+        {
+            Assert(store.Sizes(selected.Id).All(size => size.Id != position.Id), "Exhausted size is selectable");
+            Assert(store.Sizes(selected.Id, includeUnavailable: true)
+                .Any(size => size.Id == position.Id && size.Available == 0), "Size range lost an exhausted size");
+        }
+        finally { store.DeleteOrder(admin, order); }
+    });
+    Check("order date is independent of the discount calculation date", () =>
+    {
+        var product = products.First(p => p.Price == p.BasePrice && store.Sizes(p.Id).Count > 0);
+        var size = store.Sizes(product.Id)[0];
+        var orderDate = new DateTime(2026, 11, 9, 16, 30, 0);
+        int order = store.PlaceOrder(client, client.Id, [new(size.Id, 1)], Guid.NewGuid(), orderDate, calculationDate: date);
+        try
+        {
+            Assert(store.Orders(admin).Single(row => row.Id == order).Date == orderDate, "Wrong order date");
+            Assert(store.OrderLines(admin, order).Single().Price == product.Price, "Wrong pricing month");
+        }
+        finally { store.DeleteOrder(admin, order); }
+    });
     Check("order cancellation restores stock once",()=>{int next=store.PlaceOrder(manager,client.Id,[new(position.Id,2)],Guid.NewGuid(),date);store.DeleteOrder(admin,next);Assert(store.Sizes(selected.Id).Single(x=>x.Id==position.Id).Available==before,"Cancel stock");});
 }
 var json=JsonSerializer.Serialize(new {checks=results,integration=!string.IsNullOrWhiteSpace(connection)},new JsonSerializerOptions{WriteIndented=true});

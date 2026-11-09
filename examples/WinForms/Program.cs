@@ -18,6 +18,6 @@ internal static class Program
             if (setup.ShowDialog() != DialogResult.OK) return;
             connection = setup.ConnectionString;
         }
-        Application.Run(new CatalogForm(new Store(connection)));
+        Ui.Guard(() => Application.Run(new CatalogForm(new Store(connection))));
     }
 }

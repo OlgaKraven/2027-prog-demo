@@ -11,10 +11,13 @@ public partial class ProductForm : Form
         InitializeComponent();
         this.add = add;
         var fresh = store.Catalog(date).Single(x => x.Id == product.Id);
-        var sizes = store.Sizes(product.Id);
+        var sizeRange = store.Sizes(product.Id, includeUnavailable: true);
+        var sizes = sizeRange.Where(size => size.Available > 0).ToList();
         photoPictureBox.Image = Ui.Picture(fresh.Image);
         detailsLabel.Text = $"{fresh.Manufacturer} | {fresh.Name}\nКатегория: {fresh.Category}\nЦена со скидкой: {fresh.Price:N2} ₽\nСостав: {fresh.Composition}\nОписание: {fresh.Description}";
-        availableLabel.Text = "Доступные размеры: " + (sizes.Count == 0 ? "нет в наличии" : string.Join(", ", sizes.Select(x => x.Size)));
+        var rangeText = sizeRange.Count == 0 ? "не задан" : string.Join(", ", sizeRange.Select(size => size.Size));
+        var availableText = sizes.Count == 0 ? "нет в наличии" : string.Join(", ", sizes.Select(size => size.Size));
+        availableLabel.Text = $"Размерный ряд: {rangeText}\nДоступные размеры: {availableText}";
         sizeComboBox.DisplayMember = nameof(Stock.Size);
         sizeComboBox.DataSource = sizes;
         RefreshLimit();

@@ -75,16 +75,16 @@ public sealed class Store(string connectionString)
         return descending ? result.OrderByDescending(p => p.Price).ThenBy(p => p.Id).ToList()
             : result.OrderBy(p => p.Price).ThenBy(p => p.Id).ToList();
     }
-    public List<Stock> Sizes(int productId)
+    public List<Stock> Sizes(int productId, bool includeUnavailable = false)
     {
         using var c = Open();
-        using var cmd = Command(c, null, "SELECT s.id,s.product_id,z.label,s.available FROM stock_items s JOIN sizes z ON z.id=s.size_id WHERE s.product_id=@p0 AND s.available>0 ORDER BY z.sort_value", productId);
+        using var cmd = Command(c, null, "SELECT s.id,s.product_id,z.label,s.available FROM stock_items s JOIN sizes z ON z.id=s.size_id WHERE s.product_id=@p0 AND (@p1 OR s.available>0) ORDER BY z.sort_value", productId, includeUnavailable);
         using var reader = cmd.ExecuteReader();
         var result = new List<Stock>();
         while (reader.Read()) result.Add(new Stock(reader.GetInt32(0),reader.GetInt32(1),reader.GetString(2),reader.GetInt32(3)));
         return result;
     }
-    public int PlaceOrder(User actor, int customerId, IEnumerable<BasketLine> lines, Guid requestId, DateTime date)
+    public int PlaceOrder(User actor, int customerId, IEnumerable<BasketLine> lines, Guid requestId, DateTime date, DateTime? calculationDate = null)
     {
         var basket = lines.GroupBy(x => x.StockId).Select(g => new BasketLine(g.Key, checked(g.Sum(x => x.Quantity)))).OrderBy(x => x.StockId).ToList();
         if (basket.Count == 0 || basket.Any(x => x.Quantity <= 0)) throw new InvalidOperationException("Добавьте товар и укажите положительное целое количество.");
@@ -107,7 +107,7 @@ public sealed class Store(string connectionString)
             using (var order = Command(c, tx, "INSERT INTO orders(order_date,user_id,created_by,request_id,stock_accounted) VALUES(@p0,@p1,@p2,@p3,1)", date, customerId, user.Id, requestId.ToString())) order.ExecuteNonQuery();
             int id;
             using (var last = Command(c, tx, "SELECT LAST_INSERT_ID()")) id = Convert.ToInt32(last.ExecuteScalar());
-            var (start,end) = Rules.PreviousMonth(date);
+            var (start,end) = Rules.PreviousMonth(calculationDate ?? date);
             foreach (var item in basket)
             {
                 int available,productId;

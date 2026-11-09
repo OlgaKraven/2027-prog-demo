@@ -91,7 +91,7 @@ Ctrl+Shift+A может сначала открыть компактное ок�
 | --- | --- | --- | --- | --- |
 | PictureBox | photoPictureBox | 24, 24 | 652, 180 | SizeMode Zoom |
 | Label | detailsLabel | 24, 220 | 652, 150 | AutoSize False; временная подпись о модели |
-| Label | availableLabel | 24, 380 | 652, 30 | AutoSize False; Text: Доступные размеры |
+| Label | availableLabel | 24, 380 | 652, 46 | AutoSize False; две строки для размерного ряда и доступных размеров |
 | Label | sizeLabel | 24, 430 | 100, 30 | AutoSize False; Text: Размер |
 | Label | quantityLabel | 24, 480 | 100, 30 | AutoSize False; Text: Пар |
 | ComboBox | sizeComboBox | 140, 430 | 300, 26 | DropDownStyle DropDownList; TabIndex 0 |
@@ -114,7 +114,7 @@ Ctrl+Shift+A может сначала открыть компактное ок�
 
 ![Нижняя часть той же карточки после прокрутки конструктора](../materials/screens/vs-product-designer-bottom.png)
 
-В [ProductForm.cs](../examples/WinForms/ProductForm.cs) запросы заполняют готовые объекты: изображение, описание и список доступных размеров. Функция RefreshLimit меняет Maximum существующего NumericUpDown по выбранному остатку. При закрытии освобождается загруженное изображение. Новые компоненты этот код не создаёт. Поведение с реальными данными проверяется следующим этапом.
+В [ProductForm.cs](../examples/WinForms/ProductForm.cs) запросы заполняют готовые объекты: изображение, описание и размерный ряд. В выпадающем списке остаются только размеры с положительным остатком. Функция RefreshLimit меняет Maximum существующего NumericUpDown по выбранному остатку. При закрытии освобождается загруженное изображение. Новые компоненты этот код не создаёт. Поведение с реальными данными проверяется следующим этапом.
 
 ## Корзина BasketForm
 

@@ -98,7 +98,7 @@ public partial class BasketForm : Form
         confirmButton.Enabled = false;
         try
         {
-            int id = store.PlaceOrder(actor, target.Id, basket, request, date);
+            int id = store.PlaceOrder(actor, target.Id, basket, request, DateTime.Now, calculationDate: date);
             basket.Clear();
             MessageBox.Show($"Заказ №{id} оформлен. Остатки обновлены.", "Заказ сохранён",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
