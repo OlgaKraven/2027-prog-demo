@@ -18,7 +18,11 @@ for(const width of [390,768,1440])for(const dark of [false,true]){
  });
  assert.deepEqual(layout,{sideBySide:width>760,stageColumns:1,markerWidth:48});
  await page.getByRole('button',{name:'Открыть подготовку →'}).click();
- assert.equal(await page.locator('.lesson-files a').count(),5);
+ assert.equal(await page.locator('.lesson-files [data-material-path]').count(),8);
+ await page.getByRole('button',{name:'Задания базового уровня · КИМ'}).click();
+ assert.match(await page.locator('.lesson-files iframe').getAttribute('src'),/#page=35$/);
+ assert.equal(await page.getByText(/Метод_рекомендации|Создание базы в DBeaver/).count(),0);
+ assert(await page.getByRole('link',{name:'Скачать исходные файлы · ZIP'}).isVisible());
  await page.getByRole('button',{name:'Перейти к шагам →'}).click();
  await page.getByRole('button',{name:'К маршруту обучения'}).click();
  assert(await page.getByRole('button',{name:'Продолжить с шага 1 →'}).isVisible());
@@ -38,7 +42,10 @@ for(const width of [390,768,1440])for(const dark of [false,true]){
  await go('training');await page.locator('[data-timer=start]').click();await page.locator('[data-timer=pause]').click();assert(await page.locator('.training-workspace').isHidden());await page.reload();assert(await page.locator('.pause-screen').isVisible());await shot('paused','.pause-screen');await page.locator('.timer-card [data-timer=start]').click();await page.locator('[data-timer=finish]').click();assert.equal(await page.locator('[data-check]:not(:disabled)').count(),0);await shot('finished','.attempt-result');await page.locator('[data-timer=reset]').click();assert.equal(await page.locator('#clock').innerText(),'03:30:00');assert.equal(await page.getByText(/протокол/i).count(),0);
  await go('mock');assert.equal(await page.locator('[data-timer=pause]').count(),0);assert.equal(await page.locator('#variant option').count(),30);await shot('mock','.attempt-layout');
  await page.goto('http://127.0.0.1:4209/?mode=learn&module=M1&view=brief');
- await page.locator('[data-material-choice]').selectOption('materials/resources/Products_import.xlsx');
+ assert.equal(await page.locator('.lesson-files [data-material-path]').count(),7);
+ assert.equal(await page.getByRole('button',{name:'Руководство по стилю'}).count(),0);
+ await page.getByText('Исходные таблицы Excel',{exact:true}).click();
+ await page.getByRole('button',{name:'Products_import.xlsx',exact:true}).click();
  assert.equal(await page.locator('.material-table tbody tr').count(),5);
  assert(await page.getByText('Первые 5 записей из 31.').isVisible());
  assert.equal(context.pages().length,1);
@@ -52,6 +59,10 @@ for(const width of [390,768,1440])for(const dark of [false,true]){
  assert.equal(await page.locator('.study-step iframe').count(),0);
  await page.getByRole('button',{name:'Следующий шаг',exact:true}).click();
  assert(await page.getByRole('heading',{name:/Задайте составную уникальность/}).isVisible());
+ await page.locator('#lesson-steps').click();await page.getByRole('button',{name:'Создайте консольный импортёр',exact:true}).click();
+ await page.getByRole('button',{name:'Открыть CsvInput.cs',exact:true}).click();
+ assert.match(await page.locator('dialog[open] .code-preview').innerText(),/class CsvInput/);
+ await page.keyboard.press('Escape');
  await page.locator('#lesson-steps').click();await page.locator('[data-jump-step="1"]').click();
  await page.getByRole('button',{name:'Построить ER-схему',exact:true}).click();
  assert.equal(await page.locator('dialog[open]').count(),0);

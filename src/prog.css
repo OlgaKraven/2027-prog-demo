@@ -645,8 +645,12 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
 .example-instructions li + li { margin-top: 8px; }
 
 .material-reader { min-width: 0; }
-.material-reader label { display: grid; gap: 6px; max-width: 34rem; }
-.material-reader select, .er-step-controls select { width: 100%; min-width: 0; }
+.material-choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.material-choices .btn { overflow-wrap: anywhere; min-width: 0; max-width: 100%; }
+.material-choices .btn[aria-pressed="true"] { color: var(--red); border-color: currentColor; }
+.material-workbooks { margin-block: 12px; }
+.material-workbooks .material-choices { margin-block-start: 8px; }
+.er-step-controls select { width: 100%; min-width: 0; }
 .material-preview:not(:empty) { margin-block: 16px 22px; }
 .material-preview-head, .er-workspace-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
 .material-preview-head h4, .er-workspace-heading h3 { margin: 0; }

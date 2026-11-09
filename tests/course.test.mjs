@@ -34,6 +34,15 @@ function zipEntries(name) {
  return entries;
 }
 
+test('the student source download contains the task inputs without extra recommendations or solutions', () => {
+ const files=zipEntries('task-inputs');
+ const expected=[...fs.readdirSync('materials/resources',{recursive:true}).map(name=>name.replaceAll('\\','/'))
+   .filter(name=>!name.toLowerCase().endsWith('thumbs.db')&&!name.toLowerCase().endsWith('.ds_store')&&fs.statSync('materials/resources/'+name).isFile())
+   .map(name=>'resources/'+name),'description.html','style-guide.html'];
+ assert.deepEqual([...files.keys()].sort(),expected.sort());
+ for(const name of expected) assert.deepEqual(files.get(name),fs.readFileSync('materials/'+name),name);
+});
+
 test('all exam downloads are complete and cover the stock and discount boundaries', () => {
  const bundle = zipEntries('exam-30-variants');
  const variants=read('content/variants.json');

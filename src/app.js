@@ -144,60 +144,73 @@ function learningMap() {
     </div>
   </section>`;
 }
+const materialDocuments = [
+  {name:'Задания базового уровня · КИМ',path:D.kim,page:35},
+  {name:'Описание предметной области',path:'materials/description.html'},
+  {name:'Руководство по стилю',path:'materials/style-guide.html'}
+];
+const materialWorkbooks = sourceWorkbooks.map(name=>({name,path:'materials/resources/'+name}));
+const materialDownload = '<a class="btn" href="downloads/task-inputs.zip" download>Скачать исходные файлы · ZIP</a>';
+function stageMaterials(stageId) {
+  const [condition,description,style]=materialDocuments;
+  const taskCondition = (number,page)=>({...condition,name:'Условие задания '+number+' · КИМ',page});
+  return {
+    documents:[materialDocuments,materialWorkbooks],
+    M1:[[taskCondition(1,35),description],materialWorkbooks],
+    M2:[[taskCondition(2,37),style],[]],
+    M3:[[taskCondition(3,39)],materialWorkbooks.filter(file=>file.name==='Users_import.xlsx')],
+    M4:[[taskCondition(4,41)],[]]
+  }[stageId];
+}
 function lessonBrief(lesson) {
   const task = D.tasks.find(entry=>entry.id===lesson.id);
   return `<div class="lesson-brief">
     <p>${E(task?.text||preparation)}</p>
-    ${lesson.id==='M1'?`<section class="lesson-files"><h3>Приложения и примеры</h3>${materialReader(databaseMaterials())}</section>${stageResult(lesson)}`:task ? stageResult(lesson) : `<section class="lesson-files"><h3>Исходные документы</h3>
-      <ul>${sourceWorkbooks.map(name=>`<li><a href="materials/resources/${E(name)}" data-workbook="${E(name)}">${E(name)}</a></li>`).join('')}</ul>
-    </section>`}
-    <div class="button-row">${lesson.id==='M1'?'':btn('Материалы задания','id="materials-open"')}<a class="btn" href="downloads/original-inputs.zip" download>Приложения · ZIP</a></div>
+    <section class="lesson-files"><h3>Материалы задания</h3>
+      ${materialReader(...stageMaterials(lesson.id))}
+      ${['documents','M1','M2'].includes(lesson.id)?`<div class="button-row">${materialDownload}</div>`:''}
+    </section>
+    ${task?stageResult(lesson):''}
     ${btn(savedLessonStep(lesson.id)===null?'Перейти к шагам →':stepIndex(lesson)===lesson.steps.length?'Что сохранить →':'Продолжить с шага '+(stepIndex(lesson)+1)+' →','data-lesson-view="steps"',true)}
   </div>`;
 }
-const databaseMaterials = () => [
-  {name:'Условие КИМ · задание 1', path:D.kim, page:35},
-  ...sourceWorkbooks.map(name=>({name,path:'materials/resources/'+name})),
-  {name:'Описание предметной области',path:'materials/description.html'},
-  {name:'Создание базы в DBeaver',path:'docs/DBeaver.html'},
-  {name:'Перечень полей и ключей',path:'docs/Database-fields.html'},
-  {name:'Подготовка данных в C#',path:'docs/Import.html'},
-  {name:'Исходный файл CsvInput.cs',path:'code/examples/Import/CsvInput.cs.txt'},
-  {name:'ER готового примера',path:'materials/ER.pdf'}
-];
-function materialReader(files) {
+function materialReader(documents,workbooks=[]) {
+  const choices=(files)=>`<div class="material-choices">${files.map(({name,path,page})=>
+    btn(E(name),`data-material-path="${E(path)}" data-page="${page||''}" aria-pressed="false"`)).join('')}</div>`;
   return `<div class="material-reader">
-    <label>Материал<select data-material-choice><option value="">Выберите документ</option>${files.map(({name,path,page})=>
-      `<option value="${E(path)}" data-page="${page||''}">${E(name)}</option>`).join('')}</select></label>
-    <div class="material-preview" data-material-preview aria-live="polite"></div>
+    ${documents.length?choices(documents):''}
+    ${workbooks.length?`<details class="material-workbooks"><summary>Исходные таблицы Excel</summary>${choices(workbooks)}</details>`:''}
+    <div class="material-preview" data-material-preview></div>
   </div>`;
+}
+function drawMaterial(preview,{name,path,page},showTitle=true) {
+  const workbook=D.workbooks[path.split('/').pop()];
+  const source=path+(page?'#page='+page:'');
+  const body=workbook? `<p>Первые ${workbook.rows.length} записей из ${workbook.total}.</p>
+    <div class="material-table" tabindex="0" aria-label="Данные книги"><table>
+    <thead><tr>${workbook.columns.map(column=>`<th scope="col">${E(column)}</th>`).join('')}</tr></thead>
+    <tbody>${workbook.rows.map(row=>`<tr>${workbook.columns.map(column=>`<td>${E(row[column]??'')}`).join('')}</tr>`).join('')}</tbody></table></div>`
+    :D.code[path]? `<pre class="code-preview" tabindex="0">${E(D.code[path])}</pre>`
+    :`<iframe src="${E(source)}" title="${E(name)}"></iframe>`;
+  const download=D.code[path]?'code/'+path+'.txt':path;
+  preview.innerHTML=`<div class="material-preview-head">${showTitle?`<h4 tabindex="-1">${E(name)}</h4>`: ''}
+    <a href="${E(download)}" download>Скачать файл</a></div>${body}`;
 }
 function bindMaterialReaders(container) {
   container.querySelectorAll('.material-reader').forEach(reader=>{
-    const select=reader.querySelector('[data-material-choice]');
-    const preview=reader.querySelector('[data-material-preview]');
-    const draw=()=>{
-      const path=select.value;
-      if(!path){preview.replaceChildren();return;}
-      const option=select.selectedOptions[0], name=option.textContent, page=option.dataset.page;
-      const workbook=D.workbooks[path.split('/').pop()];
-      const source=path+(page?'#page='+page:'');
-      const body=workbook? `<p>Первые ${workbook.rows.length} записей из ${workbook.total}.</p>
-        <div class="material-table" tabindex="0" aria-label="Данные книги"><table>
-        <thead><tr>${workbook.columns.map(column=>`<th scope="col">${E(column)}</th>`).join('')}</tr></thead>
-        <tbody>${workbook.rows.map(row=>`<tr>${workbook.columns.map(column=>`<td>${E(row[column]??'')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`
-        : /\.(html|pdf|txt)$/.test(path)?`<iframe src="${E(source)}" title="${E(name)}" loading="lazy"></iframe>`:'';
-      preview.innerHTML=`<div class="material-preview-head"><h4>${E(name)}</h4>
-        <a href="${E(path)}" download>Скачать файл</a></div>${body}`;
-    };
-    select.onchange=draw;
-    draw();
+    const buttons=reader.querySelectorAll('[data-material-path]');
+    buttons.forEach(button=>button.onclick=()=>{
+      buttons.forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
+      const preview=reader.querySelector('[data-material-preview]');
+      drawMaterial(preview,{name:button.textContent,path:button.dataset.materialPath,page:button.dataset.page});
+      preview.querySelector('h4').focus();
+    });
   });
 }
 const lessonScenarios = {
   documents: [
     ['DBeaver запустился, но подключение не проходит','Убедитесь, что сервер MySQL или MariaDB запущен. Сверьте адрес и порт сервера с настройками подключения. DBeaver сам сервер не запускает.'],
-    ['В архиве несколько папок и ZIP','Распакуйте и внешний комплект, и вложенный архив приложения. Найдите пять книг *_import.xlsx. Отдельно сохраните исходники и папку своего решения.'],
+    ['Где искать таблицы после распаковки','Откройте папку resources. В ней лежат пять книг *_import.xlsx и папка Images. Сохраните исходные файлы отдельно от папки решения.'],
     ['Неясно, где вводить пароль','Реквизиты СУБД нужны для подключения к базе. Покупатель входит в «Чудо Обувь» по учебному логину.']
   ],
   M1: [
@@ -287,6 +300,7 @@ function explain(s,database=false) {
     ${s.erStep===undefined?'':btn('Построить ER-схему',`data-step="${s.erStep}"`)}
     ${s.erWorkspace?'<section class="er-workspace" id="er-workspace" aria-label="Построение ER-схемы"></section>':''}
     ${s.code?`<pre tabindex="0">${E(s.code)}</pre>`:''}
+    ${s.relatedFile?btn('Открыть '+E(s.relatedFile.split('/').pop()),'id="step-related-file"'):''}
     ${s.file?`<details><summary>Полный файл для сверки · ${E(s.file)}</summary><p>Сначала разберите действие и поля. Сверка показывает итоговый файл, включая последующие операции.</p><pre tabindex="0">${E(D.code[s.file]||'')}</pre></details>`:''}
     ${lessonDataTable(s.table)}${guide}${shot(s)}
     <div class="step-result"><strong>${database?'Как проверить результат':'Проверьте себя'}</strong><p>${E(s.check)}</p></div>
@@ -400,14 +414,11 @@ function timerBox(attempt,index,mock) {
 function conditionParagraphs(text) {
   return text.split(/(?<=[.!?])\s+(?=[А-ЯЁ])/u).map(line=>`<p>${E(line)}</p>`).join('');
 }
-function practiceMaterials() {
-  return `<div class="button-row"><a class="btn" href="downloads/original-inputs.zip" download>Приложения · ZIP</a>
-    ${link('КИМ · PDF',D.kim+'#page=35')}</div>`;
-}
 function trainingSample() {
-  modal('Условие КИМ и приложения',`<div class="practice-condition"><p>Краткое описание четырёх заданий «Чудо Обувь». Полные формулировки доступны в КИМ.</p>
+  const dialog=modal('Условие КИМ и приложения',`<div class="practice-condition"><p>Краткое описание четырёх заданий «Чудо Обувь». Полные формулировки доступны в КИМ.</p>
     ${D.tasks.map((task,i)=>`<section><h3>Задание ${i+1}. ${E(task.title)}</h3>${conditionParagraphs(task.text)}</section>`).join('')}
-    ${practiceMaterials()}</div>`);
+    ${materialReader(materialDocuments,materialWorkbooks)}<div class="button-row">${materialDownload}</div></div>`);
+  bindMaterialReaders(dialog);
 }
 function variantBrief(entry,index) {
   const lines=D.variantBriefs[entry.id].split(/\r?\n/).filter(line=>line.trim()&&!line.startsWith('# '));
@@ -421,11 +432,6 @@ function variantBrief(entry,index) {
       ${lines.filter(line=>!/^\d+\. /.test(line)).map(line=>`<p>${E(line)}</p>`).join('')}
       <ol>${items.map(item=>`<li>${E(item)}</li>`).join('')}</ol>
     </section>
-    <section class="task-support"><h3>Материалы для справки</h3><div class="button-row">
-      <a class="btn" href="downloads/exam-30-variants.zip" download>Все 30 вариантов · ZIP</a>
-      ${link('Как перенести решение на свой вариант','docs/Visual-Studio.html#section-8')}
-      ${link('Официальный КИМ · PDF',D.kim+'#page=35')}
-    </div></section>
   </article>`;
 }
 function practice() {
@@ -437,7 +443,7 @@ function practice() {
     <h2>${E(task.title)}</h2>
     <p class="task-meta">Задание ${index+1} · ${task.minutes} мин${mock?' · '+entry.id+' · '+E(entry.title):''}</p>
     <section class="practice-condition"><h3>Условие задания</h3>${conditionParagraphs(mock?D.variantTasks[entry.id][index]:task.text)}</section>
-    ${mock?'':`<div class="task-support">${practiceMaterials()}${locked?'':btn('Подсказка к заданию',`data-help="${task.id}"`)}</div>`}
+    ${mock?'':`<div class="task-support">${btn('Материалы задания','id="training-task-materials" aria-haspopup="dialog"')}${locked?'':btn('Подсказка к заданию',`data-help="${task.id}"`)}</div>`}
     <section class="self-check training-checklist" aria-labelledby="training-check-title">
       <header><h3 id="training-check-title">Самопроверка</h3><span id="training-check-count" aria-live="polite">${checked.filter(Boolean).length} из ${checked.length}</span></header>
       ${task.checks.map((text,i)=>`<label><input type="checkbox" data-check="${task.id}:${i}" ${locked?'disabled':''} ${checked[i]?'checked':''}>${E(text)}</label>`).join('')}
@@ -556,13 +562,13 @@ function teacher() {
   </section>`;
 }
 function modal(title,html='',extra=''){const d=document.createElement('dialog');d.className='course-dialog '+extra;d.setAttribute('aria-label',title);d.innerHTML=`<header class="modal-head"><h2>${E(title)}</h2>${btn('Закрыть','data-close')}</header><div class="modal-body">${html}</div>`;document.body.append(d);d.querySelector('[data-close]').onclick=()=>d.close();d.addEventListener('close',()=>d.remove(),{once:true});d.showModal();return d;}
-function materials(initial='') {
-  const docs=[...D.originals.map(file=>({...file,page:file.path===D.kim?35:undefined})),
-    ...databaseMaterials().filter(file=>file.path!==D.kim),
-    {name:'Руководство по стилю',path:'materials/style-guide.html'}];
-  const dialog=modal('Материалы задания',`${materialReader(docs)}
-    <p><a href="downloads/original-inputs.zip" download>Скачать исходный комплект ZIP</a></p>`);
-  if(initial)dialog.querySelector('[data-material-choice]').value='materials/resources/'+initial;
+function showMaterial(file) {
+  const dialog=modal(file.name,'<div class="material-preview"></div>');
+  drawMaterial(dialog.querySelector('.material-preview'),file,false);
+}
+function materials(stageId='documents') {
+  const dialog=modal('Материалы задания',`${materialReader(...stageMaterials(stageId))}
+    ${['documents','M1','M2'].includes(stageId)?`<div class="button-row">${materialDownload}</div>`:''}`);
   bindMaterialReaders(dialog);
 }
 function tour(kind='site'){const steps=kind==='lesson'?['Выберите этап в навигации. Чтобы посмотреть весь путь, вернитесь к карте обучения.','Прочитайте «Как это понять», выполните самостоятельные действия и проверьте результат.','Полный файл для сверки раскрывается отдельно. Не заменяйте разбор простым копированием.','Шаг и отметка самостоятельного выполнения сохраняются в этом браузере.']:['Обучение ведёт от исходных данных к работающей программе.','Тренировка использует официальный образец и позволяет поставить работу на паузу.','Пробный экзамен содержит 30 авторских комплектов с отдельными попытками и непрерывным временем.','В примерах доступны исходный код и ER, преподавателю — показ актуальных учебных шагов.'];let i=0;const d=modal('Гид по курсу','','course-tour');function draw(){d.querySelector('.modal-body').innerHTML=`<p class="section-code">${i+1} / ${steps.length}</p><p>${E(steps[i])}</p><div class="button-row">${btn('Назад',`id="tour-prev" ${i===0?'disabled':''}`)}${btn(i===steps.length-1?'Готово':'Далее','id="tour-next"',true)}</div>`;d.querySelector('#tour-prev').onclick=()=>{i--;draw();};d.querySelector('#tour-next').onclick=()=>{if(i===steps.length-1)d.close();else{i++;draw();}};}draw();}
@@ -643,7 +649,7 @@ function er(workspace) {
       hint.hidden=!hint.hidden;
       byId('er-help').setAttribute('aria-expanded',String(!hint.hidden));
     });
-    on('er-source',()=>materials(source));
+    on('er-source',()=>showMaterial(materialWorkbooks.find(file=>file.name===source)));
     on('er-expand',()=>{
       if(expanded){expanded.close();return;}
       const anchor=document.createComment('ER workspace');
@@ -874,9 +880,10 @@ function bind() {
     document.getElementById('theme').focus({preventScroll:true});
   });
   on('materials-open',()=>materials());
-  root.querySelectorAll('[data-workbook]').forEach(link=>link.onclick=event=>{
-    event.preventDefault();
-    materials(link.dataset.workbook);
+  on('training-task-materials',()=>materials(D.tasks[practiceIndex()].id));
+  on('step-related-file',()=>{
+    const path=current().steps[stepIndex()].relatedFile;
+    showMaterial({name:path.split('/').pop(),path});
   });
   bindMaterialReaders(root);
   bindHelpTopics();
