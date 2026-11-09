@@ -21,7 +21,7 @@ buildGuideRedirects(out+'/docs');
 for(const file of ['docs/launch.html','materials/description.html','materials/style-guide.html']){
   const target=out+'/'+file;
   const html=fs.readFileSync(target,'utf8').replace('<style>', '<link rel="stylesheet" href="../typography.css"><style>')
-    .replace('</style>', 'body{font:var(--text-body)/1.6 var(--font-ui)}h1{font-size:var(--text-page)}h2{font-size:var(--text-section)}code,pre{font-family:var(--font-code)}</style>');
+    .replace('</style>', 'body{max-width:none;font:var(--text-body)/1.6 var(--font-ui)}h1{font-size:var(--text-page)}h2{font-size:var(--text-section)}code,pre{font-family:var(--font-code)}</style>');
   fs.writeFileSync(target,html);
 }
 fs.mkdirSync(out+'/downloads',{recursive:true});
@@ -105,9 +105,7 @@ for (const stage of stages) {
     previousIndexes.push(slides.length);
     if(oldImage&&[step.why,...step.actions,step.check].join(' ').length>650)previousIndexes.push(slides.length);
     if(step.code)previousIndexes.push(slides.length);
-    const stepSlides=buildLessonSlides(stage,step,index,screens,lessonBlocks);
-    if(stepSlides.length>1)stepSlides[0].demo=slides.length+1;
-    slides.push(...stepSlides);
+    slides.push(...buildLessonSlides(stage,step,index,screens,lessonBlocks));
   }
   const title='Что сохранить';
   chapter.steps.push({title,index:slides.length});

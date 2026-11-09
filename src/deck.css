@@ -35,7 +35,6 @@ progress::-moz-progress-bar{background:var(--accent)}
 .slide .eyebrow{color:var(--accent);text-transform:uppercase;font-size:1.20cqw;font-weight:850;letter-spacing:.065em;margin:0 0 .6cqw}
 .slide h1{font-size:3.4cqw;line-height:1.06;letter-spacing:-.037em;margin:0 0 1.22cqw;font-weight:850;overflow-wrap:anywhere}
 .slide .body,.slide .paragraph,.slide li{font-size:1.67cqw;line-height:1.36;margin:0 0 .65cqw;font-weight:550;overflow-wrap:anywhere}
-.slide .paragraph{max-width:88ch}
 .slide h2{font-size:1.56cqw;margin:0 0 .55cqw;line-height:1.2;font-weight:850}
 .slide ol,.slide ul{margin:.18cqw 0 .75cqw;padding-left:2.45cqw}
 .slide li::marker{font-weight:850;color:var(--accent)}
@@ -161,7 +160,6 @@ body.printing #print-pages{display:block}
 
 .step-jump { display: grid; gap: 6px; margin-block-start: 14px; }
 .step-jump select { font: inherit; font-size: var(--text-control); width: 100%; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 9px; }
-.slide .step-demo { align-self: start; flex: none; min-height: 0; margin-top: .5cqw; }
 .slide-detail-body { min-width: 0; }
 .slide-detail-body p { font-size: 1.67cqw; line-height: 1.36; margin: 0 0 .65cqw; font-weight: 550; overflow-wrap: anywhere; }
 .slide .slide-detail-body :is(th,td) { text-align: left; white-space: normal; overflow-wrap: anywhere; }

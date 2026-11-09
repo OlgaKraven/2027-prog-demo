@@ -135,7 +135,7 @@ code, pre, .lesson-code { font-family: var(--font-code); }
 }
 .banner-facts span { color: var(--inverse-muted); font-weight: 400; }
 .banner-facts time { white-space: nowrap; }
-.hero.study-intro .lead { color: var(--inverse-muted); max-width: 58ch; margin: 0 0 12px; }
+.hero.study-intro .lead { color: var(--inverse-muted); margin: 0 0 12px; }
 .hero.study-intro .button-row { margin-block: 0; }
 .hero.study-intro .banner-mascot {
   width: 100%;
@@ -247,7 +247,6 @@ code, pre, .lesson-code { font-family: var(--font-code); }
 }
 .map-stage-preview[inert] { visibility: hidden; }
 .map-stage-preview > .btn { justify-self: start; max-width: 100%; white-space: normal; }
-.map-stage-content > p, .result-files { max-width: 72ch; }
 .map-stage-content h2 { margin: 4px 0 16px; }
 .map-stage-content .section-code { margin-bottom: 0; }
 .result-files { padding-inline-start: 20px; overflow-wrap: anywhere; }
@@ -422,7 +421,6 @@ code, pre, .lesson-code { font-family: var(--font-code); }
 #main .route-heading { display: block; margin: 0 0 18px; }
 .route-heading h1 { margin-bottom: 4px; }
 .route-heading p, .task-meta { color: var(--muted); }
-.lesson-explanation :is(p,ol), .training-task > p, .lesson-brief > p, .lesson-help > p { max-width: 72ch; }
 .practice-page { padding-bottom: 32px; }
 .lesson-top { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px; }
 #main .lesson-top .route-heading { margin-bottom: 16px; }
@@ -500,7 +498,7 @@ code, pre, .lesson-code { font-family: var(--font-code); }
   background: var(--paper);
 }
 .training-task .practice-condition { margin-top: 16px; }
-.practice-condition p { margin: 0 0 12px; max-width: 72ch; }
+.practice-condition p { margin: 0 0 12px; }
 .practice-condition h3 { margin-bottom: 8px; }
 .task-support { padding-top: 10px; border-top: 1px solid var(--workspace-line); }
 .task-support .button-row { margin: 0; }
@@ -630,7 +628,6 @@ code, pre, .lesson-code { font-family: var(--font-code); }
 .example-page .screenshot-index { gap: 16px; }
 .example-page .microshot { margin: 0; }
 .example-page .microshot img { width: 100%; }
-.example-instructions :is(p,li) { max-width: 75ch; }
 .example-instructions h2 { font-size: var(--text-section); }
 .example-instructions li + li { margin-top: 8px; }
 
@@ -651,7 +648,7 @@ code, pre, .lesson-code { font-family: var(--font-code); }
 .lesson-views .btn[aria-selected="true"], .er-controls .btn[aria-pressed="true"] { color: var(--red); border-bottom-color: var(--red); }
 .lesson-situations section { border-top: 1px solid var(--workspace-line); padding-block: 12px; }
 .lesson-situations h4 { margin: 0; }
-.lesson-situations p { margin: 8px 0 3px; max-width: 72ch; }
+.lesson-situations p { margin: 8px 0 3px; }
 .database-terms dt { font-weight: 700; }
 .database-terms dd { margin: 0 0 10px; }
 .lesson-reason { margin-block: 16px; }

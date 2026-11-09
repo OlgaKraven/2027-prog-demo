@@ -31,7 +31,6 @@ test('presentation follows all route cards and carries their complete demonstrat
    assert.equal(slides[0].title,step.title);
    assert.equal(slides.at(-1).check,step.check);
    if(step.details||step.code||step.erWorkspace){
-    assert.equal(slides[0].demo,first+1);
     assert.match(slides[1].eyebrow,/^Демонстрация шага/);
    }
    for(const section of step.details||[]){
