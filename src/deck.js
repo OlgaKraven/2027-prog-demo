@@ -10,7 +10,10 @@
   const audience=params.has('audience'), printable=params.has('print');
   const chapters=Object.fromEntries(deck.chapters.map(x=>[x.id,x.label]));
   let profile=Object.fromEntries(profileKeys.map(key=>[key,get('teacher:'+profileKeys.indexOf(key),'')]));
-  const savedIndex=get('deck-route-slide',deck.previousIndexes?.[get('deck-slide',0)]??0);
+  const oldPosition=get('deck-route-slide',null);
+  const restored=oldPosition===null?deck.previousIndexes?.[get('deck-slide',0)]
+    :deck.previousRouteIndexes?.findLast(([start])=>start<=oldPosition)?.[1];
+  const savedIndex=get('deck-sequential-slide',restored??0);
   let dark=get('dark',false), index=!audience&&Number.isInteger(savedIndex)
     ?Math.max(0,Math.min(deck.slides.length-1,savedIndex)):0;
   let channel, target, laser=false, channelId;
@@ -78,6 +81,9 @@
     const speaker=by('speaker');
     speaker.innerHTML='<h2>Сценарий преподавателя</h2><h3>'+esc(slide.title)+'</h3>'+
       (slide.body?'<p>'+esc(slide.body)+'</p>':'')+(slide.actions?.length?'<p><strong>Покажите группе</strong></p>'+actionList(slide.actions):'')+
+      (slide.source?'<p>Файл для сверки: '+(slide.source.startsWith('examples/')
+        ?'<a href="code/'+esc(slide.source)+'.txt" target="_blank" rel="noopener">'+esc(slide.source)+'</a>'
+        :'<code>'+esc(slide.source)+'</code>')+'</p>':'')+
       (slide.note?'<p>'+esc(slide.note)+'</p>':'')+(slide.check?'<p class="speaker-check"><strong>Что проверить:</strong> '+esc(slide.check)+'</p>':'')+
       (deck.slides[index+1]?'<p><strong>Далее:</strong> '+esc(deck.slides[index+1].title)+'</p>':'');
     frame.querySelector('[data-picture]')?.addEventListener('click',()=>{
@@ -99,7 +105,7 @@
   }
   function go(value,focus){
     index=Math.min(deck.slides.length-1,Math.max(0,value));
-    put('deck-route-slide',index);
+    put('deck-sequential-slide',index);
     draw(focus);sendState();
   }
   function open(id){

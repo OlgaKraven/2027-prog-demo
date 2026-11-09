@@ -85,20 +85,21 @@ if(usedDetails.length!==Object.keys(lessonBlocks).length||
 const lessonDetails=Object.fromEntries(Object.entries(lessonBlocks).map(([title,blocks])=>[title,blocks.join('\n')]));
 const data={lessonDetails,sourceWorkbooks,stageOutputs,workbooks:read('content/workbooks.json'),launchGuide,stages,tasks,criteria,variants,variantBriefs,variantTasks,code,windowsBuild:!!release,kim:'materials/original/КИМ 09.02.07-2-2027 Том 1.pdf',er:read('content/er.json'),erSvg:fs.readFileSync('materials/ER.svg','utf8'),screens};
 fs.writeFileSync(out+'/content.js','globalThis.COURSE='+JSON.stringify(data)+';');
-const previousIndexes=[0,1];
+const previousIndexes=[0,0];
+const previousRoute={
+  documents:[3,4,9,17,18,19,20,21],
+  M1:[23,35,36,39,52,57,61,64,68,71,75,78,82,86,96,103,109,114,122,129,133,142,146,147,155,160,165],
+  M2:[167,168,173,177,178,181,182,183,184,188,193,205,210,214,220,233,234],
+  M3:[236,243,244,256,261,273,274,275,276,277,278],
+  M4:[280,281,286,294,299,308,309,312,320,321,322,327,328,329,334,335,342]
+};
+const previousRouteIndexes=[];
 const slides = [{kind:'cover',chapter:'intro',title:'Демонстрационный экзамен'}];
 const chapters = [{id:'intro',label:'Демонстрационный экзамен',index:0}];
-slides.push({
-  kind:'content',chapter:'intro',title:'Базовый уровень',
-  facts:[['4','задания'],['210','минут'],['75','баллов']],
-  body:'Спроектируйте базу данных, создайте каталог и реализуйте оформление и управление заказами.',
-  links:[['Условие КИМ',data.kim+'#page=35'],['Готовый пример','./?mode=examples']]
-});
 for (const stage of stages) {
   const chapter={id:stage.id,label:stage.title,index:slides.length,steps:[]};
   chapters.push(chapter);
   previousIndexes.push(slides.length);
-  slides.push({kind:'section',chapter:stage.id,title:stage.title,body:stage.output});
   for (const [index,step] of stage.steps.entries()) {
     chapter.steps.push({title:step.title,index:slides.length});
     const oldImage=screens[step.shot||step.file];
@@ -109,10 +110,14 @@ for (const stage of stages) {
   }
   const title='Что сохранить';
   chapter.steps.push({title,index:slides.length});
-  slides.push({kind:'content',chapter:stage.id,title,items:stageOutputs[stage.id].map(([name,note])=>name+' · '+note)});
+  slides.push({kind:'content',chapter:stage.id,step:stage.steps.length,title,items:stageOutputs[stage.id].map(([name,note])=>name+' · '+note)});
+  previousRouteIndexes.push([previousRoute[stage.id][0]-1,chapter.index]);
+  for(const [index,oldIndex] of previousRoute[stage.id].entries()){
+    previousRouteIndexes.push([oldIndex,chapter.steps[index]?.index??chapter.steps.at(-1).index]);
+  }
 }
 fs.writeFileSync(out+'/deck-data.js','globalThis.TEACHER_DECK='+JSON.stringify({
-  code:'09.02.07-2-2027',stackName:'Windows Forms + MySQL / MariaDB',chapters,slides,previousIndexes
+  code:'09.02.07-2-2027',stackName:'Windows Forms + MySQL / MariaDB',chapters,slides,previousIndexes,previousRouteIndexes
 })+';');
 for (const page of ['index.html','deck.html']) {
   const html=fs.readFileSync(out+'/'+page,'utf8').replace(/\b(src|href)="([^"?]+\.(?:js|css))"/g,

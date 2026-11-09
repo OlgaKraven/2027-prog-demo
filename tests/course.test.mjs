@@ -17,32 +17,45 @@ test('all 30 authored variants preserve referential integrity and provide full s
 test('independently recomputed control prices use previous calendar month',()=>{for(const id of ['sample',...read('content/variants.json').map(v=>v.id)]){const d=read(id==='sample'?'content/sample.json':`content/variants/${id}/data.json`),control=read(id==='sample'?'docs/sample-control.json':`docs/variant-controls/${id}.json`);const aprilOrders=new Set(d.orders.filter(o=>o.date>='2026-04-01'&&o.date<'2026-05-01').map(o=>o.id));const stock=new Map(d.stock.map(s=>[s.id,s]));const sold=new Set(d.items.filter(i=>aprilOrders.has(i.order_id)).map(i=>stock.get(i.stock_id).product_id));for(const p of d.products){const cents=BigInt(Math.round(Number(p.price)*100));const discounted=!sold.has(p.id);const expected=Number(discounted?(cents*3n+2n)/4n:cents)/100;const actual=control.find(c=>c.id===p.id);assert.equal(Number(actual.price),expected);assert.equal(actual.discount,discounted);assert.equal(actual.quantity,d.stock.filter(s=>s.product_id===p.id).reduce((n,s)=>n+s.available,0));}}});
 test('four requirements and official invariant criteria total 75',()=>{assert.equal(tasks.length,4);assert.equal(criteria.reduce((n,c)=>n+c[1],0),75);assert(stages.flatMap(s=>s.steps).every(x=>x.title&&x.why&&x.actions.length&&x.check));});
 test('every teaching file is included in code for the learning and presentation route',()=>{const context={};vm.runInNewContext(fs.readFileSync('site/content.js','utf8'),context);for(const s of stages.flatMap(s=>s.steps))if(s.file)assert(context.COURSE.code[s.file],s.file);assert.equal(context.COURSE.stages.length,5);});
-test('presentation follows all route cards and carries their complete demonstrations',()=>{
+test('presentation keeps each card and all of its material in route order',()=>{
  const context={};
  for(const name of ['content','deck-data'])vm.runInNewContext(fs.readFileSync('site/'+name+'.js','utf8'),context);
  const {COURSE,TEACHER_DECK:deck}=context;
- assert.equal(deck.previousIndexes.length,84);
+ const visibleBlocks=/<tr><td>.*?<\/tr>|<p>.*?<\/p>|<li>.*?<\/li>|<img src="([^"]+)"/g;
+ let position=1;
  for(const stage of COURSE.stages){
   const chapter=deck.chapters.find(item=>item.id===stage.id);
+  assert.equal(chapter.index,position);
   assert.deepEqual(Array.from(chapter.steps,item=>item.title),[...Array.from(stage.steps,step=>step.title),'Что сохранить']);
   for(const [i,step] of stage.steps.entries()){
    const first=chapter.steps[i].index, next=chapter.steps[i+1].index;
+   assert.equal(first,position);
    const slides=deck.slides.slice(first,next);
    assert.equal(slides[0].title,step.title);
+   assert.equal(slides.filter(slide=>slide.title===step.title).length,1);
+   assert(slides.every(slide=>slide.chapter===stage.id&&slide.step===i&&!slide.links),step.title);
    assert.equal(slides.at(-1).check,step.check);
-   if(step.details||step.code||step.erWorkspace){
-    assert.match(slides[1].eyebrow,/^Демонстрация шага/);
-   }
+   if(step.code)assert.equal(slides.filter(slide=>slide.code===step.code).length,1);
+   const withoutLinks=html=>html.replace(/<\/?a(?: [^>]*)?>/g,'');
+   const detail=withoutLinks(slides.map(slide=>slide.detailHtml||(slide.image?'[image:'+slide.image.file+']':'')).join(''));
+   assert(slides.every(slide=>!slide.detailHtml?.includes('href="?mode=')),step.title);
+   let offset=0;
    for(const section of step.details||[]){
-    const source=COURSE.lessonDetails[section];
-    const details=slides.map(slide=>slide.detailHtml||'').join('');
-    for(const [block] of source.matchAll(/<tr><td>.*?<\/tr>|<p>.*?<\/p>|<li>.*?<\/li>/g))assert(details.includes(block),step.title);
-    for(const [,file] of source.matchAll(/<img src="([^"]+)"/g))assert(slides.some(slide=>slide.image?.file===file),file);
+    for(const [block,file] of COURSE.lessonDetails[section].matchAll(visibleBlocks)){
+     const material=file?'[image:'+file+']':withoutLinks(block);
+     const found=detail.indexOf(material,offset);
+     assert(found>=offset,step.title+' · '+material);
+     offset=found+material.length;
+    }
    }
+   position=next;
   }
-  assert.deepEqual(Array.from(deck.slides[chapter.steps.at(-1).index].items),
+  const result=deck.slides[position++];
+  assert.equal(result.title,'Что сохранить');
+  assert.deepEqual(Array.from(result.items),
     Array.from(COURSE.stageOutputs[stage.id],([name,note])=>name+' · '+note));
  }
+ assert.equal(position,deck.slides.length);
 });
 test('ER describes every SQL table, field and foreign key',()=>{const er=read('content/er.json');assert.equal(er.tables.length,10);assert.equal(er.links.length,10);for(const l of er.links){assert(er.tables.find(t=>t.id===l.source).fields.some(f=>f.id===l.field&&f.fk));assert(er.tables.find(t=>t.id===l.target).fields.some(f=>f.id===l.key&&f.pk));}assert(er.tables.every(table=>table.meaning&&table.fields.every(field=>field.meaning&&typeof field.nullable==='boolean')));const accounted=er.tables.find(table=>table.id==='orders').fields.find(field=>field.id==='stock_accounted');assert.equal(accounted.default,'1');assert.match(accounted.meaning,/история получает 0/);assert(fs.statSync('materials/ER.pdf').size>10000);});
 test('training pauses, mock cannot pause, finished attempts cap elapsed time',()=>{const C=globalThis.ExamCore;let t=C.transition(C.freshTimer(210*60,'training',1000),'start',1000);t=C.transition(t,'pause',6000);assert.equal(C.timerView(t,50000).used,5000);assert.equal(C.restoreTimer(JSON.stringify(t),210*60,'training').status,'paused');assert.throws(()=>C.transition(C.transition(C.freshTimer(60,'mock',0),'start',0),'pause',1000));t=C.transition(t,'start',60000);t=C.transition(t,'finish',90000000);assert.equal(C.timerView(t).used,t.durationMs);});

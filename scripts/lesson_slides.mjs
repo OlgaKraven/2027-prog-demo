@@ -1,5 +1,6 @@
 // Continue dense lesson material across slides while keeping the original order.
 const unescape = value => value.replace(/&(amp|lt|gt|quot);/g,(_,entity)=>({amp:'&',lt:'<',gt:'>',quot:'"'}[entity]));
+const escape = value => value.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
 const length = html => unescape(html.replace(/<[^>]*>/g,'')).length;
 function groups(items,maxItems,maxLength){
   const pages=[];
@@ -22,10 +23,11 @@ function demonstration(blocks){
   const pages=[];
   let paragraphs=[];
   const flush=()=>{
-    for(const group of groups(paragraphs,3,570))pages.push({detailHtml:group.join('')});
+    for(const group of groups(paragraphs,3,570))pages.push({detailHtml:group.join(''),label:'Порядок работы'});
     paragraphs=[];
   };
-  for(const block of blocks){
+  for(const source of blocks){
+    const block=source.replace(/<a href="(?:\?mode=[^"]*|docs\/(?:DBeaver|Database-fields|Forms-designer|Import|Visual-Studio|import-decisions)\.html(?:#[^"]*)?)">([^<]+)<\/a>/g,'$1');
     if(block.startsWith('<p>')){
       paragraphs.push(block);
       continue;
@@ -33,21 +35,21 @@ function demonstration(blocks){
     flush();
     if(block.startsWith('<figure')){
       const [,file,caption]=block.match(/<img src="([^"]+)" alt="([^"]*)"/);
-      pages.push({image:{file:unescape(file),caption:unescape(caption)}});
+      pages.push({image:{file:unescape(file),caption:unescape(caption)},label:'Снимок'});
     }else if(block.startsWith('<pre>')){
-      pages.push({code:unescape(block.slice(11,-13))});
+      pages.push({code:unescape(block.slice(11,-13)),label:'Команда'});
     }else if(block.includes('<table>')){
       const [,header,body]=block.match(/<table>(<thead>.*?<\/thead>)<tbody>(.*?)<\/tbody><\/table>/);
       const columns=header.match(/<th scope=/g).length;
       for(const rows of groups(body.match(/<tr>.*?<\/tr>/g),columns<=4?10:6,600)){
-        pages.push({detailHtml:'<table>'+header+'<tbody>'+rows.join('')+'</tbody></table>'});
+        pages.push({detailHtml:'<table>'+header+'<tbody>'+rows.join('')+'</tbody></table>',label:'Таблица'});
       }
     }else{
       const [,tag,start]=block.match(/^<(ol|ul)(?: start="(\d+)")?>/);
       let number=Number(start||1);
       for(const items of groups(block.match(/<li>.*?<\/li>/g),4,510)){
         const attrs=tag==='ol'&&number>1?' start="'+number+'"':'';
-        pages.push({detailHtml:'<'+tag+attrs+'>'+items.join('')+'</'+tag+'>'});
+        pages.push({detailHtml:'<'+tag+attrs+'>'+items.join('')+'</'+tag+'>',label:'Действия'});
         number+=items.length;
       }
     }
@@ -57,30 +59,46 @@ function demonstration(blocks){
 }
 
 export function buildLessonSlides(stage,step,index,screens,lessonBlocks){
-  const chapter=stage.id, title=step.title;
-  const detail=(step.details||[]).flatMap((section,i)=>demonstration(lessonBlocks[section])
-    .map((page,j)=>({...page,...(i&&j===0?{heading:section}:{})})));
-  if(step.code)detail.push({code:step.code});
-  if(step.erWorkspace){
-    detail.push({
-      image:{file:'materials/ER.svg',caption:'Таблицы и связи схемы «Чудо Обувь».'},
-      links:[['Интерактивная ER-схема','./?'+new URLSearchParams({mode:'learn',module:stage.id,view:'steps',card:index})]]
-    });
-  }
-  const image=screens[step.shot||step.file];
-  const hasImage=image&&detail.some(page=>page.image?.file===image.file);
-  const actions=!step.details||step.detailsSupplement?step.actions:undefined;
-  const textLength=[step.why,...(actions||[]),step.check].join(' ').length;
-  const splitImage=image&&!hasImage&&textLength>570;
-  if(splitImage)detail.unshift({image});
-  const first={
-    kind:'content',chapter,title,body:step.why,actions,
-    ...(!detail.length?{check:step.check}:{}),
-    ...(image&&!hasImage&&!splitImage?{image}:{})
+  const database=stage.id==='M1';
+  const pages=[];
+  const addText=(html,label='Порядок работы')=>{
+    const last=pages.at(-1);
+    const rows=last?.detailHtml?.match(/<tr>/g)?.length??0;
+    if(last?.detailHtml&&rows<=6&&length(last.detailHtml+html)<=(rows?500:660)){
+      last.detailHtml+=html;
+    }else{
+      pages.push({detailHtml:html,label});
+    }
   };
-  if(!detail.length)return [first];
-  return [first,...detail.map((page,i)=>({
-    ...page,kind:page.code?'code':'detail',chapter,title,
-    eyebrow:'Демонстрация шага · '+(i+1)+' / '+detail.length
-  })),{kind:'content',chapter,title,check:step.check}];
+  const context='<p>'+escape(step.why)+'</p>';
+  const check='<p class="callout"><strong>'+(database?'Как проверить результат':'Проверьте себя')+'</strong>'+escape(step.check)+'</p>';
+  if(!database)addText(context);
+  if(!step.details||step.detailsSupplement){
+    const actions='<ol>'+step.actions.map(action=>'<li>'+escape(action)+'</li>').join('')+'</ol>';
+    for(const page of demonstration([actions]))addText(page.detailHtml);
+  }
+  for(const [i,section] of (step.details||[]).entries()){
+    const detail=demonstration(lessonBlocks[section]);
+    if(i)detail[0].heading=section;
+    for(const page of detail){
+      if(page.detailHtml&&!page.heading&&!page.detailHtml.includes('<table>'))addText(page.detailHtml);
+      else pages.push(page);
+    }
+  }
+  if(step.erWorkspace)pages.push({
+    image:{file:'materials/ER.svg',caption:'Таблицы и связи схемы «Чудо Обувь».'},
+    label:'Готовая ER-схема'
+  });
+  if(step.code)pages.push({code:step.code,label:'Код'});
+  const image=!step.details&&screens[step.shot||step.file];
+  if(image)pages.push({image,label:'Снимок'});
+  const result=check+(database?'<p><strong>Зачем это нужно.</strong> '+escape(step.why)+'</p>':'');
+  addText(result,database?'Как проверить результат':'Проверьте себя');
+  return pages.map(({label,...page},i)=>({
+    ...page,kind:page.code?'code':'detail',chapter:stage.id,step:index,
+    title:i===0?step.title:label+' · '+(i+1),
+    ...(i?{eyebrow:'Шаг '+(index+1)+' · '+step.title}:{}),
+    ...(i===pages.length-1?{check:step.check}:{}),
+    ...(!i&&step.file&&!step.details?{source:step.file}:{})
+  }));
 }
