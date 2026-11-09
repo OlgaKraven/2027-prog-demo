@@ -701,3 +701,8 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
 
 .lesson-data-table { margin-block: 14px; }
 .lesson-data-table code { white-space: nowrap; }
+
+.designer-instructions { min-width: 0; overflow-wrap: anywhere; }
+.designer-instructions .lesson-data-table td { min-width: 8rem; }
+
+.designer-instructions .lesson-data-table { max-height: none; }

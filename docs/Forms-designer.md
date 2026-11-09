@@ -1,12 +1,14 @@
 # Создание окон в Visual Studio Designer
 
+## Подготовка к работе
+
 Компоненты добавляются из Toolbox, свойства и события задаются в Properties. Код `InitializeComponent` сохраняет Visual Studio; вручную его не набирайте. Прикладные обработчики находятся в обычном файле формы.
 
 Перед добавлением обработчиков в оконном проекте выберите **Project → Add Class…**, создайте **Ui.cs** и заполните его по [файлу общих функций](../examples/WinForms/Ui.cs). Он нужен всем окнам для обработки ошибок и загрузки изображения с заглушкой. В библиотеке Core к этому моменту должны быть Models.cs, Store.cs и пакет MySqlConnector; оконному проекту нужна ссылка на Core.
 
 Порядок создания библиотеки, установки пакета и копирования изображений — в [настройке Visual Studio](Visual-Studio.md).
 
-Пройдите инструкцию в два прохода. Сначала соберите все семь окон в конструкторе и привяжите события к пустым методам. Затем заполните обычные файлы форм по ссылкам и обновите Program.cs оконного проекта. Код каталога и заказов ссылается на другие формы, поэтому его проще добавлять, когда созданы все окна.
+Собирайте окна по порядку карточек. При назначении событий Visual Studio создаёт методы. В обычных файлах форм можно заполнить эти методы по ссылкам для сверки. Полную сборку оконного проекта проверьте после создания всех семи форм и обновления Program.cs.
 
 ## Масштаб конструктора
 
@@ -55,7 +57,6 @@
 
 В обычном `.cs` реализуйте обработчик подключения по [примеру ConnectionForm.cs](../examples/WinForms/ConnectionForm.cs): проверка порта, сбор строки подключения, проверочный запрос и возврат результата. Здесь нет создания компонентов.
 
-Создание компонентов, свойств и события проверено в Windows Visual Studio. Сборка перенесённой формы с основным примером прошла без ошибок и предупреждений. Запуск F5 открыл эту форму. После подключения к учебной MariaDB появился гостевой каталог.
 
 ## Добавление следующей формы
 
@@ -137,6 +138,8 @@ Ctrl+Shift+A может сначала открыть компактное ок�
 | Button | cancelButton | 284, 575 | 300, 42 | Text: Отказаться от заказа; Anchor Bottom, Left; TabIndex 6 |
 | Button | confirmButton | 604, 575 | 352, 42 | Text: Подтвердить заказ; Anchor Bottom, Right; TabIndex 7 |
 
+### Корзина: колонки и события
+
 Для basketGrid задайте ReadOnly **True**, AllowUserToAddRows и AllowUserToDeleteRows **False**, MultiSelect и RowHeadersVisible **False**, SelectionMode **FullRowSelect**, BackgroundColor **White**, AutoSizeColumnsMode **Fill**, AutoSizeRowsMode **AllCells**.
 
 ![Стрелка таблицы открывает меню DataGridView Tasks с командой Edit Columns](../materials/screens/vs-grid-tasks.png)
@@ -166,7 +169,6 @@ Ctrl+Shift+A может сначала открыть компактное ок�
 
 В обычном [BasketForm.cs](../examples/WinForms/BasketForm.cs) реализуйте привязку данных к готовым колонкам и функции кнопок. Строка выбирается по StockId. «Назад к выбору» сохраняет корзину; «Отказаться» запрашивает подтверждение очистки; «Подтвердить» вызывает транзакцию и повторно использует идентификатор запроса при повторе после ошибки. Обновление состава корзины создаёт новый идентификатор запроса. Для клиента список покупателей недоступен, для менеджера и администратора заполняется запросом. Проверка ролей повторяется в Store.
 
-Компоненты и колонки созданы в Windows Designer, исходники перенесены без ручного изменения. Сборка с основным проектом прошла без ошибок и предупреждений. В Windows в этой форме проверены выбор строки, изменение количества, пересчёт суммы и подтверждение заказа.
 
 
 ## Список заказов OrdersForm
@@ -182,6 +184,8 @@ Ctrl+Shift+A может сначала открыть компактное ок�
 | Button | deleteOrderButton | 444, 70 | 200, 42 | Text: Удалить заказ; BackColor: 210, 246, 231; FlatStyle: Flat; TabIndex: 2 |
 | Button | backButton | 654, 70 | 250, 42 | Text: Назад в каталог; BackColor: 210, 246, 231; FlatStyle: Flat; TabIndex: 3 |
 | DataGridView | ordersGrid | 24, 130 | 932, 450 | Anchor: Top, Bottom, Left, Right; AllowUserToAddRows: False; AllowUserToDeleteRows: False; ReadOnly: True; MultiSelect: False; RowHeadersVisible: False; SelectionMode: FullRowSelect; BackgroundColor: White; AutoSizeColumnsMode: Fill; TabIndex: 4 |
+
+### Список заказов: колонки и события
 
 Для DataGridView откройте стрелку **DataGridView Tasks → Edit Columns… → Add…**. Создавайте **Unbound column**. Для каждой колонки явно выбирайте тип: после ImageColumn редактор может сохранить этот тип для следующей колонки. После добавления закройте Add Column кнопкой Close и заполните свойства каждой колонки в Edit Columns.
 
@@ -220,6 +224,8 @@ Ctrl+Shift+A может сначала открыть компактное ок�
 | Button | deleteLineButton | 590, 65 | 240, 40 | Text: Удалить строку; BackColor: 210, 246, 231; FlatStyle: Flat; TabIndex: 2 |
 | Button | backButton | 24, 585 | 240, 40 | Text: Назад к заказам; BackColor: 210, 246, 231; FlatStyle: Flat; TabIndex: 4; Anchor: Bottom, Left |
 | DataGridView | linesGrid | 24, 130 | 932, 430 | Anchor: Top, Bottom, Left, Right; AllowUserToAddRows: False; AllowUserToDeleteRows: False; ReadOnly: True; MultiSelect: False; RowHeadersVisible: False; SelectionMode: FullRowSelect; BackgroundColor: White; AutoSizeColumnsMode: Fill; TabIndex: 3 |
+
+### Состав заказа: колонки и события
 
 Для DataGridView откройте стрелку **DataGridView Tasks → Edit Columns… → Add…**. Создавайте **Unbound column**. Для каждой колонки явно выбирайте тип: после ImageColumn редактор может сохранить этот тип для следующей колонки. После добавления закройте Add Column кнопкой Close и заполните свойства каждой колонки в Edit Columns.
 
@@ -270,6 +276,8 @@ Ctrl+Shift+A может сначала открыть компактное ок�
 | Label | statusLabel | 24, 595 | 952, 25 | Text: Выберите модель двойным щелчком; Anchor: Bottom, Left, Right |
 | DataGridView | catalogGrid | 24, 235 | 952, 350 | Anchor: Top, Bottom, Left, Right; AllowUserToAddRows: False; AllowUserToDeleteRows: False; ReadOnly: True; MultiSelect: False; RowHeadersVisible: False; ColumnHeadersVisible: False; SelectionMode: FullRowSelect; BackgroundColor: White; AutoSizeColumnsMode: Fill; TabIndex: 7 |
 
+### Каталог: колонки и события
+
 Для DataGridView откройте стрелку **DataGridView Tasks → Edit Columns… → Add…**. Создавайте **Unbound column**. Для каждой колонки явно выбирайте тип: после ImageColumn редактор может сохранить этот тип для следующей колонки. После добавления закройте Add Column кнопкой Close и заполните свойства каждой колонки в Edit Columns.
 
 | (Name) | Тип | HeaderText | DataPropertyName | FillWeight | Дополнительно |
@@ -310,6 +318,8 @@ Ctrl+Shift+A может сначала открыть компактное ок�
 ![Каталог гостя с исходным логотипом](../materials/screens/catalog-guest.png)
 
 ![Категория и порядок убывания цены после входа](../materials/screens/catalog-filter-sort.png)
+
+### Сверка ролей
 
 Перед сменой роли вернитесь в каталог. Если в пробной корзине остались позиции, подтвердите её очистку в диалоге «Смена пользователя». Откройте состав одного и того же заказа под администратором и менеджером. У администратора видны дата и действия её изменения и удаления строки. У менеджера доступен просмотр состава.
 

@@ -35,7 +35,7 @@ for(const width of [390,768,1440])for(const dark of [false,true]){
    await page.locator('#lesson-steps').click();
    await page.locator('[data-jump-step="'+n+'"]').click();
    assert(await page.locator('#lesson-step-title').innerText());
-   assert((await page.locator('.lesson-explanation ol li').count())>0);
+   assert((await page.locator('.lesson-explanation :is(ol li, .designer-instructions p, .designer-instructions pre)').count())>0);
    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
    microstepsChecked++;
   }

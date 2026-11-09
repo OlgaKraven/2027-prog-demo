@@ -90,12 +90,23 @@ function stageTiming(id) {
 function stageTitle(item) {
   return item.module+(item.id==='documents'?'':' · '+stageTiming(item.id));
 }
-const lessonStepKey=id=>id==='M1'?'step:M1:cards':'step:'+id;
+const previousLessonSteps={
+  M1:[0,1,2,3,8,10,11,12,13,16,17],
+  M2:[0,1,2,3,4,5,6,7,8,11,13,15,16],
+  M3:[0,1,2,3,5,6,7,8,9,10],
+  M4:[0,1,5,6,7,8,9,10,11,12,13,14,15]
+};
+const lessonStepKey=id=>previousLessonSteps[id]?'step:'+id+':cards':'step:'+id;
 function savedLessonStep(id) {
   const saved=get(lessonStepKey(id));
-  if(saved!==null||id!=='M1')return saved;
-  const previous=get('step:M1');
-  return previous===null?null:([0,1,2,3,8,10,11,12,13,16,17][previous]??0);
+  if(saved!==null||!previousLessonSteps[id])return saved;
+  const previous=get('step:'+id);
+  return previous===null?null:(previousLessonSteps[id][previous]??0);
+}
+const requestedCard=new URLSearchParams(location.search).get('card');
+if(mode==='learn'&&learningView==='steps'&&requestedCard){
+  const index=current().steps.findIndex(step=>requestedCard==='designer'?step.designer:step.designer===requestedCard);
+  if(index>=0)set(lessonStepKey(stage),index);
 }
 function resumeView(id) {
   return savedLessonStep(id)!==null || get('done:'+id,false) ? 'steps' : 'brief';
@@ -297,13 +308,14 @@ function explain(s,database=false) {
   return `<section class="lesson-explanation">
     ${database?'':`<h3>Как это понять</h3><p>${E(s.why)}</p>`}
     <h3>${database?'Что сделать':'Что сделать самостоятельно'}</h3>
-    <ol>${s.actions.map(a=>`<li>${E(a)}</li>`).join('')}</ol>
+    ${!s.designer||s.designerSupplement?`<ol>${s.actions.map(a=>`<li>${E(a)}</li>`).join('')}</ol>`:''}
+    ${s.designer?`<div class="designer-instructions">${D.designerCards[s.designer]}</div>`:''}
     ${s.erStep===undefined?'':btn('Построить ER-схему',`data-step="${s.erStep}"`)}
     ${s.erWorkspace?'<section class="er-workspace" id="er-workspace" aria-label="Построение ER-схемы"></section>':''}
     ${s.code?`<pre tabindex="0">${E(s.code)}</pre>`:''}
     ${s.relatedFile?btn('Открыть '+E(s.relatedFile.split('/').pop()),'id="step-related-file"'):''}
-    ${s.file?`<details><summary>Полный файл для сверки · ${E(s.file)}</summary><p>Сначала разберите действие и поля. Сверка показывает итоговый файл, включая последующие операции.</p><pre tabindex="0">${E(D.code[s.file]||'')}</pre></details>`:''}
-    ${lessonDataTable(s.table)}${guide}${shot(s)}
+    ${s.file&&!s.designer?`<details><summary>Полный файл для сверки · ${E(s.file)}</summary><p>Сначала разберите действие и поля. Сверка показывает итоговый файл, включая последующие операции.</p><pre tabindex="0">${E(D.code[s.file]||'')}</pre></details>`:''}
+    ${lessonDataTable(s.table)}${guide}${s.designer?'':shot(s)}
     <div class="step-result"><strong>${database?'Как проверить результат':'Проверьте себя'}</strong><p>${E(s.check)}</p></div>
     ${database?reason:''}</section>`;
 }

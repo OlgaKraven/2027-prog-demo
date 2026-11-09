@@ -23,6 +23,14 @@
     "file": "materials/screens/vs-designer-button.png",
     "caption": "Visual Studio 2026, реальный Designer: кнопка добавлена из Toolbox, свойство Text изменено на «Войти» через Properties. Это проверка одного компонента, не готовой формы."
   },
+  "designer-template": {
+    "file": "materials/screens/vs-show-form-templates.png",
+    "caption": "Ссылка Show all templates в окне добавления нового элемента."
+  },
+  "designer-order-details": {
+    "file": "materials/screens/vs-order-details-designer.png",
+    "caption": "Конструктор состава заказа: дата, таблица позиций, итог и кнопки."
+  },
   "designer-connection": {
     "file": "materials/screens/vs-connection-designer.png",
     "caption": "Подключение: компоненты, свойства и событие созданы в конструкторе Visual Studio."
