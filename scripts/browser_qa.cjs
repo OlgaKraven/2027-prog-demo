@@ -1,7 +1,7 @@
 const {chromium}=require('playwright');const fs=require('node:fs');const path=require('node:path');const assert=require('node:assert/strict');
 const out=path.resolve('output/browser');fs.mkdirSync(out,{recursive:true});let browser;
 (async()=>{
-browser=await chromium.launch({headless:true});const errors=[],records=[];
+browser=await chromium.launch({headless:true});const errors=[],records=[];let microstepsChecked=0;
 for(const width of [390,768,1440])for(const dark of [false,true]){
  const context=await browser.newContext({viewport:{width,height:1000}});await context.addInitScript(d=>localStorage.setItem('2027-prog-demo:v1:dark',JSON.stringify(d)),dark);const page=await context.newPage();page.on('pageerror',e=>errors.push(String(e)));
  const go=async(mode,module='documents')=>{await page.goto(`http://127.0.0.1:4209/?mode=${mode}&module=${module}`);await page.locator('.site-nav').waitFor();};
@@ -32,6 +32,7 @@ for(const width of [390,768,1440])for(const dark of [false,true]){
    assert(await page.locator('#lesson-step-title').innerText());
    assert((await page.locator('.lesson-explanation ol li').count())>0);
    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+   microstepsChecked++;
   }
  }
  await go('training');await page.locator('[data-timer=start]').click();await page.locator('[data-timer=pause]').click();assert(await page.locator('.training-workspace').isHidden());await page.reload();assert(await page.locator('.pause-screen').isVisible());await shot('paused','.pause-screen');await page.locator('.timer-card [data-timer=start]').click();await page.locator('[data-timer=finish]').click();assert.equal(await page.locator('[data-check]:not(:disabled)').count(),0);await shot('finished','.attempt-result');await page.locator('[data-timer=reset]').click();assert.equal(await page.locator('#clock').innerText(),'03:30:00');assert.equal(await page.getByText(/протокол/i).count(),0);
@@ -46,6 +47,11 @@ for(const width of [390,768,1440])for(const dark of [false,true]){
  await page.getByText('Импорт останавливается на request_id',{exact:true}).click();
  assert(await page.getByText(/снимите Not Null/).isVisible());
  await page.getByRole('button',{name:'Шаги',exact:true}).click();
+ await page.locator('#lesson-steps').click();await page.getByRole('button',{name:'Свяжите таблицы внешними ключами',exact:true}).click();
+ assert.equal(await page.locator('.lesson-data-table tbody tr').count(),10);
+ assert.equal(await page.locator('.study-step iframe').count(),0);
+ await page.getByRole('button',{name:'Следующий шаг',exact:true}).click();
+ assert(await page.getByRole('heading',{name:/Задайте составную уникальность/}).isVisible());
  await page.locator('#lesson-steps').click();await page.locator('[data-jump-step="1"]').click();
  await page.getByRole('button',{name:'Построить ER-схему',exact:true}).click();
  assert.equal(await page.locator('dialog[open]').count(),0);
@@ -65,6 +71,11 @@ for(const width of [390,768,1440])for(const dark of [false,true]){
  await page.locator('#er-next').click();await assertErPosition('manufacturers-id');
  await page.locator('#er-prev').click();await assertErPosition('manufacturers');
  await page.reload();await assertErPosition('manufacturers');
+ const accountStep=await page.locator('#er-jump option').evaluateAll(options=>options.find(o=>o.textContent.endsWith('orders.stock_accounted')).value);
+ await page.locator('#er-jump').selectOption(accountStep);
+ await assertErPosition('orders-stock_accounted');
+ assert(await page.locator('.er-origin').getByText(/Импортированная история получает 0/).isVisible());
+ assert(await page.locator('.er-origin').getByText('Свойства в SQL',{exact:true}).isVisible());
  await page.locator('#er-full').click();await shot('er');
  await page.locator('#er-select-products-image').focus();await page.keyboard.press('Enter');
  assert(await page.locator('.er-origin').getByText('products.image',{exact:true}).isVisible());
@@ -81,5 +92,5 @@ for(const width of [390,768,1440])for(const dark of [false,true]){
  await go('learn');await page.locator('[data-mode=training]').click();await page.goBack();assert.equal(new URL(page.url()).searchParams.get('mode'),'learn');
  await context.close();
 }
-await browser.close();fs.writeFileSync('docs/browser-checks.json',JSON.stringify({records,errors,microstepsChecked:49*6},null,2)+'\n');assert.equal(errors.length,0);console.log(JSON.stringify({screens:records.length,microsteps:49*6,errors}));
+await browser.close();fs.writeFileSync('docs/browser-checks.json',JSON.stringify({records,errors,microstepsChecked},null,2)+'\n');assert.equal(errors.length,0);console.log(JSON.stringify({screens:records.length,microsteps:microstepsChecked,errors}));
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();});

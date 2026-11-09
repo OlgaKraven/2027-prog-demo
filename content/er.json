@@ -11,16 +11,25 @@
           "type": "INT",
           "pk": true,
           "fk": false,
-          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Первичный ключ роли. На него ссылается users.role_id.",
+          "origin": ""
         },
         {
           "id": "name",
           "type": "VARCHAR(80)",
           "pk": false,
           "fk": false,
+          "nullable": false,
+          "unique": true,
+          "default": null,
+          "meaning": "Название роли, по которому импортёр сопоставляет пользователя со справочником.",
           "origin": "Users_import.xlsx → Роль"
         }
       ],
+      "meaning": "Справочник ролей определяет доступные действия покупателя, менеджера и администратора.",
       "origin": "Users_import.xlsx → Роль"
     },
     {
@@ -34,44 +43,69 @@
           "type": "INT",
           "pk": true,
           "fk": false,
-          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Первичный ключ пользователя. Его используют ссылки на покупателя и автора заказа.",
+          "origin": ""
         },
         {
           "id": "login",
           "type": "VARCHAR(100)",
           "pk": false,
           "fk": false,
-          "origin": "Users_import.xlsx → Фамилия, Имя, Отчетсво, Логин, Роль"
+          "nullable": false,
+          "unique": true,
+          "default": null,
+          "meaning": "Уникальный логин входа. Сравнение учитывает регистр букв.",
+          "origin": "Users_import.xlsx → Логин"
         },
         {
           "id": "last_name",
           "type": "VARCHAR(100)",
           "pk": false,
           "fk": false,
-          "origin": "Users_import.xlsx → Фамилия, Имя, Отчетсво, Логин, Роль"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Фамилия пользователя для отображения ФИО и сопоставления исходных заказов.",
+          "origin": "Users_import.xlsx → Фамилия"
         },
         {
           "id": "first_name",
           "type": "VARCHAR(100)",
           "pk": false,
           "fk": false,
-          "origin": "Users_import.xlsx → Фамилия, Имя, Отчетсво, Логин, Роль"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Имя пользователя для отображения ФИО и сопоставления исходных заказов.",
+          "origin": "Users_import.xlsx → Имя"
         },
         {
           "id": "patronymic",
           "type": "VARCHAR(100)",
           "pk": false,
           "fk": false,
-          "origin": "Users_import.xlsx → Фамилия, Имя, Отчетсво, Логин, Роль"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Отчество пользователя для отображения полного имени. Заголовок исходного столбца сохранён как в книге.",
+          "origin": "Users_import.xlsx → Отчетсво"
         },
         {
           "id": "role_id",
           "type": "INT",
           "pk": false,
           "fk": true,
-          "origin": "Users_import.xlsx → Фамилия, Имя, Отчетсво, Логин, Роль"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Ссылка на роль пользователя. Приложение проверяет по ней права на действия.",
+          "origin": "Users_import.xlsx → Роль"
         }
       ],
+      "meaning": "Список пользователей хранит учебный логин, ФИО и ссылку на роль.",
       "origin": "Users_import.xlsx → Фамилия, Имя, Отчетсво, Логин, Роль"
     },
     {
@@ -85,16 +119,25 @@
           "type": "INT",
           "pk": true,
           "fk": false,
-          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Первичный ключ категории. Его хранит каждая её подкатегория.",
+          "origin": ""
         },
         {
           "id": "name",
           "type": "VARCHAR(100)",
           "pk": false,
           "fk": false,
+          "nullable": false,
+          "unique": true,
+          "default": null,
+          "meaning": "Уникальное название верхнего уровня каталога, например «Детская обувь».",
           "origin": "Products_import.xlsx → Категория"
         }
       ],
+      "meaning": "Верхний уровень каталога. Каждая подкатегория относится к одной категории.",
       "origin": "Products_import.xlsx → Категория"
     },
     {
@@ -108,23 +151,36 @@
           "type": "INT",
           "pk": true,
           "fk": false,
-          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Первичный ключ подкатегории. На него ссылаются модели.",
+          "origin": ""
         },
         {
           "id": "category_id",
           "type": "INT",
           "pk": false,
           "fk": true,
-          "origin": "Products_import.xlsx → Категория, Подкатегория"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Ссылка на родительскую категорию подкатегории.",
+          "origin": "Products_import.xlsx → Категория"
         },
         {
           "id": "name",
           "type": "VARCHAR(100)",
           "pk": false,
           "fk": false,
-          "origin": "Products_import.xlsx → Категория, Подкатегория"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Название подкатегории. Оно уникально внутри своей категории.",
+          "origin": "Products_import.xlsx → Подкатегория"
         }
       ],
+      "meaning": "Подкатегории уточняют вид обуви внутри категории. Одно название может повторяться в разных категориях.",
       "origin": "Products_import.xlsx → Категория, Подкатегория"
     },
     {
@@ -138,16 +194,25 @@
           "type": "INT",
           "pk": true,
           "fk": false,
-          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Первичный ключ производителя. На него ссылаются модели каталога.",
+          "origin": ""
         },
         {
           "id": "name",
           "type": "VARCHAR(150)",
           "pk": false,
           "fk": false,
+          "nullable": false,
+          "unique": true,
+          "default": null,
+          "meaning": "Уникальное название производителя. Вместе с названием модели помогает сопоставить исходные строки.",
           "origin": "Products_import.xlsx → Производство"
         }
       ],
+      "meaning": "Справочник производителей позволяет нескольким моделям ссылаться на одного производителя.",
       "origin": "Products_import.xlsx → Производство"
     },
     {
@@ -161,59 +226,92 @@
           "type": "INT",
           "pk": true,
           "fk": false,
-          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Первичный ключ модели. По нему складские позиции получают общие свойства модели.",
+          "origin": ""
         },
         {
           "id": "subcategory_id",
           "type": "INT",
           "pk": false,
           "fk": true,
-          "origin": "Products_import.xlsx → Наименование, Фото, Состав, Описание, Цена"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Ссылка на подкатегорию модели. Категория находится через эту подкатегорию.",
+          "origin": "Products_import.xlsx → Категория, Подкатегория"
         },
         {
           "id": "manufacturer_id",
           "type": "INT",
           "pk": false,
           "fk": true,
-          "origin": "Products_import.xlsx → Наименование, Фото, Состав, Описание, Цена"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Ссылка на производителя модели.",
+          "origin": "Products_import.xlsx → Производство"
         },
         {
           "id": "name",
           "type": "VARCHAR(250)",
           "pk": false,
           "fk": false,
-          "origin": "Products_import.xlsx → Наименование, Фото, Состав, Описание, Цена"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Название модели. В сочетании с производителем определяет строку модели при импорте.",
+          "origin": "Products_import.xlsx → Наименование товара"
         },
         {
           "id": "image",
           "type": "VARCHAR(250)",
           "pk": false,
           "fk": false,
-          "origin": "Products_import.xlsx → Наименование, Фото, Состав, Описание, Цена"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Имя файла фотографии модели. Приложение ищет его в Assets/Images и при отсутствии показывает заглушку.",
+          "origin": "Products_import.xlsx → Изображение"
         },
         {
           "id": "composition",
           "type": "TEXT",
           "pk": false,
           "fk": false,
-          "origin": "Products_import.xlsx → Наименование, Фото, Состав, Описание, Цена"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Описание материалов модели, которое показывается в каталоге и карточке.",
+          "origin": "Products_import.xlsx → Состав"
         },
         {
           "id": "description",
           "type": "TEXT",
           "pk": false,
           "fk": false,
-          "origin": "Products_import.xlsx → Наименование, Фото, Состав, Описание, Цена"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Текст карточки модели. Приложение также использует его для поиска.",
+          "origin": "Products_import.xlsx → Описание"
         },
         {
           "id": "price",
           "type": "DECIMAL(12,2)",
           "pk": false,
           "fk": false,
-          "origin": "Products_import.xlsx → Наименование, Фото, Состав, Описание, Цена"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Базовая цена модели за пару. Цена со скидкой рассчитывается отдельно.",
+          "origin": "Products_import.xlsx → Цена"
         }
       ],
-      "origin": "Products_import.xlsx → Наименование, Фото, Состав, Описание, Цена"
+      "meaning": "Одна строка описывает одну модель обуви и её общие свойства. Размеры и остатки хранятся в stock_items.",
+      "origin": "Products_import.xlsx → Наименование товара, Изображение, Состав, Описание, Цена"
     },
     {
       "id": "sizes",
@@ -226,13 +324,21 @@
           "type": "INT",
           "pk": true,
           "fk": false,
-          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Первичный ключ размера. На него ссылается складская позиция.",
+          "origin": ""
         },
         {
           "id": "label",
           "type": "VARCHAR(10)",
           "pk": false,
           "fk": false,
+          "nullable": false,
+          "unique": true,
+          "default": null,
+          "meaning": "Исходная надпись размера, которую видит покупатель. Дробное значение сохраняется полностью.",
           "origin": "Sizes_import.xlsx → Размер"
         },
         {
@@ -240,9 +346,14 @@
           "type": "DECIMAL(5,1)",
           "pk": false,
           "fk": false,
-          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Числовое представление размера для сортировки. Например, 38.5 следует после 38.",
+          "origin": "Sizes_import.xlsx → Размер"
         }
       ],
+      "meaning": "Справочник хранит исходные обозначения размеров и значения для числовой сортировки.",
       "origin": "Sizes_import.xlsx → Размер"
     },
     {
@@ -256,31 +367,48 @@
           "type": "INT",
           "pk": true,
           "fk": false,
-          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Первичный ключ складской позиции. Строка заказа ссылается на него, чтобы указать точный размер модели.",
+          "origin": ""
         },
         {
           "id": "product_id",
           "type": "INT",
           "pk": false,
           "fk": true,
-          "origin": "Stock_Items_import.xlsx → Модель, Производство, Размер, Остаток"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Ссылка на модель. Импортёр находит её по паре «название + производитель».",
+          "origin": "Stock_Items_import.xlsx → Наименование товара, Производство"
         },
         {
           "id": "size_id",
           "type": "INT",
           "pk": false,
           "fk": true,
-          "origin": "Stock_Items_import.xlsx → Модель, Производство, Размер, Остаток"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Ссылка на размер модели. Пара product_id и size_id уникальна в складских позициях.",
+          "origin": "Stock_Items_import.xlsx → Размер"
         },
         {
           "id": "available",
           "type": "INT",
           "pk": false,
           "fk": false,
-          "origin": "Stock_Items_import.xlsx → Модель, Производство, Размер, Остаток"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Доступное для заказа количество пар конкретного размера. Значение не может быть отрицательным.",
+          "origin": "Stock_Items_import.xlsx → Количество доступное для заказа"
         }
       ],
-      "origin": "Stock_Items_import.xlsx → Модель, Производство, Размер, Остаток"
+      "meaning": "Одна строка хранит доступный остаток для одной пары «модель + размер».",
+      "origin": "Stock_Items_import.xlsx → Наименование товара, Производство, Размер, Количество доступное для заказа"
     },
     {
       "id": "orders",
@@ -293,45 +421,70 @@
           "type": "INT",
           "pk": true,
           "fk": false,
-          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Первичный ключ заказа. При импорте сохраняется исходный номер, а для нового заказа номер выдаёт база.",
+          "origin": "Orders_import.xlsx → Номер заказа"
         },
         {
           "id": "order_date",
           "type": "DATETIME",
           "pk": false,
           "fk": false,
-          "origin": "Orders_import.xlsx → Номер заказа, Дата, ФИО"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Дата заказа. Её используют для просмотра истории и отбора продаж по периоду.",
+          "origin": "Orders_import.xlsx → Дата заказа"
         },
         {
           "id": "user_id",
           "type": "INT",
           "pk": false,
           "fk": true,
-          "origin": "Orders_import.xlsx → Номер заказа, Дата, ФИО"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Ссылка на покупателя. Импортёр находит пользователя по ФИО из заказа.",
+          "origin": "Orders_import.xlsx → ФИО"
         },
         {
           "id": "created_by",
           "type": "INT",
           "pk": false,
           "fk": true,
-          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Ссылка на пользователя, который оформил заказ. Для исходной истории импортёр ставит покупателя, поскольку отдельного автора в книге нет.",
+          "origin": ""
         },
         {
           "id": "request_id",
           "type": "CHAR(36)",
           "pk": false,
           "fk": false,
-          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+          "nullable": true,
+          "unique": true,
+          "default": null,
+          "meaning": "Уникальный идентификатор подтверждения. Повторный запрос с тем же значением возвращает уже созданный заказ. У исходной истории здесь NULL.",
+          "origin": ""
         },
         {
           "id": "stock_accounted",
           "type": "BOOLEAN",
           "pk": false,
           "fk": false,
-          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+          "nullable": false,
+          "unique": false,
+          "default": "1",
+          "meaning": "Показывает, списывал ли заказ остаток. Импортированная история получает 0, потому что исходный остаток уже дан. Новый подтверждённый заказ получает 1. При удалении заказа или его строки остаток возвращается только при 1.",
+          "origin": ""
         }
       ],
-      "origin": "Orders_import.xlsx → Номер заказа, Дата, ФИО"
+      "meaning": "В заголовке заказа хранятся дата, покупатель и сведения о создании заказа.",
+      "origin": "Orders_import.xlsx → Номер заказа, Дата заказа, ФИО"
     },
     {
       "id": "order_items",
@@ -344,38 +497,59 @@
           "type": "INT",
           "pk": true,
           "fk": false,
-          "origin": "Техническое поле разработчика; назначение объяснено в модели."
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Первичный ключ строки заказа. Позволяет изменить или удалить именно выбранную позицию.",
+          "origin": ""
         },
         {
           "id": "order_id",
           "type": "INT",
           "pk": false,
           "fk": true,
-          "origin": "Orders_import.xlsx → Номер, Модель, Размер, Количество, Цена"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Ссылка на заголовок заказа. При удалении заголовка его строки удаляются каскадно.",
+          "origin": "Orders_import.xlsx → Номер заказа"
         },
         {
           "id": "stock_id",
           "type": "INT",
           "pk": false,
           "fk": true,
-          "origin": "Orders_import.xlsx → Номер, Модель, Размер, Количество, Цена"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Ссылка на конкретную пару «модель + размер». Импортёр находит позицию по названию, производителю и размеру.",
+          "origin": "Orders_import.xlsx → Наименование товара, Производство, Размер"
         },
         {
           "id": "quantity",
           "type": "INT",
           "pk": false,
           "fk": false,
-          "origin": "Orders_import.xlsx → Номер, Модель, Размер, Количество, Цена"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Число пар в этой строке заказа. Оно должно быть больше нуля.",
+          "origin": "Orders_import.xlsx → Количество"
         },
         {
           "id": "unit_price",
           "type": "DECIMAL(12,2)",
           "pk": false,
           "fk": false,
-          "origin": "Orders_import.xlsx → Номер, Модель, Размер, Количество, Цена"
+          "nullable": false,
+          "unique": false,
+          "default": null,
+          "meaning": "Цена одной пары на момент продажи. При изменении каталога она сохраняется для истории.",
+          "origin": "Orders_import.xlsx → Цена за единицу"
         }
       ],
-      "origin": "Orders_import.xlsx → Номер, Модель, Размер, Количество, Цена"
+      "meaning": "Строка заказа фиксирует конкретный размер, число пар и цену за пару на момент покупки.",
+      "origin": "Orders_import.xlsx → Номер заказа, Наименование товара, Размер, Количество, Цена за единицу"
     }
   ],
   "links": [

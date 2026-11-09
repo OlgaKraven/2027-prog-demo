@@ -78,5 +78,21 @@
   "db-er-result": {
     "file": "materials/screens/dbeaver-er.png",
     "caption": "Готовая ER-диаграмма из DBeaver с таблицами, полями и связями."
+  },
+  "db-foreign-key": {
+    "file": "materials/screens/dbeaver-reference-table.png",
+    "caption": "В Reference table выделена точная таблица, а category_id сопоставлен с её id."
+  },
+  "db-unique": {
+    "file": "materials/screens/dbeaver-composite-unique.png",
+    "caption": "Поля отмечены внутри одного составного ограничения."
+  },
+  "db-check": {
+    "file": "materials/screens/dbeaver-check.png",
+    "caption": "В Expression вводится только проверяемое условие."
+  },
+  "db-date-index": {
+    "file": "materials/screens/dbeaver-date-index.png",
+    "caption": "В обычном индексе по order_date флажок Unique выключен."
   }
 }

@@ -90,8 +90,15 @@ function stageTiming(id) {
 function stageTitle(item) {
   return item.module+(item.id==='documents'?'':' · '+stageTiming(item.id));
 }
+const lessonStepKey=id=>id==='M1'?'step:M1:cards':'step:'+id;
+function savedLessonStep(id) {
+  const saved=get(lessonStepKey(id));
+  if(saved!==null||id!=='M1')return saved;
+  const previous=get('step:M1');
+  return previous===null?null:([0,1,2,3,8,10,11,12,13,16,17][previous]??0);
+}
 function resumeView(id) {
-  return get('step:'+id)!==null || get('done:'+id,false) ? 'steps' : 'brief';
+  return savedLessonStep(id)!==null || get('done:'+id,false) ? 'steps' : 'brief';
 }
 function stageResult(item) {
   return `<strong>Что сохранить</strong><ul class="result-files">${stageOutputs[item.id].map(([name,note])=>
@@ -118,7 +125,7 @@ function learningMap() {
       }).join('')}</ol>
       <article class="map-detail" aria-label="Выбранный этап">
         ${D.stages.map(item=>{
-          const saved = get('step:'+item.id);
+          const saved = savedLessonStep(item.id);
           const task = D.tasks.find(entry=>entry.id===item.id);
           const action = get('done:'+item.id,false) ? 'Открыть этап'
             : saved===item.steps.length ? 'Что сохранить'
@@ -145,7 +152,7 @@ function lessonBrief(lesson) {
       <ul>${sourceWorkbooks.map(name=>`<li><a href="materials/resources/${E(name)}" data-workbook="${E(name)}">${E(name)}</a></li>`).join('')}</ul>
     </section>`}
     <div class="button-row">${lesson.id==='M1'?'':btn('Материалы задания','id="materials-open"')}<a class="btn" href="downloads/original-inputs.zip" download>Приложения · ZIP</a></div>
-    ${btn(get('step:'+lesson.id)===null?'Перейти к шагам →':stepIndex(lesson)===lesson.steps.length?'Что сохранить →':'Продолжить с шага '+(stepIndex(lesson)+1)+' →','data-lesson-view="steps"',true)}
+    ${btn(savedLessonStep(lesson.id)===null?'Перейти к шагам →':stepIndex(lesson)===lesson.steps.length?'Что сохранить →':'Продолжить с шага '+(stepIndex(lesson)+1)+' →','data-lesson-view="steps"',true)}
   </div>`;
 }
 const databaseMaterials = () => [
@@ -155,6 +162,7 @@ const databaseMaterials = () => [
   {name:'Создание базы в DBeaver',path:'docs/DBeaver.html'},
   {name:'Перечень полей и ключей',path:'docs/Database-fields.html'},
   {name:'Подготовка данных в C#',path:'docs/Import.html'},
+  {name:'Исходный файл CsvInput.cs',path:'code/examples/Import/CsvInput.cs.txt'},
   {name:'ER готового примера',path:'materials/ER.pdf'}
 ];
 function materialReader(files) {
@@ -178,7 +186,7 @@ function bindMaterialReaders(container) {
         <div class="material-table" tabindex="0" aria-label="Данные книги"><table>
         <thead><tr>${workbook.columns.map(column=>`<th scope="col">${E(column)}</th>`).join('')}</tr></thead>
         <tbody>${workbook.rows.map(row=>`<tr>${workbook.columns.map(column=>`<td>${E(row[column]??'')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`
-        : /\.(html|pdf)$/.test(path)?`<iframe src="${E(source)}" title="${E(name)}" loading="lazy"></iframe>`:'';
+        : /\.(html|pdf|txt)$/.test(path)?`<iframe src="${E(source)}" title="${E(name)}" loading="lazy"></iframe>`:'';
       preview.innerHTML=`<div class="material-preview-head"><h4>${E(name)}</h4>
         <a href="${E(path)}" download>Скачать файл</a></div>${body}`;
     };
@@ -255,11 +263,23 @@ function bindHelpTopics() {
   });
 }
 function shot(s){const x=D.screens[s.shot||s.file];return x?`<figure class="microshot"><button class="image-open" data-image="${E(x.file)}" aria-label="Увеличить: ${E(x.caption)}"><img src="${E(x.file)}" alt="${E(x.caption)}" loading="lazy"></button><figcaption>${E(x.caption)}</figcaption></figure>`:'';}
+function lessonDataTable(data) {
+  if(!data)return '';
+  const {headers,rows}=data==='foreignKeys'?{
+    headers:['Дочерний столбец','Ссылается на','On Delete'],
+    rows:D.er.links.map(link=>[
+      link.source+'.'+link.field,link.target+'.'+link.key,
+      link.source==='order_items'&&link.field==='order_id'?'Cascade':'No Action'
+    ])
+  }:data;
+  return `<div class="material-table lesson-data-table" tabindex="0" aria-label="Параметры шага">
+    <table><thead><tr>${headers.map(label=>`<th scope="col">${E(label)}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map(row=>`<tr>${row.map(value=>`<td><code>${E(value)}</code></td>`).join('')}</tr>`).join('')}</tbody>
+    </table></div>`;
+}
 function explain(s,database=false) {
   const reason=`<p class="lesson-reason"><strong>Зачем это нужно.</strong> ${E(s.why)}</p>`;
-  const guide=s.guide?(database?`<details class="step-guide"><summary>${E(s.guide.title)}</summary>
-    <iframe src="${E(s.guide.path)}" title="${E(s.guide.title)}" loading="lazy"></iframe></details>`:
-    `<div class="button-row">${link(s.guide.title,s.guide.path)}</div>`):'';
+  const guide=s.guide?`<div class="button-row">${link(s.guide.title,s.guide.path)}</div>`:'';
   return `<section class="lesson-explanation">
     ${database?'':`<h3>Как это понять</h3><p>${E(s.why)}</p>`}
     <h3>${database?'Что сделать':'Что сделать самостоятельно'}</h3>
@@ -268,19 +288,19 @@ function explain(s,database=false) {
     ${s.erWorkspace?'<section class="er-workspace" id="er-workspace" aria-label="Построение ER-схемы"></section>':''}
     ${s.code?`<pre tabindex="0">${E(s.code)}</pre>`:''}
     ${s.file?`<details><summary>Полный файл для сверки · ${E(s.file)}</summary><p>Сначала разберите действие и поля. Сверка показывает итоговый файл, включая последующие операции.</p><pre tabindex="0">${E(D.code[s.file]||'')}</pre></details>`:''}
-    ${database?shot(s)+guide:guide+shot(s)}
+    ${lessonDataTable(s.table)}${guide}${shot(s)}
     <div class="step-result"><strong>${database?'Как проверить результат':'Проверьте себя'}</strong><p>${E(s.check)}</p></div>
     ${database?reason:''}</section>`;
 }
 const lessonResultTitle = 'Что сохранить';
-const stepIndex = (lesson=current()) => Math.max(0,Math.min(lesson.steps.length,get('step:'+lesson.id,0)));
+const stepIndex = (lesson=current()) => Math.max(0,Math.min(lesson.steps.length,savedLessonStep(lesson.id)??0));
 function stepArrow(index,previous,label) {
   const path=previous?'M20 12H4m7-7-7 7 7 7':'M4 12h16m-7-7 7 7-7 7';
   return btn(`<svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${path}"/></svg>`,
     `data-step="${index}" aria-label="${label}" title="${label}" aria-keyshortcuts="${previous?'ArrowLeft':'ArrowRight'}"`,!previous);
 }
 function goToLessonStep(index) {
-  set('step:'+stage,index);
+  set(lessonStepKey(stage),index);
   render();
   document.getElementById('lesson-step-title').focus();
 }
@@ -592,11 +612,18 @@ function er(workspace) {
         ${visibleTables.length?`<div class="er-diagram er-live-diagram" tabindex="0" aria-label="Диаграмма с прокруткой">${D.erSvg}</div>`
           :'<div class="er-empty">Нажмите стрелку вправо или выберите этап, чтобы добавить первую таблицу.</div>'}
         <aside class="er-origin" aria-live="polite">
-          ${table?`<h4>${E(item.label)}</h4><p>${E(origin||'')}</p>
-            ${field?`<p>Тип <code>${E(field.type)}</code>${field.pk?' · PK':field.fk?' · FK':''}</p>`:''}
-            ${edge?`<p><code>${E(edge.source+'.'+edge.field)} → ${E(edge.target+'.'+edge.key)}</code> · ${E(edge.cardinality)}</p>`:''}
-            ${source?btn('Открыть '+E(source),'id="er-source"'):''}`
-          :'<h4>Исходные книги</h4><p>Выберите таблицу или поле. Справа появится источник и объяснение связи.</p>'}
+          ${table?`<h4><code>${E(item.label)}</code></h4>
+            <section><h5>Назначение</h5><p>${E(field?.meaning||table.meaning)}</p></section>
+            ${origin?`<section><h5>Источник</h5><p>${E(origin)}</p>
+              ${source?btn('Открыть исходную книгу','id="er-source"'):''}</section>`:''}
+            ${edge?`<section><h5>Связь</h5><p><code>${E(edge.source+'.'+edge.field)} → ${E(edge.target+'.'+edge.key)}</code> · ${E(edge.cardinality)}</p></section>`:''}
+            ${field?`<section><h5>Свойства в SQL</h5><dl class="er-sql-properties">
+              <dt>Тип</dt><dd><code>${E(field.type)}</code></dd>
+              ${field.pk||field.fk||field.unique?`<dt>Ключи</dt><dd>${[field.pk?'PK':'',field.fk?'FK':'',field.unique?'UNIQUE':''].filter(Boolean).join(' · ')}</dd>`:''}
+              <dt>NULL</dt><dd>${field.nullable?'Разрешён':'Запрещён'}</dd>
+              ${field.default!==null?`<dt>По умолчанию</dt><dd><code>${E(field.default)}</code></dd>`:''}
+            </dl></section>`:''}`
+          :'<h4>Исходные книги</h4><p>Выберите таблицу или поле, чтобы увидеть назначение, источник и свойства.</p>'}
         </aside>
       </div>`;
     const byId=id=>host.querySelector('#'+id);
@@ -749,7 +776,7 @@ function render() {
   if (mode==='learn') {
     url.set('view',learningView);
     if (learningView!=='map') set('opened-stage',stage);
-    if (learningView==='steps' && get('step:'+stage)===null) set('step:'+stage,0);
+    if (learningView==='steps' && savedLessonStep(stage)===null) set(lessonStepKey(stage),0);
   }
   history.replaceState(null,'','?'+url);
   const views = {overview,learn,training:practice,mock:practice,examples,criteria,teacher};
