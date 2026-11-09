@@ -1,7 +1,7 @@
 [
   {
     "id": "V01",
-    "title": "Коллекция 01",
+    "title": "Магазин туристической обуви",
     "database": "prog_demo_v01",
     "counts": {
       "products": 31,
@@ -13,7 +13,7 @@
   },
   {
     "id": "V02",
-    "title": "Коллекция 02",
+    "title": "Магазин танцевальной обуви",
     "database": "prog_demo_v02",
     "counts": {
       "products": 31,
@@ -25,7 +25,7 @@
   },
   {
     "id": "V03",
-    "title": "Коллекция 03",
+    "title": "Магазин рабочей обуви",
     "database": "prog_demo_v03",
     "counts": {
       "products": 31,
@@ -37,7 +37,7 @@
   },
   {
     "id": "V04",
-    "title": "Коллекция 04",
+    "title": "Магазин обуви для бега",
     "database": "prog_demo_v04",
     "counts": {
       "products": 31,
@@ -49,7 +49,7 @@
   },
   {
     "id": "V05",
-    "title": "Коллекция 05",
+    "title": "Магазин одежды для йоги",
     "database": "prog_demo_v05",
     "counts": {
       "products": 31,
@@ -61,7 +61,7 @@
   },
   {
     "id": "V06",
-    "title": "Коллекция 06",
+    "title": "Магазин футбольной экипировки",
     "database": "prog_demo_v06",
     "counts": {
       "products": 31,
@@ -73,7 +73,7 @@
   },
   {
     "id": "V07",
-    "title": "Коллекция 07",
+    "title": "Магазин велоодежды",
     "database": "prog_demo_v07",
     "counts": {
       "products": 31,
@@ -85,7 +85,7 @@
   },
   {
     "id": "V08",
-    "title": "Коллекция 08",
+    "title": "Магазин медицинской одежды",
     "database": "prog_demo_v08",
     "counts": {
       "products": 31,
@@ -97,7 +97,7 @@
   },
   {
     "id": "V09",
-    "title": "Коллекция 09",
+    "title": "Магазин формы для поваров",
     "database": "prog_demo_v09",
     "counts": {
       "products": 31,
@@ -109,7 +109,7 @@
   },
   {
     "id": "V10",
-    "title": "Коллекция 10",
+    "title": "Магазин зимних курток",
     "database": "prog_demo_v10",
     "counts": {
       "products": 31,
@@ -121,7 +121,7 @@
   },
   {
     "id": "V11",
-    "title": "Коллекция 11",
+    "title": "Магазин школьной формы",
     "database": "prog_demo_v11",
     "counts": {
       "products": 31,
@@ -133,7 +133,7 @@
   },
   {
     "id": "V12",
-    "title": "Коллекция 12",
+    "title": "Магазин одежды для волонтёров",
     "database": "prog_demo_v12",
     "counts": {
       "products": 31,
@@ -145,7 +145,7 @@
   },
   {
     "id": "V13",
-    "title": "Коллекция 13",
+    "title": "Магазин рабочих перчаток",
     "database": "prog_demo_v13",
     "counts": {
       "products": 31,
@@ -157,7 +157,7 @@
   },
   {
     "id": "V14",
-    "title": "Коллекция 14",
+    "title": "Магазин зимних перчаток",
     "database": "prog_demo_v14",
     "counts": {
       "products": 31,
@@ -169,7 +169,7 @@
   },
   {
     "id": "V15",
-    "title": "Коллекция 15",
+    "title": "Магазин велосипедных шлемов",
     "database": "prog_demo_v15",
     "counts": {
       "products": 31,
@@ -181,7 +181,7 @@
   },
   {
     "id": "V16",
-    "title": "Коллекция 16",
+    "title": "Магазин головных уборов",
     "database": "prog_demo_v16",
     "counts": {
       "products": 31,
@@ -193,7 +193,7 @@
   },
   {
     "id": "V17",
-    "title": "Коллекция 17",
+    "title": "Магазин собачьей амуниции",
     "database": "prog_demo_v17",
     "counts": {
       "products": 31,
@@ -205,7 +205,7 @@
   },
   {
     "id": "V18",
-    "title": "Коллекция 18",
+    "title": "Магазин ремней",
     "database": "prog_demo_v18",
     "counts": {
       "products": 31,
@@ -217,7 +217,7 @@
   },
   {
     "id": "V19",
-    "title": "Коллекция 19",
+    "title": "Магазин фитнес-браслетов",
     "database": "prog_demo_v19",
     "counts": {
       "products": 31,
@@ -229,7 +229,7 @@
   },
   {
     "id": "V20",
-    "title": "Коллекция 20",
+    "title": "Магазин ковриков для тренировок",
     "database": "prog_demo_v20",
     "counts": {
       "products": 31,
@@ -241,7 +241,7 @@
   },
   {
     "id": "V21",
-    "title": "Коллекция 21",
+    "title": "Магазин напольных ковров",
     "database": "prog_demo_v21",
     "counts": {
       "products": 31,
@@ -253,7 +253,7 @@
   },
   {
     "id": "V22",
-    "title": "Коллекция 22",
+    "title": "Магазин домашнего текстиля",
     "database": "prog_demo_v22",
     "counts": {
       "products": 31,
@@ -265,7 +265,7 @@
   },
   {
     "id": "V23",
-    "title": "Коллекция 23",
+    "title": "Магазин штор",
     "database": "prog_demo_v23",
     "counts": {
       "products": 31,
@@ -277,7 +277,7 @@
   },
   {
     "id": "V24",
-    "title": "Коллекция 24",
+    "title": "Магазин чехлов для мебели",
     "database": "prog_demo_v24",
     "counts": {
       "products": 31,
@@ -289,7 +289,7 @@
   },
   {
     "id": "V25",
-    "title": "Коллекция 25",
+    "title": "Магазин чехлов для техники",
     "database": "prog_demo_v25",
     "counts": {
       "products": 31,
@@ -301,7 +301,7 @@
   },
   {
     "id": "V26",
-    "title": "Коллекция 26",
+    "title": "Магазин сумок для спорта",
     "database": "prog_demo_v26",
     "counts": {
       "products": 31,
@@ -313,7 +313,7 @@
   },
   {
     "id": "V27",
-    "title": "Коллекция 27",
+    "title": "Магазин защиты коленей для роллеров",
     "database": "prog_demo_v27",
     "counts": {
       "products": 31,
@@ -325,7 +325,7 @@
   },
   {
     "id": "V28",
-    "title": "Коллекция 28",
+    "title": "Магазин тренировочных брюк",
     "database": "prog_demo_v28",
     "counts": {
       "products": 31,
@@ -337,7 +337,7 @@
   },
   {
     "id": "V29",
-    "title": "Коллекция 29",
+    "title": "Магазин одежды для рыбалки",
     "database": "prog_demo_v29",
     "counts": {
       "products": 31,
@@ -349,7 +349,7 @@
   },
   {
     "id": "V30",
-    "title": "Коллекция 30",
+    "title": "Магазин одежды для единоборств",
     "database": "prog_demo_v30",
     "counts": {
       "products": 31,

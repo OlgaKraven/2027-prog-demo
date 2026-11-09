@@ -6,6 +6,8 @@
 
 Порядок создания библиотеки, установки пакета и копирования изображений — в [настройке Visual Studio](Visual-Studio.md).
 
+Пройдите инструкцию в два прохода. Сначала соберите все семь окон в конструкторе и привяжите события к пустым методам. Затем заполните обычные файлы форм по ссылкам и обновите Program.cs оконного проекта. Код каталога и заказов ссылается на другие формы, поэтому его проще добавлять, когда созданы все окна.
+
 ## Масштаб конструктора
 
 Сначала задайте шрифт формы, затем её размеры и расположение компонентов. Смена шрифта после компоновки может изменить размеры через AutoScaleMode.Font.
@@ -21,7 +23,7 @@
 ## Форма подключения ConnectionForm
 
 1. Откройте исходную Form1 через Shift+F7. Щёлкните по свободному месту формы, затем F4.
-2. В Properties задайте `(Name) = ConnectionForm`. Имя класса изменится; имя файла может остаться Form1.cs. Переименование файла выполняется отдельно в Solution Explorer.
+2. В Properties задайте `(Name) = ConnectionForm`. Имя класса изменится, имя файла может остаться Form1.cs. Если Visual Studio оставила в Program.cs вызов `Application.Run(new Form1());`, временно замените в этой строке `Form1` на `ConnectionForm`. После создания всех форм поставьте полный Program.cs из примера.
 3. Задайте Font **Calibri, 11pt**, BackColor **White**, Text **Чудо Обувь — Подключение**, FormBorderStyle **FixedDialog**, MaximizeBox **False**, StartPosition **CenterScreen**. Размер формы настраивайте после шрифта и рамки: **Size = 656, 609**. Проверенный размер клиентской области — **640 × 570**.
 4. Ctrl+Alt+X открывает Toolbox. Найдите TextBox и дважды щёлкните именно **TextBox**: поиск также показывает MaskedTextBox и RichTextBox. После каждого добавления задайте имя и свойства из таблицы.
 5. Добавьте Label для каждой подписи, заголовка и пояснения. У Label отключите AutoSize перед заданием Size. Метки не требуют изменения TabStop: у обычного Label это свойство не отображается в Properties.
@@ -58,6 +60,8 @@
 ## Добавление следующей формы
 
 Ctrl+Shift+A может сначала открыть компактное окно **Add new item**. Нажмите **Show all templates**, выберите **Form (Windows Forms)**, в Name укажите, например, `LoginForm.cs`, затем Add. Простое добавление файла `.cs` через компактное окно создаёт класс и не заменяет шаблон формы.
+
+![Ссылка Show all templates в компактном окне Add new item](../materials/screens/vs-show-form-templates.png)
 
 ## Окно входа LoginForm
 
@@ -135,7 +139,13 @@ Ctrl+Shift+A может сначала открыть компактное ок�
 
 Для basketGrid задайте ReadOnly **True**, AllowUserToAddRows и AllowUserToDeleteRows **False**, MultiSelect и RowHeadersVisible **False**, SelectionMode **FullRowSelect**, BackgroundColor **White**, AutoSizeColumnsMode **Fill**, AutoSizeRowsMode **AllCells**.
 
-Откройте стрелку **DataGridView Tasks → Edit Columns… → Add…**. Выберите **Unbound column**, тип **DataGridViewTextBoxColumn**. Добавьте шесть колонок, затем закройте Add Column кнопкой Close. В Edit Columns выделяйте каждую колонку слева и заполняйте свойства справа:
+![Стрелка таблицы открывает меню DataGridView Tasks с командой Edit Columns](../materials/screens/vs-grid-tasks.png)
+
+![Кнопка Add в редакторе Edit Columns](../materials/screens/vs-grid-edit-columns.png)
+
+На снимках редактор открыт для списка заказов. Корзина, состав заказа и каталог используют тот же редактор.
+
+Выделите саму таблицу в конструкторе. У её правого верхнего угла появится маленькая стрелка. Откройте стрелку **DataGridView Tasks → Edit Columns… → Add…**. Выберите **Unbound column**, тип **DataGridViewTextBoxColumn**. Добавьте шесть колонок, затем закройте Add Column кнопкой Close. В Edit Columns выделяйте каждую колонку слева и заполняйте свойства справа:
 
 | (Name) | HeaderText | DataPropertyName | FillWeight | DefaultCellStyle |
 | --- | --- | --- | --- | --- |
@@ -301,8 +311,8 @@ Ctrl+Shift+A может сначала открыть компактное ок�
 
 ![Категория и порядок убывания цены после входа](../materials/screens/catalog-filter-sort.png)
 
-Откройте состав одного и того же заказа под администратором и менеджером. У администратора видны дата и действия её изменения и удаления строки. У менеджера доступен просмотр состава.
+Перед сменой роли вернитесь в каталог. Если в пробной корзине остались позиции, подтвердите её очистку в диалоге «Смена пользователя». Откройте состав одного и того же заказа под администратором и менеджером. У администратора видны дата и действия её изменения и удаления строки. У менеджера доступен просмотр состава.
 
-![Состав заказа под администратором](../materials/screens/order-details.png)
+![Состав заказа под администратором](../materials/screens/ready-admin-details.png)
 
-![Состав заказа под менеджером](../materials/screens/manager-order-details.png)
+![Состав заказа под менеджером](../materials/screens/ready-manager-details.png)

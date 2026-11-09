@@ -6,14 +6,41 @@ for(const width of [390,768,1440])for(const dark of [false,true]){
  const context=await browser.newContext({viewport:{width,height:1000}});await context.addInitScript(d=>localStorage.setItem('2027-prog-demo:v1:dark',JSON.stringify(d)),dark);const page=await context.newPage();page.on('pageerror',e=>errors.push(String(e)));
  const go=async(mode,module='documents')=>{await page.goto(`http://127.0.0.1:4209/?mode=${mode}&module=${module}`);await page.locator('.site-nav').waitFor();};
  const shot=async(name,selector)=>{if(selector)await page.locator(selector).scrollIntoViewIfNeeded();else await page.evaluate(()=>window.scrollTo(0,0));const w=await page.evaluate(()=>document.documentElement.scrollWidth);assert(w<=width+1,`${width} ${name} overflow ${w}`);assert.equal(await page.locator('main textarea').count(),0);await page.screenshot({path:path.join(out,`${width}-${dark?'dark':'light'}-${name}.png`)});records.push({width,dark,state:name,documentWidth:w});};
+ await page.goto('http://127.0.0.1:4209/?mode=learn&module=documents&view=map');
+ const layout=await page.locator('.learning-map').evaluate(map=>{
+  const stages=map.querySelector('.map-nodes');
+  const detail=map.querySelector('.map-detail');
+  return {
+   sideBySide:detail.getBoundingClientRect().left>=stages.getBoundingClientRect().right,
+   stageColumns:getComputedStyle(stages).gridTemplateColumns.split(' ').length,
+   markerWidth:stages.querySelector('.map-circle').getBoundingClientRect().width
+  };
+ });
+ assert.deepEqual(layout,{sideBySide:width>760,stageColumns:1,markerWidth:48});
+ await page.getByRole('button',{name:'Открыть подготовку →'}).click();
+ assert.equal(await page.locator('.lesson-files a').count(),5);
+ await page.getByRole('button',{name:'Перейти к шагам →'}).click();
+ await page.getByRole('button',{name:'К маршруту обучения'}).click();
+ assert(await page.getByRole('button',{name:'Продолжить с шага 1 →'}).isVisible());
  await go('learn');await shot('learn');
  const stages=await page.evaluate(()=>COURSE.stages.map(s=>({id:s.id,count:s.steps.length})));
- for(const s of stages){await go('learn',s.id);for(let n=0;n<s.count;n++){await page.locator('#step-select').selectOption(String(n));assert(await page.locator('.study-step h2').innerText());assert((await page.locator('.lesson-explanation ol li').count())>0);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}}
- await go('training');await page.locator('[data-timer=start]').click();await page.locator('[data-timer=pause]').click();assert(await page.locator('.training-workspace').isHidden());await page.reload();assert(await page.locator('.pause-screen').isVisible());await shot('paused','.pause-screen');await page.locator('.pause-screen [data-timer=start]').click();await page.locator('[data-timer=finish]').click();assert.equal(await page.locator('[data-check]:not(:disabled)').count(),0);await shot('finished','.attempt-result');await page.locator('[data-timer=reset]').click();assert.equal(await page.locator('#clock').innerText(),'03:30:00');assert.equal(await page.locator('.previous-attempt').count(),1);
+ for(const s of stages){
+  await go('learn',s.id);
+  for(let n=0;n<s.count;n++){
+   await page.locator('#lesson-steps').click();
+   await page.locator('[data-jump-step="'+n+'"]').click();
+   assert(await page.locator('#lesson-step-title').innerText());
+   assert((await page.locator('.lesson-explanation ol li').count())>0);
+   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+  }
+ }
+ await go('training');await page.locator('[data-timer=start]').click();await page.locator('[data-timer=pause]').click();assert(await page.locator('.training-workspace').isHidden());await page.reload();assert(await page.locator('.pause-screen').isVisible());await shot('paused','.pause-screen');await page.locator('.timer-card [data-timer=start]').click();await page.locator('[data-timer=finish]').click();assert.equal(await page.locator('[data-check]:not(:disabled)').count(),0);await shot('finished','.attempt-result');await page.locator('[data-timer=reset]').click();assert.equal(await page.locator('#clock').innerText(),'03:30:00');assert.equal(await page.getByText(/протокол/i).count(),0);
  await go('mock');assert.equal(await page.locator('[data-timer=pause]').count(),0);assert.equal(await page.locator('#variant option').count(),30);await shot('mock','.attempt-layout');
  await go('learn','M1');await page.locator('#er-launch').click();await page.locator('#er-next').click();await page.locator('#er-full').click();await shot('er');await page.locator('#er-help').click();assert.equal(await page.locator('dialog[open]').count(),2);await page.keyboard.press('Escape');await page.keyboard.press('Escape');
  await go('examples');await page.locator('#open-file').click();assert((await page.locator('.code-preview').innerText()).length>20);await page.keyboard.press('Escape');
- await go('teacher');await page.locator('#deck-open').click();await shot('presentation');await page.locator('#slide-select').selectOption('1');await shot('presentation-step');await page.keyboard.press('Escape');
+ await go('teacher');await page.locator('#deck-open').click();
+ await page.locator('.slide-cover').waitFor();await shot('presentation');
+ await page.locator('#next').click();await shot('presentation-step');
  await go('learn');await page.locator('[data-mode=training]').click();await page.goBack();assert.equal(new URL(page.url()).searchParams.get('mode'),'learn');
  await context.close();
 }

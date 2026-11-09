@@ -2,7 +2,7 @@ import fs from 'node:fs';
 
 const escape = value => String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 function destination(href) {
-  if (href.startsWith('../examples/')) return 'https://github.com/OlgaKraven/2027-prog-demo/blob/main/'+href.slice(3);
+  if (href.startsWith('../examples/')) return '../code/'+href.slice(3)+'.txt';
   if (/^[A-Za-z-]+\.md(?:#.*)?$/.test(href)) return href.replace('.md','.html');
   return href;
 }

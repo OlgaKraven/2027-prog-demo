@@ -4,7 +4,7 @@
 
 ## Создайте консольный проект
 
-1. Если Visual Studio открыта без решения, нажмите **Create a new project**. Если решение уже открыто, выберите **File → Add → New Project…**. Найдите **Console App**, язык **C#**, без пометки .NET Framework.
+1. Откройте своё решение **ProgDemo** из папки Work. Если его ещё нет, [создайте пустое решение](Visual-Studio.md). Выберите **File → Add → New Project…**, найдите **Console App**, язык **C#**, без пометки .NET Framework.
 2. Имя проекта — **ProgDemo.Import**. Выберите **.NET 10.0** и нажмите Create.
 3. Замените обычный Program.cs содержимым [Program.cs импортёра](../examples/Import/Program.cs).
 4. Через **Project → Add Class…** добавьте **CsvInput.cs** и замените его содержимым [CsvInput.cs](../examples/Import/CsvInput.cs). Оба файла относятся к одному проекту C#.
@@ -22,7 +22,7 @@ dotnet new console --framework net10.0 --name ProgDemo.Import --output ProgDemo.
 
 ## Укажите входные файлы
 
-В архиве готового примера пять исходных XLSX лежат в materials/resources. Если у вас только [оригинальный комплект](https://olgakraven.github.io/2027-prog-demo/downloads/original-inputs.zip), распакуйте его, затем ZIP приложения к заданию. Найдите папку, непосредственно содержащую Products_import.xlsx, Stock_Items_import.xlsx, Sizes_import.xlsx, Users_import.xlsx и Orders_import.xlsx.
+В архиве готового примера пять исходных XLSX лежат в materials/resources. Если у вас только [оригинальный комплект](../downloads/original-inputs.zip), распакуйте его, затем ZIP приложения к заданию. Найдите папку, непосредственно содержащую Products_import.xlsx, Stock_Items_import.xlsx, Sizes_import.xlsx, Users_import.xlsx и Orders_import.xlsx.
 
 Для своего учебного варианта распакуйте его отдельный комплект. Найдите рядом **products.csv**, **stock.csv**, **sizes.csv**, **users.csv**, **orders.csv**, **items.csv**. В начале выберите свой вариант на странице пробного экзамена: там скачивается именно его архив.
 

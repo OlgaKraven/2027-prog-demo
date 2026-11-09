@@ -4,7 +4,7 @@
     "caption": "Каталог после входа клиента: ФИО, поиск, категория, сортировка и цены на контрольную дату."
   },
   "examples/WinForms/ProductForm.cs": {
-    "file": "materials/screens/product.png",
+    "file": "materials/screens/ready-product.png",
     "caption": "Карточка модели из работающего приложения: описание, доступные размеры и количество."
   },
   "examples/WinForms/BasketForm.cs": {
@@ -12,8 +12,8 @@
     "caption": "Две размерные позиции, клиент, количество и сумма в работающей форме заказа."
   },
   "login": {
-    "file": "materials/screens/login.png",
-    "caption": "Вход в приложение по исходному логину без пароля. На снимке вводится учебный логин клиента."
+    "file": "materials/screens/ready-login.png",
+    "caption": "Вход в приложение по исходному логину без пароля. Достаточно ввести учебный логин клиента."
   },
   "examples/WinForms/OrdersForm.cs": {
     "file": "materials/screens/orders.png",

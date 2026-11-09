@@ -8,3 +8,4 @@ output/
 **/launchSettings.json
 __pycache__/
 .DS_Store
+[Tt]humbs.db

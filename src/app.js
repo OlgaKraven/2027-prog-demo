@@ -3,35 +3,639 @@ const D=COURSE,C=ExamCore,E=C.escape,prefix='2027-prog-demo:v1:',root=document.g
 let fallback={},storageOK=true;
 const get=(k,v=null)=>{try{return JSON.parse(localStorage.getItem(prefix+k))??v;}catch{storageOK=false;return fallback[k]??v;}};
 const set=(k,v)=>{fallback[k]=v;try{localStorage.setItem(prefix+k,JSON.stringify(v));}catch{storageOK=false;}};
-const q=new URLSearchParams(location.search),modes=[['learn','Обучение'],['training','Тренировка'],['mock','Пробный экзамен'],['examples','Примеры'],['criteria','Критерии'],['teacher','Преподавателю']];
-let mode=q.get('mode')||get('mode','learn'),stage=q.get('module')||get('stage','documents'),variant=q.get('variant')||get('variant','V01'),dark=get('dark',false);
-if(!modes.some(x=>x[0]===mode))mode='learn';if(!D.stages.some(x=>x.id===stage))stage='documents';if(!D.variants.some(x=>x.id===variant))variant='V01';
+const modes=[['overview','Обзор'],['learn','Обучение'],['training','Тренировка'],['mock','Пробный экзамен'],['examples','Примеры'],['teacher','Преподавателю']];
+const modeIcons = {
+  overview: 'M12 2.5 2 11h3v9a1 1 0 0 0 1 1h3.5v-6h5v6H18a1 1 0 0 0 1-1v-9h3z',
+  learn: 'M6 4a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm3.5 2h6a4 4 0 0 1 0 8H9a2 2 0 1 0 0 4h7.2l-2-2 1.4-1.4L20 19l-4.4 4.4-1.4-1.4 2-2H9a4 4 0 1 1 0-8h6.5a2 2 0 0 0 0-4h-6z',
+  training: 'M9 1h6v3H9zM11 4h2v1h-2zM19 7l1.8-1.8 1.4 1.4-1.8 1.8zM21 14a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-10-5h2v4.5l2.2 2.2-1.4 1.4-2.8-2.8z',
+  mock: 'M9 3a3 3 0 0 1 6 0h3a2 2 0 0 1 2 2v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm1 1.2v2h4v-2zm-2 9.1 3.1 3.1 5.5-5.5-1.4-1.4-4.1 4.1-1.7-1.7z',
+  examples: 'M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zm2 2h16V7H4zm5.4 2.6L6 14l3.4 3.4 1.2-1.2L8.4 14l2.2-2.2zm5.2 0-1.2 1.2 2.2 2.2-2.2 2.2 1.2 1.2L18 14z',
+  teacher: 'M2 3h20v14h-9v2h4v2H7v-2h4v-2H2zm4.2 9 1.3 1.3 3-3 3 1.5 4.3-4.3-1.3-1.3-3.3 3.3-3-1.5z'
+};
+const toolIcons = {
+  moon: 'M20.8 15.2A9 9 0 0 1 8.8 3.2a9.2 9.2 0 1 0 12 12Z',
+  sun: 'M17.5 12a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0ZM11 1h2v3h-2zm0 19h2v3h-2zM1 11h3v2H1zm19 0h3v2h-3zM3.5 4.9l1.4-1.4L7 5.6 5.6 7zm13.5 13.5 1.4-1.4 2.1 2.1-1.4 1.4zm0-12.8 2.1-2.1 1.4 1.4L18.4 7zM3.5 19.1 5.6 17 7 18.4l-2.1 2.1z',
+  tour: 'M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm4.7 5.3-7 2.4-2.4 7 7-2.4z'
+};
+function readRoute(restore=false) {
+  const query = new URLSearchParams(location.search);
+  const requestedMode = query.get('mode') || (restore ? get('mode','overview') : 'overview');
+  const requestedStage = query.get('module') || (restore ? get('stage','documents') : 'documents');
+  const requestedVariant = query.get('variant') || (restore ? get('variant','V01') : 'V01');
+  const view = query.get('view');
+  return {
+    mode: requestedMode==='criteria'||modes.some(([id])=>id===requestedMode) ? requestedMode : 'overview',
+    stage: D.stages.some(item=>item.id===requestedStage) ? requestedStage : 'documents',
+    variant: D.variants.some(item=>item.id===requestedVariant) ? requestedVariant : 'V01',
+    learningView: ['map','brief','steps','help'].includes(view) ? view : query.has('module') ? 'steps' : 'map'
+  };
+}
+let {mode,stage,variant,learningView} = readRoute(true);
+let dark = get('dark',false);
 const btn=(text,attrs='',primary=false)=>`<button class="btn${primary?' primary':''}" ${attrs}>${text}</button>`;
 const link=(text,path)=>`<a class="btn" href="${E(path)}" target="_blank" rel="noopener">${E(text)}</a>`;
 const current=()=>D.stages.find(s=>s.id===stage),scope=()=>mode+':'+(mode==='mock'?variant:'sample'),timer=()=>C.restoreTimer(JSON.stringify(get('timer:'+scope())),210*60,mode);
-const header=(title,text,guide=true)=>`<div class="route-heading"><span class="section-code">ДЭ 2027 · ПРОГРАММИСТ</span><h1>${E(title)}</h1>${guide?btn('Гид по разбору','data-guide="lesson"'):''}<p>${E(text)}</p></div>`;
+const header = (title, text) => `<div class="route-heading"><h1 tabindex="-1">${E(title)}</h1>${text?'<p>'+E(text)+'</p>':''}</div>`;
+function iconButton(title, path, attributes) {
+  return `<button type="button" class="btn" data-icon-button aria-label="${E(title)}" ${attributes}>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="${path}"/></svg>
+    <span class="icon-tooltip" aria-hidden="true">${E(title)}</span>
+  </button>`;
+}
+function overview() {
+  return `<section class="hero study-intro">
+    <div class="banner-copy">
+      <h1>Демонстрационный экзамен</h1>
+      <ul class="banner-facts" aria-label="Параметры экзамена">
+        <li>Базовый уровень</li><li><span>Время экзамена</span> <time datetime="PT3H30M">3 ч 30 мин</time></li>
+      </ul>
+      <p class="lead">В четырёх заданиях вы спроектируете базу данных, создадите каталог обуви и реализуете оформление заказов и работу с ними.</p>
+      <div class="button-row">${btn('Открыть маршрут обучения →','data-mode="learn"',true)}${btn('Материалы задания','id="materials-open"')}</div>
+    </div>
+    <div class="banner-mascot"><img src="mascot-exam.png" width="680" height="680" alt="Носорог-студент готовится к демоэкзамену"></div>
+  </section>${criteria()}`;
+}
+const shortStages = ['Старт', 'База', 'Каталог', 'Заказ', 'Сдача'];
+function stageNavigation(items, active, practice = false) {
+  const completed = items.filter(item=>practice ? mode==='training' && practiceDone(item.id) : get('done:'+item.id,false));
+  return `<nav class="stage-nav" aria-label="${practice?'Задания':'Этапы обучения'}">
+    <div class="stage-nav-caption"><strong>${practice?'Задания':'Этапы'}</strong>
+      ${mode==='mock'?'':`<span>Выполнено ${completed.length} из ${items.length}</span>`}
+    </div>
+    <ol class="stage-nav-list" role="list">${items.map((item,index)=>{
+      const done = completed.includes(item);
+      const number = index+Number(practice);
+      return `<li><button type="button" class="stage-nav-node" ${practice?`data-task="${index}"`:`data-stage="${item.id}"`}
+        aria-label="${number} · ${E(item.title)} · ${stageTiming(item.id)}${done?' · Выполнено':''}" ${item.id===active?'aria-current="step"':''} ${done?'data-completed':''}>
+        <span class="stage-nav-marker" aria-hidden="true">${done?'<svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>':number}</span>
+        <span class="stage-nav-label" aria-hidden="true">${E(item.title)}<small>${stageTiming(item.id)}</small></span>
+        <span class="stage-nav-short" aria-hidden="true">${shortStages[number]}</span>
+      </button></li>`;
+    }).join('')}</ol>
+  </nav>`;
+}
+const sourceWorkbooks = ['Products_import.xlsx','Stock_Items_import.xlsx','Sizes_import.xlsx','Users_import.xlsx','Orders_import.xlsx'];
+const preparation = 'Компания «Чудо Обувь» занимается продажей обуви. В четырёх заданиях вы подготовите базу данных, создадите каталог, реализуете оформление заказов и добавите управление заказами для менеджера и администратора.';
+const stageOutputs = {
+  documents: [['Рабочая папка','для проекта и исходных файлов'], ...sourceWorkbooks.map(name=>[name,'исходная книга Excel'])],
+  M1: [['ER-диаграмма.pdf','таблицы, поля, ключи и связи'], ['SQL-скрипт','структура базы и исходные данные']],
+  M2: [['Проект Windows Forms','каталог и расчёт скидки'], ['Результаты проверки','цены, доступность размеров и остатки']],
+  M3: [['Проект Windows Forms','вход, поиск, карточка и корзина'], ['Контрольный заказ','дата, позиции и обновлённый остаток']],
+  M4: [['Исходники','проект и README с функциональностью'], ['Папка Release','исполняемые файлы и ресурсы'], ['SQL и ER PDF','материалы для восстановления и проверки базы']]
+};
+function stageTiming(id) {
+  const task = D.tasks.find(entry=>entry.id===id);
+  return task ? task.minutes+' мин' : 'Перед началом';
+}
+function stageTitle(item) {
+  return item.module+(item.id==='documents'?'':' · '+stageTiming(item.id));
+}
+function resumeView(id) {
+  return get('step:'+id)!==null || get('done:'+id,false) ? 'steps' : 'brief';
+}
+function stageResult(item) {
+  return `<strong>Что сохранить</strong><ul class="result-files">${stageOutputs[item.id].map(([name,note])=>
+    `<li>${name.includes('.')?`<code>${E(name)}</code>`:E(name)} · ${E(note)}</li>`).join('')}</ul>`;
+}
+function learningMap() {
+  const opened = get('opened-stage','documents');
+  return `<section class="map-panel">
+    <div class="map-intro"><h1 tabindex="-1">Маршрут обучения</h1><p>Сначала разберите исходные документы. Дальше каждый этап даёт результат для следующего.</p></div>
+    <section class="map-stack" aria-labelledby="map-stack-title">
+      <strong id="map-stack-title">Стек обучения</strong>
+      <div class="map-stack-value">Windows Forms + MySQL / MariaDB<span>Windows · Visual Studio · C# и .NET 10 · DBeaver</span></div>
+    </section>
+    <div class="learning-map">
+      <ol class="map-nodes" aria-label="Этапы обучения">${D.stages.map((item,index)=>{
+        const done = get('done:'+item.id,false);
+        const current = !done && item.id===opened;
+        const status = done?' · Завершён':current?' · Текущий этап':'';
+        return `<li><button type="button" class="map-node" data-map-stage="${item.id}" aria-pressed="${item.id===stage}"
+          ${current?'aria-current="step"':''} ${done?'data-completed':''}>
+          <span class="map-circle" aria-hidden="true">${done?'<svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>':index}</span>
+          <span><strong>${E(item.title)}</strong><small>${E(stageTitle(item)+status)}</small></span>
+        </button></li>`;
+      }).join('')}</ol>
+      <article class="map-detail" aria-label="Выбранный этап">
+        ${D.stages.map(item=>{
+          const saved = get('step:'+item.id);
+          const task = D.tasks.find(entry=>entry.id===item.id);
+          const action = get('done:'+item.id,false) ? 'Открыть этап'
+            : saved===item.steps.length ? 'Что сохранить'
+            : saved!==null ? 'Продолжить с шага '+(saved+1)
+            : task ? 'Прочитать условие' : 'Открыть подготовку';
+          return `<div class="map-stage-preview" ${item.id===stage?'':'inert'}>
+            <div class="map-stage-content">
+              <p class="section-code">${E(stageTitle(item))}</p>
+              <h2>${E(item.title)}</h2><p>${E(task?.text||preparation)}</p>
+              ${stageResult(item)}
+            </div>
+            ${btn(action+' →',`data-stage="${item.id}" data-lesson-view="${resumeView(item.id)}"`,true)}
+          </div>`;
+        }).join('')}
+      </article>
+    </div>
+  </section>`;
+}
+function lessonBrief(lesson) {
+  const task = D.tasks.find(entry=>entry.id===lesson.id);
+  return `<div class="lesson-brief">
+    <p>${E(task?.text||preparation)}</p>
+    ${task ? stageResult(lesson) : `<section class="lesson-files"><h3>Исходные документы</h3>
+      <ul>${sourceWorkbooks.map(name=>`<li><a href="materials/resources/${E(name)}" download>${E(name)}</a></li>`).join('')}</ul>
+    </section>`}
+    <div class="button-row">${link('КИМ · PDF',D.kim+'#page=35')}<a class="btn" href="downloads/original-inputs.zip" download>Приложения · ZIP</a></div>
+    ${btn(get('step:'+lesson.id)===null?'Перейти к шагам →':stepIndex(lesson)===lesson.steps.length?'Что сохранить →':'Продолжить с шага '+(stepIndex(lesson)+1)+' →','data-lesson-view="steps"',true)}
+  </div>`;
+}
+function lessonHelp(lesson) {
+  return `<div class="lesson-help">
+    <h3>Как пройти этап</h3>
+    <p>Читайте объяснение, выполните действия в указанном порядке и проверьте результат. Код и снимки открываются в соответствующих шагах.</p>
+    ${stageResult(lesson)}
+    <div class="button-row">${btn('Материалы задания','id="materials-open"')}${btn('Гид по разбору','data-guide="lesson"')}</div>
+  </div>`;
+}
 function shot(s){const x=D.screens[s.shot||s.file];return x?`<figure class="microshot"><button class="image-open" data-image="${E(x.file)}" aria-label="Увеличить: ${E(x.caption)}"><img src="${E(x.file)}" alt="${E(x.caption)}" loading="lazy"></button><figcaption>${E(x.caption)}</figcaption></figure>`:'';}
 function explain(s){return `<section class="lesson-explanation"><h3>Как это понять</h3><p>${E(s.why)}</p><h3>Что сделать самостоятельно</h3><ol>${s.actions.map(a=>`<li>${E(a)}</li>`).join('')}</ol>${s.code?`<pre tabindex="0">${E(s.code)}</pre>`:''}${s.file?`<details><summary>Полный файл для сверки · ${E(s.file)}</summary><p>Сначала разберите действие и поля. Сверка показывает итоговый файл, включая последующие операции.</p><pre tabindex="0">${E(D.code[s.file]||'')}</pre></details>`:''}${s.guide?`<div class="button-row">${link(s.guide.title,s.guide.path)}</div>`:''}${shot(s)}<div class="step-result"><strong>Проверьте себя</strong><p>${E(s.check)}</p></div></section>`;}
-function learn(){const s=current(),i=Math.max(0,Math.min(s.steps.length-1,get('step:'+stage,0))),x=s.steps[i];return `${header('Обучение','От исходных Excel к собственной системе оформления заказа обуви.',false)}<div class="route-layout"><aside class="route-sidebar"><div class="route-label">МОЯ ПРОГРАММА</div>${D.stages.map((s,n)=>`<button class="route-step" data-stage="${s.id}" ${s.id===stage?'aria-current="step"':''}><span class="route-number">${n+1}</span><span>${E(s.title)}<small>${E(s.module)}</small></span></button>`).join('')}</aside><section class="route-content">${header(s.title,s.output)}${stage==='M1'?`<div class="button-row">${btn('Построить ER-схему','id="er-launch"',true)}</div>`:''}<article class="route-panel study-step"><p class="section-code">${E(s.module)} · ШАГ ${i+1} ИЗ ${s.steps.length}</p><h2>${E(x.title)}</h2>${explain(x)}<div class="study-controls">${btn('← Назад',`data-step="${i-1}" ${i===0?'disabled':''}`)}<label>Шаг<select id="step-select">${s.steps.map((s,n)=>`<option value="${n}" ${n===i?'selected':''}>${n+1}. ${E(s.title)}</option>`).join('')}</select></label>${btn('Далее →',`data-step="${i+1}" ${i===s.steps.length-1?'disabled':''}`,true)}</div></article><div class="route-check"><label><input type="checkbox" id="done" ${get('done:'+stage,false)?'checked':''}>Я могу повторить этап самостоятельно и проверил результат.</label></div></section></div>`;}
-function timerBox(){const t=timer(),finished=t.status==='finished';return `<section class="timer-card" aria-label="Время выполнения"><div class="training-timer-top"><span class="eyebrow">${mode==='mock'?'ПРОБНЫЙ ЭКЗАМЕН':'ТРЕНИРОВКА'} · 210 МИНУТ</span><output class="training-clock" id="clock">${C.format(C.timerView(t).left)}</output><span id="timer-status" role="status"></span><progress id="timer-progress" aria-label="Использованное время" max="1" value="0"></progress></div><div class="training-timer-controls">${['paused','finished'].includes(t.status)?'':btn(t.status==='running'?'Идёт отсчёт':'Начать',`data-timer="start" ${t.status==='running'?'disabled':''}`,true)}${mode==='training'&&!['paused','finished'].includes(t.status)?btn('Пауза',`data-timer="pause" ${t.status!=='running'?'disabled':''}`):''}${btn(finished?'Начать заново':'Завершить',`data-timer="${finished?'reset':'finish'}" ${t.status==='idle'?'disabled':''}`)}${btn('Скачать протокол','id="protocol"')}</div><p class="timer-hint">${mode==='mock'?'После начала время идёт непрерывно, даже при закрытой странице.':'Пауза сохраняет оставшееся время.'}</p></section>`;}
-function protocol(){return {course:'09.02.07-2-2027',part:'invariant',mode,variant:mode==='mock'?variant:'original',timer:C.checkpoint(timer()),attempt:get('attempt:'+scope(),1),checks:D.tasks.map(t=>({id:t.id,checked:t.checks.map((_,i)=>get('check:'+scope()+':'+t.id+':'+i,false))})),automaticGrade:false};}
-function practice(){const t=timer(),mock=mode==='mock',n=Math.max(0,Math.min(3,get('task:'+scope(),0))),task=D.tasks[n],locked=['paused','finished'].includes(t.status);return `<section class="training-page">${header(mock?'Пробный экзамен · 30 вариантов':'Тренировка по образцу КИМ',mock?'Авторские комплекты по инвариантным требованиям: каталог, заказы и роли.':'Официальный образец «Чудо Обувь». Создавайте результат в Visual Studio и СУБД.')}<div class="profile-status"><strong>Инвариантная часть: 4 задания · 3 ч 30 мин · 75 баллов.</strong> Вариативная часть профильного уровня будет доступна после подключения утверждённого Тома 2.</div>${mock?`<label class="training-picker">Вариант<select id="variant" ${t.status==='running'?'disabled':''}>${D.variants.map(v=>`<option value="${v.id}" ${v.id===variant?'selected':''}>${v.id} · ${E(v.title)}</option>`).join('')}</select></label>`:''}<div class="attempt-layout"><div class="assignment-heading"><div><span class="section-code">${mock?variant+' · УЧЕБНЫЙ ВАРИАНТ':'ОФИЦИАЛЬНЫЙ ОБРАЗЕЦ'}</span><h2>Чудо Обувь${mock?' · '+E(D.variants.find(x=>x.id===variant).title):''}</h2><p>Модели и размеры, доступный остаток, скидки, оформление и управление заказами.</p><div class="button-row"><a class="btn primary" href="downloads/${mock?'exam-'+variant:'original-inputs'}.zip" download>Скачать условие и исходные данные</a>${link('КИМ · PDF',D.kim+'#page=35')}</div></div></div>${timerBox()}</div>${t.status==='paused'?`<section class="pause-screen" tabindex="-1"><span class="pause-symbol" aria-hidden="true">Ⅱ</span><h2>Тренировка на паузе</h2><p>Отсчёт остановлен. Условия и отметки снова появятся после продолжения.</p>${btn('Продолжить тренировку','data-timer="start"',true)}</section>`:t.status==='finished'?'<section class="attempt-result" role="status"><h2>Попытка завершена</h2><p>Отметки сохранены. Скачайте протокол или начните новую попытку.</p></section>':''}${get('previous:'+scope())?'<details class="previous-attempt"><summary>Протокол предыдущей попытки</summary>'+btn('Скачать предыдущий протокол','id="previous-protocol"')+'</details>':''}<div class="training-workspace" ${t.status==='paused'?'hidden':''}><nav class="training-stage-list" aria-label="Задания"><h2 class="training-menu-title">Задания на выполнение</h2>${D.tasks.map((s,i)=>`<button data-task="${i}" class="${i===n?'active':''}"><span>${i+1}</span>${E(s.title)}</button>`).join('')}</nav><article class="training-task"><p class="section-code">ЗАДАНИЕ ${n+1}</p><h2>${E(task.title)}</h2><p>${E(task.text)}</p>${mock?`<details><summary>Условие выбранного варианта</summary><p class="preserve-lines">${E(D.variantBriefs[variant])}</p></details>`:''}${!mock&&!locked?btn('Нужна подсказка →',`data-help="${task.id}"`):''}<section class="self-check"><h3>Самопроверка</h3>${task.checks.map((text,i)=>`<label><input type="checkbox" data-check="${task.id}:${i}" ${locked?'disabled':''} ${get('check:'+scope()+':'+task.id+':'+i,false)?'checked':''}>${E(text)}</label>`).join('')}<p class="small">Отметки не являются автоматической оценкой.</p></section></article></div></section>`;}
-function examples(){return `<section class="training-page">${header('Примеры','Готовое программное решение для сверки после самостоятельного выполнения.')}<div class="example-grid"><article class="route-panel"><h2>Windows Forms + MySQL</h2><p>Формы и компоненты создаются в конструкторе Visual Studio, таблицы и связи — в редакторах СУБД. C# используется для запросов, функций и импорта данных. Вход по исходному логину без пароля.</p><div class="button-row"><a class="btn primary" href="downloads/prog-demo-example.zip" download>Скачать исходники примера</a>${D.windowsBuild?'<a class="btn" href="downloads/prog-demo-windows.zip" download>Скачать программу Windows</a>':''}${link('Как открыть и запустить','docs/launch.html')}</div><label>Файл<select id="example-file">${Object.keys(D.code).map(f=>`<option>${E(f)}</option>`).join('')}</select></label>${btn('Открыть код','id="open-file"')}</article><article class="route-panel"><h2>База данных и происхождение полей</h2>${btn('Построить ER-схему','id="er-launch"',true)}<div class="button-row">${link('ER · PDF','materials/ER.pdf')}${link('Решения импорта','docs/import-decisions.html')}</div><p>31 модель, 92 позиции, 20 пользователей, 10 заказов и 30 строк. Исходные файлы сохраняются без изменения.</p></article></div></section>`;}
-function criteria(){return `<section class="training-page">${header('Критерии','Инвариантная часть, таблица 7 КИМ. Полные формулировки смотрите в оригинале.')}<article class="route-panel"><table><thead><tr><th>Критерий</th><th>Баллы</th></tr></thead><tbody>${D.criteria.map(([name,points])=>`<tr><td>${E(name)}</td><td>${points}</td></tr>`).join('')}</tbody></table><p class="criteria-total">Всего: 75 баллов</p><p>У профильного уровня дополнительно 25 баллов вариативной части. Пока нет утверждённого задания Тома 2, они не включаются в задания и протокол этого курса.</p>${link('Оригинальные критерии',D.kim+'#page=13')}</article></section>`;}
-function teacher(){return `<section class="training-page">${header('Преподавателю','Показ использует ту же последовательность, код и изображения, что обучение.')}<article class="route-panel"><h2>Подготовка занятия</h2><p>Заполните данные преподавателя. Стрелки листают, Esc закрывает показ. На длинных слайдах доступна прокрутка.</p><div class="button-row">${btn('Настройка перед занятием','id="teacher-settings"')}${btn('Открыть презентацию','id="deck-open"',true)}</div></article></section>`;}
-function modal(title,html='',extra=''){const d=document.createElement('dialog');d.className='course-dialog '+extra;d.innerHTML=`<header class="modal-head"><h2>${E(title)}</h2>${btn('Закрыть','data-close')}</header><div class="modal-body">${html}</div>`;document.body.append(d);d.querySelector('[data-close]').onclick=()=>d.close();d.addEventListener('close',()=>d.remove(),{once:true});d.showModal();return d;}
-function materials(){modal('Материалы задания',`<div class="artifact-list">${D.originals.map(f=>link(f.name,f.path)).join('')}${link('Описание предметной области','materials/description.html')}${link('Руководство по стилю','materials/style-guide.html')}${link('ER-схема','materials/ER.pdf')}</div><p>Официальный комплект относится к инвариантной части. Авторские варианты находятся в пробном экзамене.</p>`);}
-function tour(kind='site'){const steps=kind==='lesson'?['Слева выберите этап. Подготовка появляется до первого использования инструмента.','Прочитайте «Как это понять», выполните самостоятельные действия и проверьте результат.','Полный файл для сверки раскрывается отдельно. Не заменяйте разбор простым копированием.','Шаг и отметка самостоятельного выполнения сохраняются в этом браузере.']:['Обучение ведёт от исходных данных к работающей программе.','Тренировка использует официальный образец и позволяет поставить работу на паузу.','Пробный экзамен содержит 30 авторских комплектов с отдельными попытками и непрерывным временем.','В примерах доступны исходный код и ER, преподавателю — показ актуальных учебных шагов.'];let i=0;const d=modal('Гид по курсу','','course-tour');function draw(){d.querySelector('.modal-body').innerHTML=`<p class="section-code">${i+1} / ${steps.length}</p><p>${E(steps[i])}</p><div class="button-row">${btn('Назад',`id="tour-prev" ${i===0?'disabled':''}`)}${btn(i===steps.length-1?'Готово':'Далее','id="tour-next"',true)}</div>`;d.querySelector('#tour-prev').onclick=()=>{i--;draw();};d.querySelector('#tour-next').onclick=()=>{if(i===steps.length-1)d.close();else{i++;draw();}};}draw();}
+const lessonResultTitle = 'Что сохранить';
+const stepIndex = (lesson=current()) => Math.max(0,Math.min(lesson.steps.length,get('step:'+lesson.id,0)));
+function stepArrow(index,previous,label) {
+  const path=previous?'M20 12H4m7-7-7 7 7 7':'M4 12h16m-7-7 7 7-7 7';
+  return btn(`<svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${path}"/></svg>`,
+    `data-step="${index}" aria-label="${label}" title="${label}" aria-keyshortcuts="${previous?'ArrowLeft':'ArrowRight'}"`,!previous);
+}
+function goToLessonStep(index) {
+  set('step:'+stage,index);
+  render();
+  document.getElementById('lesson-step-title').focus();
+}
+function showLessonSteps() {
+  const lesson=current(), index=stepIndex(lesson);
+  const titles=[...lesson.steps.map(step=>step.title),lessonResultTitle];
+  const dialog=modal('Шаги этапа · '+lesson.title,`<ol class="lesson-step-list">${titles.map((title,i)=>
+    `<li>${btn(E(title),`data-jump-step="${i}" ${i===index?'aria-current="step"':''}`)}</li>`).join('')}</ol>`);
+  dialog.querySelectorAll('[data-jump-step]').forEach(button=>button.onclick=()=>{
+    dialog.close();
+    goToLessonStep(Number(button.dataset.jumpStep));
+  });
+  dialog.querySelector('[aria-current="step"]').focus();
+}
+function learn() {
+  if (learningView==='map') return learningMap();
+  const lesson=current(), index=stepIndex(lesson), step=lesson.steps[index];
+  const done=get('done:'+stage,false), next=D.stages[D.stages.indexOf(lesson)+1];
+  return `<div class="lesson-top">
+    ${header('Обучение','Чудо Обувь')}
+    ${btn('← К маршруту','data-mode="learn" aria-label="К маршруту обучения"')}
+  </div>
+  <div class="route-layout lesson-layout">
+    ${stageNavigation(D.stages,stage)}
+    <section class="route-panel lesson-card" aria-labelledby="lesson-title">
+      <h2 id="lesson-title" tabindex="-1">${E(lesson.title)}</h2>
+      <p class="task-meta">${E(stageTitle(lesson))}</p>
+      <nav class="lesson-views" aria-label="Разделы этапа">
+        ${[['brief','Условие и файлы'],['steps','Шаги'],['help','Справка']].map(([id,title])=>
+          btn(title,`data-lesson-view="${id}" ${id===learningView?'aria-current="page"':''}`)).join('')}
+      </nav>
+      ${learningView==='brief' ? lessonBrief(lesson) : learningView==='help' ? lessonHelp(lesson) : `
+        ${stage==='M1'?`<div class="button-row">${btn('Построить ER-схему','id="er-launch"')}</div>`:''}
+        ${stage==='documents'?`<div class="button-row">${btn('Материалы задания','id="materials-open"')}</div>`:''}
+        <article class="study-step" aria-labelledby="lesson-step-title">
+          <header class="step-heading">
+            <h3 id="lesson-step-title" tabindex="-1"><span class="lesson-step-number" aria-label="Шаг ${index+1} из ${lesson.steps.length+1}">${index+1}</span><span>${E(step?.title||lessonResultTitle)}</span></h3>
+            ${btn('<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>','id="lesson-steps" aria-label="Все шаги" title="Все шаги" aria-haspopup="dialog"')}
+          </header>
+          ${step?explain(step):`<div class="lesson-result">${stageResult(lesson)}</div>`}
+          <div class="study-controls${step?'':' lesson-result-controls'}">
+            ${index>0?stepArrow(index-1,true,'Предыдущий шаг'):''}
+            ${step?stepArrow(index+1,false,index+1===lesson.steps.length?lessonResultTitle:'Следующий шаг'):`
+              <label class="lesson-complete"><input type="checkbox" id="done" ${done?'checked':''}> Этап выполнен</label>
+              ${done?(next?btn('Далее · '+E(next.title)+' →',`data-stage="${next.id}"`,true):btn('Перейти к тренировке →','data-mode="training"',true)):''}
+            `}
+          </div>
+        </article>
+      `}
+    </section>
+  </div>`;
+}
+const practiceIndex = () => Math.max(0,Math.min(D.tasks.length-1,get('task:'+scope(),0)));
+const practiceDone = id => get('task-done:'+scope()+':'+id,false);
+const taskClock = () => get('task-clock:'+scope()) || {anchor:0,spent:{},alerted:{}};
+const taskSpent = (clock,id,used) => (clock.spent[id] || 0) + Math.max(0,used-clock.anchor);
+let showVariantBrief = false;
+let timerAudio;
+
+function enableTimerSound() {
+  if (!get('timer-sound',true) || !window.AudioContext) return;
+  timerAudio ??= new AudioContext();
+  timerAudio.resume().catch(()=>{});
+}
+function signalTimer() {
+  if (!get('timer-sound',true) || timerAudio?.state!=='running') return;
+  const tone=timerAudio.createOscillator(), volume=timerAudio.createGain();
+  const now=timerAudio.currentTime;
+  tone.frequency.value=660;
+  volume.gain.setValueAtTime(.12,now);
+  volume.gain.exponentialRampToValueAtTime(.001,now+.5);
+  tone.connect(volume).connect(timerAudio.destination);
+  tone.start(now);
+  tone.stop(now+.5);
+}
+function timerBox(attempt,index,mock) {
+  const {status} = attempt;
+  const finished=status==='finished', running=status==='running', idle=status==='idle';
+  const startLabel = mock?'Начать':idle?'Начать тренировку':'Продолжить тренировку';
+  const main = finished?btn('Начать заново','data-timer="reset"',true)
+    : running ? (mock?'':btn('Пауза','data-timer="pause"',true)) : btn(startLabel,'data-timer="start"',true);
+  return `<section class="timer-card" aria-label="${mock?'Время пробного экзамена':'Время тренировки'}">
+    <div class="training-timer-top">
+      <span class="eyebrow">${mock?'Пробный экзамен':'Тренировка'}</span>
+      <output class="training-clock" id="clock" aria-live="off">${C.format(C.timerView(attempt).left)}</output>
+      <span id="timer-status" role="status"></span>
+      <progress id="timer-progress" aria-label="Использованное время" max="1" value="0"></progress>
+      ${mock?'':`<div class="timer-task"><span id="task-clock-label">Время на задание ${index+1}</span><output id="task-clock" aria-labelledby="task-clock-label" aria-live="off"></output></div>`}
+    </div>
+    <div class="training-timer-controls">${main}${!finished&&(!idle||mock)?btn('Завершить',`data-timer="finish" ${idle?'disabled':''}`):''}</div>
+    ${mock?'':`<div class="attempt-actions">
+      <label><input type="checkbox" id="timer-sound" ${get('timer-sound',true)?'checked':''}> Звук таймера</label>
+      ${running||status==='paused'?btn('Сбросить тренировку','data-timer="reset"'):''}
+    </div>`}
+    ${mock&&!finished?'<p class="timer-hint">После начала время идёт непрерывно, даже при закрытой странице.</p>':''}
+  </section>`;
+}
+function conditionParagraphs(text) {
+  return text.split(/(?<=[.!?])\s+(?=[А-ЯЁ])/u).map(line=>`<p>${E(line)}</p>`).join('');
+}
+function practiceMaterials() {
+  return `<div class="button-row"><a class="btn" href="downloads/original-inputs.zip" download>Приложения · ZIP</a>
+    ${link('КИМ · PDF',D.kim+'#page=35')}</div>`;
+}
+function trainingSample() {
+  modal('Условие КИМ и приложения',`<div class="practice-condition"><p>Краткое описание четырёх заданий «Чудо Обувь». Полные формулировки доступны в КИМ.</p>
+    ${D.tasks.map((task,i)=>`<section><h3>Задание ${i+1}. ${E(task.title)}</h3>${conditionParagraphs(task.text)}</section>`).join('')}
+    ${practiceMaterials()}</div>`);
+}
+function variantBrief(entry,index) {
+  const lines=D.variantBriefs[entry.id].split(/\r?\n/).filter(line=>line.trim()&&!line.startsWith('# '));
+  const items=D.variantTasks[entry.id];
+  return `<article class="training-task">
+    <header class="mock-brief-heading">
+      <div><h2>${E(entry.title)}</h2><p class="task-meta">Условие варианта · ${entry.id}</p></div>
+      ${btn('К заданию '+(index+1),`data-task="${index}"`)}
+    </header>
+    <section class="practice-condition">
+      ${lines.filter(line=>!/^\d+\. /.test(line)).map(line=>`<p>${E(line)}</p>`).join('')}
+      <ol>${items.map(item=>`<li>${E(item)}</li>`).join('')}</ol>
+    </section>
+    <section class="task-support"><h3>Материалы для справки</h3><div class="button-row">
+      <a class="btn" href="downloads/exam-30-variants.zip" download>Все 30 вариантов · ZIP</a>
+      ${link('Как перенести решение на свой вариант','docs/Visual-Studio.html#section-8')}
+      ${link('Официальный КИМ · PDF',D.kim+'#page=35')}
+    </div></section>
+  </article>`;
+}
+function practice() {
+  const attempt=timer(), {status}=attempt, mock=mode==='mock';
+  const index=practiceIndex(), task=D.tasks[index], locked=status==='paused'||status==='finished';
+  const entry=D.variants.find(item=>item.id===variant);
+  const checked=task.checks.map((_,i)=>get('check:'+scope()+':'+task.id+':'+i,false));
+  const taskCard = `<article class="training-task">
+    <h2>${E(task.title)}</h2>
+    <p class="task-meta">Задание ${index+1} · ${task.minutes} мин${mock?' · '+entry.id+' · '+E(entry.title):''}</p>
+    <section class="practice-condition"><h3>Условие задания</h3>${conditionParagraphs(mock?D.variantTasks[entry.id][index]:task.text)}</section>
+    ${mock?'':`<div class="task-support">${practiceMaterials()}${locked?'':btn('Подсказка к заданию',`data-help="${task.id}"`)}</div>`}
+    <section class="self-check training-checklist" aria-labelledby="training-check-title">
+      <header><h3 id="training-check-title">Самопроверка</h3><span id="training-check-count" aria-live="polite">${checked.filter(Boolean).length} из ${checked.length}</span></header>
+      ${task.checks.map((text,i)=>`<label><input type="checkbox" data-check="${task.id}:${i}" ${locked?'disabled':''} ${checked[i]?'checked':''}>${E(text)}</label>`).join('')}
+      ${mock?'<p class="small">Отметки служат для самопроверки.</p>':`<label class="task-complete"><input type="checkbox" id="task-complete" ${locked?'disabled':''} ${practiceDone(task.id)?'checked':''}> Задание выполнено</label>`}
+    </section>
+  </article>`;
+  return `<section class="training-page practice-page training-compact ${mock?'mock-exam':''}">
+    <header class="workspace-intro">
+      <div><h1>${mock?'Пробный экзамен':'Тренировка'}</h1><p>${mock?'30 учебных вариантов · 4 задания · 75 баллов':'«Чудо Обувь» · официальный образец КИМ'}</p></div>
+      ${!mock&&status!=='paused'?btn('Условие КИМ и приложения','id="training-sample" aria-haspopup="dialog"'):''}
+    </header>
+    <div class="attempt-layout">
+      ${timerBox(attempt,index,mock)}
+      <div class="attempt-content">
+        ${mock?`<div class="mock-variant-bar">
+          <div class="training-source"><label>Вариант<select id="variant" ${status==='running'?'disabled':''}>${D.variants.map(item=>`<option value="${item.id}" ${item.id===variant?'selected':''}>${item.id} · ${E(item.title)}</option>`).join('')}</select></label></div>
+          <div class="mock-variant-actions">${btn('Условие варианта',`id="mock-brief" aria-pressed="${showVariantBrief}"`)}
+            <a class="btn" href="downloads/exam-${entry.id}.zip" download>Файлы ${entry.id} · ZIP</a></div>
+        </div>`:''}
+        ${status==='paused'?'<section class="pause-screen" tabindex="-1" aria-labelledby="pause-title"><h2 id="pause-title">Тренировка на паузе</h2><p>Отсчёт остановлен. Условия и отметки снова появятся после продолжения.</p></section>':
+          status==='finished'?'<section class="attempt-result" tabindex="-1" role="status"><h2>Попытка завершена</h2><p>Отметки сохранены. Можно начать новую попытку.</p></section>':''}
+        <div class="training-workspace" ${status==='paused'?'hidden':''}>
+          ${stageNavigation(D.tasks,showVariantBrief&&mock?null:task.id,true)}
+          ${mock&&showVariantBrief?variantBrief(entry,index):taskCard}
+        </div>
+      </div>
+    </div>
+  </section>`;
+}
+const exampleAccounts = [['Клиент','asidorova'],['Менеджер','papetrov'],['Администратор','isivanov']];
+const exampleDescriptions = {
+  'CatalogForm.cs':'Показывает каталог. Применяет поиск, фильтр категории и сортировку цены к одному списку.',
+  'ConnectionForm.cs':'Принимает реквизиты MySQL / MariaDB и проверяет подключение к учебной базе.',
+  'LoginForm.cs':'Принимает логин клиента, менеджера или администратора и передаёт его на проверку.',
+  'ProductForm.cs':'Показывает модель, размеры и остатки. Добавляет выбранную позицию в корзину.',
+  'BasketForm.cs':'Показывает позиции заказа, позволяет изменить количество, подтвердить заказ или отказаться.',
+  'OrdersForm.cs':'Открывает список заказов менеджеру и администратору.',
+  'OrderDetailsForm.cs':'Показывает состав заказа и действия, доступные администратору.',
+  'sample.sql':'Создаёт учебную базу и загружает исходные модели, остатки, пользователей и заказы.',
+  'schema.sql':'Описывает структуру таблиц, ключи и ограничения без учебных данных.',
+  'Store.cs':'Выполняет запросы каталога, проверяет роли и сохраняет изменения заказов в базе.'
+};
+function describeExampleFile(file) {
+  const name=file.split('/').at(-1);
+  if (exampleDescriptions[name]) return exampleDescriptions[name];
+  if (name.endsWith('.Designer.cs')) return 'Компоненты, свойства и размещение элементов формы, сохранённые Visual Studio Designer.';
+  if (name.endsWith('.csproj')) return 'Параметры проекта .NET и ссылки на его зависимости.';
+  if (file.startsWith('examples/Import/')) return 'Читает исходные таблицы Excel или CSV и готовит SQL для импорта данных.';
+  if (file.startsWith('examples/Checks/')) return 'Проверяет бизнес-правила, права ролей и операции с заказами.';
+  return 'Вспомогательный файл примера. Откройте его, чтобы посмотреть код.';
+}
+function exampleFilePicker(id,selected) {
+  const files=Object.keys(D.code).filter(file=>file.startsWith('examples/')||file.endsWith('.sql'));
+  return `<label class="example-file-label">Файл<select id="${id}">${files.map(file=>
+    `<option ${file===selected?'selected':''}>${E(file)}</option>`).join('')}</select></label>`;
+}
+function examples() {
+  const selected='examples/WinForms/CatalogForm.cs';
+  const shots=['login','examples/WinForms/CatalogForm.cs','examples/WinForms/BasketForm.cs','examples/WinForms/OrdersForm.cs'];
+  return `<section class="training-page example-page">
+    ${header('Готовый пример','Скачайте рабочий проект «Чудо Обувь» с учебными данными.')}
+    <div class="example-grid">
+      <article class="route-panel">
+        <h2>Windows Forms и MySQL / MariaDB</h2>
+        <p>В архиве есть решение Visual Studio, SQL с учебными данными и ER-диаграмма.${D.windowsBuild?' Готовая программа находится в папке Windows.':''}</p>
+        <div class="example-actions">
+          <a class="btn primary" href="downloads/prog-demo-example.zip" download>Скачать готовый пример · ZIP</a>
+          ${btn('Инструкция по запуску','id="example-launch" aria-haspopup="dialog"')}
+        </div>
+        <div class="example-accounts"><p>Откройте окно «Вход» и введите учебный логин.</p>
+          <table aria-label="Учебные записи"><thead><tr><th scope="col">Роль</th><th scope="col">Логин</th></tr></thead>
+          <tbody>${exampleAccounts.map(([role,login])=>`<tr><th scope="row">${role}</th><td><code>${login}</code></td></tr>`).join('')}</tbody></table>
+        </div>
+        <div class="example-actions">${btn('Построить ER-схему','id="er-launch"')}${link('ER · PDF','materials/ER.pdf')}${link('Решения импорта','docs/import-decisions.html')}</div>
+      </article>
+      <article class="route-panel">
+        <h2>Внутри проекта</h2><p>Откройте файл, чтобы прочитать и скопировать код.</p>
+        ${exampleFilePicker('example-file',selected)}
+        <p id="example-file-description" class="file-description" aria-live="polite">${describeExampleFile(selected)}</p>
+        ${btn('Открыть файл','id="open-file"')}
+      </article>
+    </div>
+    <h2 class="example-gallery-heading">Работающая информационная система</h2>
+    <p>Рассмотрите вход, каталог, корзину и список заказов на снимках из Windows.</p>
+    <div class="screenshot-index">${shots.map(key=>shot({shot:key})).join('')}</div>
+  </section>`;
+}
+function exampleInstructions() {
+  modal('Инструкция по запуску',`<div class="example-instructions">${D.launchGuide}</div>`);
+}
+function criteria() {
+  const total = D.criteria.reduce((sum,[,points])=>sum+points,0);
+  return `<section class="route-panel overview-criteria" id="criteria" aria-labelledby="criteria-title">
+    <div class="criteria-heading"><h2 id="criteria-title">Критерии оценки</h2><span>${total} баллов</span></div>
+    <p class="criteria-source">КИМ 09.02.07-2-2027 · таблица 7 · базовый уровень</p>
+    <div class="criteria-table-wrap"><table class="criteria-table" aria-labelledby="criteria-title">
+      <thead><tr><th scope="col">Критерий</th><th scope="col">Баллы</th></tr></thead>
+      <tbody>${D.criteria.map(([name,points])=>`<tr><th scope="row">${E(name)}</th><td>${points}</td></tr>`).join('')}</tbody>
+      <tfoot><tr><th scope="row">Итого</th><td>${total}</td></tr></tfoot>
+    </table></div>
+    ${link('Открыть КИМ · PDF',D.kim)}
+  </section>`;
+}
+function teacher() {
+  return `<section class="training-page">
+    ${header('Преподавателю','Разбор официального образца ДЭ 2027 для занятия.')}
+    <article class="route-panel">
+      <h2>Презентация по демоэкзамену</h2>
+      <p>Windows Forms + MySQL / MariaDB. На слайдах — четыре задания «Чудо Обувь», пошаговая демонстрация, код и реальные снимки приложения.</p>
+      <p>Заполните данные преподавателя для титульного слайда. В режиме показа слайды открываются в отдельном окне для аудитории, а сценарий остаётся у преподавателя.</p>
+      <div class="button-row">${btn('Данные преподавателя','id="teacher-settings"')}
+        <a class="btn primary" id="deck-open" href="deck.html">Открыть презентацию</a>
+        <a class="btn" href="deck.html?print=1&amp;dialog=1" target="_blank" rel="noopener">Печать / сохранить PDF</a>
+      </div>
+    </article>
+  </section>`;
+}
+function modal(title,html='',extra=''){const d=document.createElement('dialog');d.className='course-dialog '+extra;d.setAttribute('aria-label',title);d.innerHTML=`<header class="modal-head"><h2>${E(title)}</h2>${btn('Закрыть','data-close')}</header><div class="modal-body">${html}</div>`;document.body.append(d);d.querySelector('[data-close]').onclick=()=>d.close();d.addEventListener('close',()=>d.remove(),{once:true});d.showModal();return d;}
+function materials(){modal('Материалы задания',`<div class="artifact-list">${D.originals.map(f=>link(f.name,f.path)).join('')}${link('Описание предметной области','materials/description.html')}${link('Руководство по стилю','materials/style-guide.html')}${link('ER-схема','materials/ER.pdf')}</div><p>Официальный образец базового уровня. Учебные варианты находятся в разделе «Пробный экзамен».</p>`);}
+function tour(kind='site'){const steps=kind==='lesson'?['Выберите этап в навигации. Чтобы посмотреть весь путь, вернитесь к карте обучения.','Прочитайте «Как это понять», выполните самостоятельные действия и проверьте результат.','Полный файл для сверки раскрывается отдельно. Не заменяйте разбор простым копированием.','Шаг и отметка самостоятельного выполнения сохраняются в этом браузере.']:['Обучение ведёт от исходных данных к работающей программе.','Тренировка использует официальный образец и позволяет поставить работу на паузу.','Пробный экзамен содержит 30 авторских комплектов с отдельными попытками и непрерывным временем.','В примерах доступны исходный код и ER, преподавателю — показ актуальных учебных шагов.'];let i=0;const d=modal('Гид по курсу','','course-tour');function draw(){d.querySelector('.modal-body').innerHTML=`<p class="section-code">${i+1} / ${steps.length}</p><p>${E(steps[i])}</p><div class="button-row">${btn('Назад',`id="tour-prev" ${i===0?'disabled':''}`)}${btn(i===steps.length-1?'Готово':'Далее','id="tour-next"',true)}</div>`;d.querySelector('#tour-prev').onclick=()=>{i--;draw();};d.querySelector('#tour-next').onclick=()=>{if(i===steps.length-1)d.close();else{i++;draw();}};}draw();}
 function er(){const all=D.er.tables.flatMap(t=>[{table:t,field:null},...t.fields.map(field=>({table:t,field}))]);let index=0,full=false;const d=modal('Построение схемы данных');function draw(){const x=all[index];const shown=full?D.er.tables:D.er.tables.slice(0,D.er.tables.indexOf(x.table)+1);d.querySelector('.modal-body').innerHTML=`<div class="er-controls">${btn('Поэтапное построение','id="er-steps"')}${btn('Готовая схема','id="er-full"')}${btn('Как читать схему','id="er-help"')}${link('Скачать ER · PDF','materials/ER.pdf')}</div>${full?`<div class="er-diagram">${D.erSvg}</div>`:''}<div class="er-grid"><div class="er-tables">${shown.map(t=>`<section class="er-card"><h3>${E(t.id)}</h3>${t.fields.filter((f,i)=>full||t!==x.table||(x.field&&i<=t.fields.indexOf(x.field))).map(f=>`<button class="er-field" data-origin="${t.id}.${f.id}">${f.pk?'PK ':f.fk?'FK ':''}${E(f.id)} <small>${E(f.type)}</small></button>`).join('')}</section>`).join('')}</div><aside class="er-origin" aria-live="polite"><h3>${E(x.table.id+(x.field?' · '+x.field.id:''))}</h3><p>${E(x.field?.origin||x.table.origin)}</p><p>PK — первичный ключ. FK — внешний ключ; каждая дочерняя строка ссылается на одну родительскую.</p>${D.er.links.filter(l=>l.source===x.table.id).map(l=>`<p>${E(l.field)} → ${E(l.target+'.'+l.key)} · N : 1</p>`).join('')}</aside></div><div class="button-row">${btn('← Назад',`id="er-prev" ${index===0?'disabled':''}`)}<span>${index+1} / ${all.length}</span>${btn('Далее →',`id="er-next" ${index===all.length-1?'disabled':''}`,true)}</div>`;d.querySelector('#er-prev').onclick=()=>{index--;draw();};d.querySelector('#er-next').onclick=()=>{index++;draw();};d.querySelector('#er-full').onclick=()=>{full=true;draw();};d.querySelector('#er-steps').onclick=()=>{full=false;draw();};d.querySelector('#er-help').onclick=()=>modal('Как читать ER','<p>Одна строка — одно поле. PK уникально определяет запись. FK хранит ключ связанной таблицы. Например, несколько строк заказа принадлежат одному заголовку: N : 1. Нажмите поле, чтобы увидеть источник; технический ID добавляет разработчик.</p>');d.querySelectorAll('[data-origin]').forEach(b=>b.onclick=()=>{const [t,f]=b.dataset.origin.split('.');index=all.findIndex(x=>x.table.id===t&&x.field?.id===f);draw();});}draw();}
 function settings(){const d=modal('Настройка перед занятием',`<div class="settings-form">${['ФИО преподавателя','Должность','Кафедра или лаборатория'].map((name,i)=>`<label>${name}<input data-teacher="${i}" value="${E(get('teacher:'+i,''))}"></label>`).join('')}</div>`);d.querySelectorAll('[data-teacher]').forEach(e=>e.oninput=()=>set('teacher:'+e.dataset.teacher,e.value));}
-function deck(){const slides=[{title:'ДЭ 2027 · Программист',why:'Система оформления заказа обуви',actions:[0,1,2].map(i=>get('teacher:'+i,'')).filter(Boolean),check:'Четыре задания инвариантного ядра'},...D.stages.flatMap(s=>s.steps.map(x=>({...x,module:s.title})))];let index=0,laser=false;const d=modal('Презентация разбора');const dot=document.createElement('span');dot.className='deck-laser';dot.hidden=true;document.body.append(dot);d.addEventListener('close',()=>dot.remove());function draw(){const x=slides[index];d.querySelector('.modal-body').innerHTML=`<div class="deck-slide"><div class="slide-source">${index===0?'<div class="deck-title"><img src="mascot-scientist.png" alt="Носорог-учёный"><h2>Ваша первая программа</h2></div>':shot(x)||`<section class="slide-actions"><p class="section-code">Порядок действий</p><ol>${x.actions.map(a=>`<li>${E(a)}</li>`).join('')}</ol></section>`}</div><div><p class="section-code">${E(x.module||'Введение')}</p><h2>${E(x.title)}</h2><p>${E(x.why)}</p>${index===0||shot(x)?`<ol>${x.actions.map(a=>`<li>${E(a)}</li>`).join('')}</ol>`:''}${x.code?`<pre>${E(x.code)}</pre>`:''}<p><strong>Результат:</strong> ${E(x.check)}</p>${x.guide?link(x.guide.title,x.guide.path):''}</div></div><div class="deck-controls">${btn('←','id="slide-prev" aria-label="Предыдущий слайд"')}${btn('→','id="slide-next" aria-label="Следующий слайд"')}<label>Слайд<select id="slide-select">${slides.map((x,i)=>`<option value="${i}" ${i===index?'selected':''}>${i+1}. ${E(x.title)}</option>`).join('')}</select></label>${btn('Полный экран','id="fullscreen"')}${btn('Лазерная указка',`id="laser" aria-pressed="${laser}"`)}</div>`;d.querySelector('#slide-prev').onclick=()=>move(-1);d.querySelector('#slide-next').onclick=()=>move(1);d.querySelector('#slide-select').onchange=e=>{index=+e.target.value;draw();};d.querySelector('#fullscreen').onclick=()=>document.fullscreenElement?document.exitFullscreen():d.requestFullscreen();d.querySelector('#laser').onclick=()=>{laser=!laser;dot.hidden=!laser;draw();};bindImages(d);}function move(n){index=Math.max(0,Math.min(slides.length-1,index+n));draw();}d.onkeydown=e=>{if(['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)||(e.key===' '&&e.target.tagName==='BUTTON'))return;if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();move(1);}if(e.key==='ArrowLeft'){e.preventDefault();move(-1);}};d.onpointermove=e=>{dot.style.left=e.clientX+'px';dot.style.top=e.clientY+'px';};draw();}
-function fileModal(file){modal(file,`<pre class="code-preview" tabindex="0">${E(D.code[file]||'')}</pre>`);}
+function fileModal(file) {
+  const dialog=modal('Исходники примера',`${exampleFilePicker('code-file',file)}
+    <p class="file-description" aria-live="polite"></p>
+    <div class="button-row">${btn('Копировать код','id="copy-code"')}</div>
+    <pre class="code-preview" tabindex="0"></pre>`);
+  const picker=dialog.querySelector('#code-file'), code=dialog.querySelector('pre');
+  const description=dialog.querySelector('.file-description'), copy=dialog.querySelector('#copy-code');
+  const draw=()=>{
+    description.textContent=describeExampleFile(picker.value);
+    code.textContent=D.code[picker.value];
+    copy.textContent='Копировать код';
+  };
+  picker.onchange=draw;
+  copy.onclick=async()=>{
+    try{
+      await navigator.clipboard.writeText(code.textContent);
+      copy.textContent='Скопировано';
+    }catch{
+      const range=document.createRange();
+      range.selectNodeContents(code);
+      const selection=window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      copy.textContent='Код выделен. Нажмите Ctrl+C или ⌘C';
+    }
+  };
+  draw();
+}
 function bindImages(el){el.querySelectorAll('[data-image]').forEach(e=>e.onclick=()=>modal('Иллюстрация',`<img style="max-width:100%;height:auto" src="${E(e.dataset.image)}" alt="Реальный экран приложения">`));}
-function download(name,data){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
-function navigate(next){const previous=location.href;if(next.mode)mode=next.mode;if(next.stage)stage=next.stage;render();const target=location.href;history.replaceState(null,'',previous);history.pushState(null,'',target);window.scrollTo(0,0);}
-function render(){set('mode',mode);set('stage',stage);set('variant',variant);document.body.classList.toggle('dark',dark);history.replaceState(null,'','?mode='+mode+'&module='+stage+'&variant='+variant);root.innerHTML=`<div class="shell"><header class="top"><a class="brand" href="?mode=learn"><span class="brand-emblem">ДЭ</span><span><strong>09.02.07 · Информационные системы и программирование</strong><small>Программист · 2027</small></span></a><div class="top-tools"><label>Мой маршрут <select id="stack"><option>Windows Forms + XAMPP (MySQL)</option></select></label>${btn(dark?'☀':'☾','id="theme" aria-label="Переключить тему"')}${btn('Тур по сайту','data-guide="site"')}</div></header><nav class="site-nav" aria-label="Основные разделы">${modes.map(([id,t])=>btn(t,`data-mode="${id}" ${mode===id?'aria-current="page"':''}`)).join('')}</nav><main id="main"><section class="hero study-intro"><div class="banner-mascot"><img src="mascot-scientist.png" alt="Носорог-учёный"></div><div class="banner-copy"><p class="eyebrow">ДЭ · 2027 · ПРОГРАММИСТ</p><h2>Ваша первая программа</h2><p class="lead">Изучите условие → создайте систему → проверьте и сдайте.</p>${btn('С чего начать? Пройти тур →','data-guide="site"')}</div><div class="banner-actions">${btn('Материалы задания','id="materials-open"',true)}</div></section>${storageOK?'':'<p class="notice">Хранилище недоступно. Скачайте протокол перед закрытием страницы.</p>'}${mode==='learn'?learn():['training','mock'].includes(mode)?practice():mode==='examples'?examples():mode==='criteria'?criteria():teacher()}</main></div>`;bind();tick();}
-function bind(){root.querySelectorAll('[data-mode]').forEach(e=>e.onclick=()=>navigate({mode:e.dataset.mode}));root.querySelectorAll('[data-stage]').forEach(e=>e.onclick=()=>navigate({stage:e.dataset.stage}));root.querySelectorAll('[data-step]').forEach(e=>e.onclick=()=>{set('step:'+stage,+e.dataset.step);render();document.querySelector('.study-step')?.scrollIntoView();});root.querySelectorAll('[data-task]').forEach(e=>e.onclick=()=>{set('task:'+scope(),+e.dataset.task);render();});root.querySelectorAll('[data-guide]').forEach(e=>e.onclick=()=>tour(e.dataset.guide));root.querySelectorAll('[data-check]').forEach(e=>e.onchange=()=>set('check:'+scope()+':'+e.dataset.check,e.checked));root.querySelectorAll('[data-help]').forEach(e=>e.onclick=()=>{set('timer:'+scope(),C.transition(timer(),'assisted'));navigate({mode:'learn',stage:e.dataset.help});});root.querySelectorAll('[data-timer]').forEach(e=>e.onclick=()=>{if(e.dataset.timer==='reset'){set('previous:'+scope(),protocol());set('attempt:'+scope(),get('attempt:'+scope(),1)+1);for(const t of D.tasks)t.checks.forEach((_,i)=>set('check:'+scope()+':'+t.id+':'+i,false));set('timer:'+scope(),C.freshTimer(210*60,mode));set('task:'+scope(),0);}else set('timer:'+scope(),C.transition(timer(),e.dataset.timer));render();document.querySelector('.pause-screen')?.focus();});const on=(id,fn,event='onclick')=>{const e=document.getElementById(id);if(e)e[event]=fn;};on('theme',()=>{dark=!dark;set('dark',dark);render();});on('materials-open',materials);on('step-select',e=>{set('step:'+stage,+e.target.value);render();},'onchange');on('done',e=>set('done:'+stage,e.target.checked),'onchange');on('variant',e=>{variant=e.target.value;render();},'onchange');on('protocol',()=>download('prog-demo-protocol.json',protocol()));on('previous-protocol',()=>download('prog-demo-previous.json',get('previous:'+scope())));on('er-launch',er);on('open-file',()=>fileModal(document.getElementById('example-file').value));on('teacher-settings',settings);on('deck-open',deck);bindImages(root);}
-function tick(){const el=document.getElementById('clock');if(!el)return;const t=timer(),v=C.timerView(t);if(v.expired&&t.status!=='finished'){set('timer:'+scope(),C.transition(t,'finish'));render();return;}el.textContent=C.format(v.left);document.getElementById('timer-status').textContent=({idle:'Готов к началу',running:'Идёт отсчёт',paused:'На паузе',finished:'Завершено'})[t.status];document.getElementById('timer-progress').value=v.progress;}
-window.addEventListener('popstate',()=>{const q=new URLSearchParams(location.search);mode=modes.some(x=>x[0]===q.get('mode'))?q.get('mode'):'learn';stage=D.stages.some(x=>x.id===q.get('module'))?q.get('module'):'documents';variant=D.variants.some(x=>x.id===q.get('variant'))?q.get('variant'):'V01';render();});
+function navigate(next) {
+  const previous = location.href;
+  if(next.mode) mode=next.mode;
+  if(next.stage) stage=next.stage;
+  if(next.view) learningView=next.view;
+  render();
+  const target = location.href;
+  if (target!==previous) {
+    history.replaceState(null,'',previous);
+    history.pushState(null,'',target);
+  }
+  if (!next.preserveScroll) window.scrollTo(0,0);
+}
+function render() {
+  set('mode',mode);set('stage',stage);set('variant',variant);
+  document.body.classList.toggle('dark',dark);
+  const url = new URLSearchParams({mode,module:stage,variant});
+  if (mode==='learn') {
+    url.set('view',learningView);
+    if (learningView!=='map') set('opened-stage',stage);
+    if (learningView==='steps' && get('step:'+stage)===null) set('step:'+stage,0);
+  }
+  history.replaceState(null,'','?'+url);
+  const views = {overview,learn,training:practice,mock:practice,examples,criteria,teacher};
+  root.innerHTML = `<div class="shell">
+    <header class="top">
+      <a class="brand" href="?mode=overview"><span class="brand-emblem">ДЭ</span><span><strong>09.02.07 · Информационные системы и программирование</strong><small>Программист · 2027</small></span></a>
+      <div class="top-tools">
+        ${iconButton(dark?'Включить светлую тему':'Включить тёмную тему',dark?toolIcons.sun:toolIcons.moon,'id="theme"')}
+        ${iconButton('Тур по сайту',toolIcons.tour,'data-guide="site" aria-haspopup="dialog"')}
+      </div>
+    </header>
+    <nav class="site-nav" aria-label="Основные разделы">${modes.map(([id,title])=>iconButton(title,modeIcons[id],`data-mode="${id}" ${mode===id||(mode==='criteria'&&id==='overview')?'aria-current="page"':''}`)).join('')}</nav>
+    <main id="main" tabindex="-1">
+      ${storageOK?'':'<p class="notice">Хранилище браузера недоступно. Отметки и прогресс сохраняются до закрытия страницы.</p>'}
+      ${views[mode]()}
+    </main>
+  </div>`;
+  bind();tick();
+}
+function bind() {
+  root.querySelectorAll('[data-mode]').forEach(button=>button.onclick=()=>{
+    const next = button.dataset.mode;
+    const inNavigation = button.closest('.site-nav');
+    navigate({mode:next,view:'map'});
+    const focus = inNavigation
+      ? root.querySelector(`.site-nav [data-mode="${next}"]`)
+      : root.querySelector('.map-intro h1');
+    focus?.focus({preventScroll:true});
+  });
+  root.querySelectorAll('[data-stage]').forEach(button=>button.onclick=()=>{
+    const next = button.dataset.stage;
+    navigate({stage:next,view:button.dataset.lessonView||resumeView(next)});
+    root.querySelector('#lesson-title').focus({preventScroll:true});
+  });
+  root.querySelectorAll('[data-map-stage]').forEach(button=>button.onclick=()=>{
+    const next = button.dataset.mapStage;
+    navigate({stage:next,view:'map',preserveScroll:true});
+    root.querySelector(`[data-map-stage="${next}"]`).focus({preventScroll:true});
+  });
+  root.querySelectorAll('[data-lesson-view]:not([data-stage])').forEach(button=>button.onclick=()=>{
+    navigate({view:button.dataset.lessonView,preserveScroll:true});
+    root.querySelector('.lesson-views [aria-current="page"]').focus();
+  });
+  root.querySelectorAll('[data-step]').forEach(button=>button.onclick=()=>goToLessonStep(Number(button.dataset.step)));
+  root.querySelectorAll('[data-task]').forEach(button=>button.onclick=()=>{
+    const index = Number(button.dataset.task);
+    const previous=practiceIndex();
+    if (mode==='training' && previous!==index) {
+      const clock=taskClock(), attempt=timer(), used=Math.min(C.timerView(attempt).used,attempt.durationMs);
+      const taskId=D.tasks[previous].id;
+      clock.spent[taskId]=taskSpent(clock,taskId,used);
+      clock.anchor=used;
+      set('task-clock:'+scope(),clock);
+    }
+    showVariantBrief=false;
+    set('task:'+scope(),index);
+    render();
+    root.querySelector(`.stage-nav [data-task="${index}"]`).focus({preventScroll:true});
+  });
+  root.querySelectorAll('[data-guide]').forEach(button=>button.onclick=()=>tour(button.dataset.guide));
+  root.querySelectorAll('[data-check]').forEach(input=>input.onchange=()=>{
+    set('check:'+scope()+':'+input.dataset.check,input.checked);
+    root.querySelector('#training-check-count').textContent=root.querySelectorAll('[data-check]:checked').length+' из '+root.querySelectorAll('[data-check]').length;
+  });
+  root.querySelectorAll('[data-help]').forEach(button=>button.onclick=()=>{
+    set('timer:'+scope(),C.transition(timer(),'assisted'));
+    navigate({mode:'learn',stage:button.dataset.help,view:'steps'});
+  });
+  root.querySelectorAll('[data-timer]').forEach(button=>button.onclick=()=>{
+    if (button.dataset.timer==='reset') {
+      for (const task of D.tasks) {
+        task.checks.forEach((_,i)=>set('check:'+scope()+':'+task.id+':'+i,false));
+        set('task-done:'+scope()+':'+task.id,false);
+      }
+      set('task-clock:'+scope(),null);
+      showVariantBrief=false;
+      set('timer:'+scope(),C.freshTimer(210*60,mode));
+      set('task:'+scope(),0);
+    } else {
+      if (mode==='training' && button.dataset.timer==='start') enableTimerSound();
+      set('timer:'+scope(),C.transition(timer(),button.dataset.timer));
+    }
+    render();
+    const focus=root.querySelector('.pause-screen, .attempt-result') || root.querySelector('[data-timer="start"], [data-timer="pause"], [data-timer="finish"]');
+    focus?.focus({preventScroll:true});
+  });
+  const on = (id,fn,event='onclick') => {
+    const element = document.getElementById(id);
+    if (element) element[event]=fn;
+  };
+  on('theme',()=>{
+    dark=!dark;
+    set('dark',dark);
+    render();
+    document.getElementById('theme').focus({preventScroll:true});
+  });
+  on('materials-open',materials);
+  on('lesson-steps',showLessonSteps);
+  on('done',event=>{
+    set('done:'+stage,event.target.checked);
+    render();
+    document.getElementById('done').focus({preventScroll:true});
+  },'onchange');
+  on('variant',event=>{variant=event.target.value;showVariantBrief=false;render();document.getElementById('variant').focus();},'onchange');
+  on('training-sample',trainingSample);
+  on('mock-brief',()=>{showVariantBrief=!showVariantBrief;render();document.getElementById('mock-brief').focus();});
+  on('timer-sound',event=>{set('timer-sound',event.target.checked);enableTimerSound();},'onchange');
+  on('task-complete',event=>{
+    set('task-done:'+scope()+':'+D.tasks[practiceIndex()].id,event.target.checked);
+    render();
+    document.getElementById('task-complete').focus({preventScroll:true});
+  },'onchange');
+  on('er-launch',er);
+  on('example-launch',exampleInstructions);
+  on('example-file',event=>{
+    document.getElementById('example-file-description').textContent=describeExampleFile(event.target.value);
+  },'onchange');
+  on('open-file',()=>fileModal(document.getElementById('example-file').value));
+  on('teacher-settings',settings);
+  bindImages(root);
+}
+function tick() {
+  const clockNode=document.getElementById('clock');
+  if(!clockNode)return;
+  const attempt=timer(), view=C.timerView(attempt);
+  if(view.expired&&attempt.status!=='finished') {
+    if(mode==='training')signalTimer();
+    set('timer:'+scope(),C.transition(attempt,'finish'));
+    render();
+    return;
+  }
+  clockNode.textContent=C.format(view.left);
+  document.getElementById('timer-progress').value=view.progress;
+  const status=({idle:'Готов к началу',running:'Идёт отсчёт',paused:'На паузе',finished:view.expired?'Время истекло':'Завершено'})[attempt.status];
+  const statusNode=document.getElementById('timer-status');
+  if(statusNode.textContent!==status)statusNode.textContent=status;
+  if(mode==='training') {
+    const task=D.tasks[practiceIndex()], clock=taskClock();
+    const left=task.minutes*60000-taskSpent(clock,task.id,Math.min(view.used,attempt.durationMs));
+    document.getElementById('task-clock').textContent=left<=0?'Время вышло':C.format(left);
+    if(left<=0&&attempt.status==='running'&&!clock.alerted[task.id]) {
+      clock.alerted[task.id]=true;
+      set('task-clock:'+scope(),clock);
+      signalTimer();
+    }
+  }
+}
+document.addEventListener('keydown',event=>{
+  if (mode!=='learn'||learningView!=='steps'||!['ArrowLeft','ArrowRight'].includes(event.key)
+      ||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey||document.querySelector('dialog[open]')
+      ||event.target.closest?.('input,select,textarea,[contenteditable],a,button:not([data-step]),pre')) return;
+  const next=stepIndex()+(event.key==='ArrowLeft'?-1:1);
+  if (next<0||next>current().steps.length) return;
+  event.preventDefault();
+  goToLessonStep(next);
+});
+window.addEventListener('popstate',()=>{
+  ({mode,stage,variant,learningView}=readRoute());
+  render();
+});
 render();setInterval(tick,500);
 })();

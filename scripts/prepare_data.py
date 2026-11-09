@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 # coding: utf-8
 """Convert original XLSX, preserving originals and recording explicit mappings."""
-import copy
 import datetime as dt
 import hashlib
 import json
 import pathlib
 import zipfile
+from collections import defaultdict
 from decimal import Decimal, ROUND_HALF_UP
 from audit_sources import xlsx_rows, norm
+from variant_domains import domains, domain_data, domain_materials
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 RES = ROOT / 'materials/resources'
@@ -83,6 +84,27 @@ def control(data, date=dt.date(2026,5,15)):
     return [dict(id=p['id'],quantity=sum(s['available'] for s in data['stock'] if s['product_id']==p['id']),price=str((Decimal(p['price'])*(Decimal('1') if p['id'] in ordered else Decimal('.75'))).quantize(Decimal('.01'),rounding=ROUND_HALF_UP)),discount=p['id'] not in ordered) for p in data['products']]
 
 
+def cover_stock_boundaries(data):
+    by_product = defaultdict(list)
+    for row in data['stock']:
+        by_product[row['product_id']].append(row)
+    ordered_stock = {item['stock_id'] for item in data['items']}
+    # Keep one existing example of each boundary. Prefer changing models absent from order history.
+    candidates = sorted(by_product.values(), key=lambda rows: any(row['id'] in ordered_stock for row in rows))
+    missing = {0, 3, 4, 5, 6}
+    spare = []
+    for rows in candidates:
+        total = sum(row['available'] for row in rows)
+        if total in missing:
+            missing.remove(total)
+        else:
+            spare.append(rows)
+    for total, rows in zip(sorted(missing), spare):
+        pairs, extra = divmod(total, len(rows))
+        for index, row in enumerate(rows):
+            row['available'] = pairs + int(index < extra)
+
+
 def main():
     data=prepare();write_json(OUT/'sample.json',data)
     (OUT/'sample.sql').write_text(sql(data,'prog_demo_sample'))
@@ -90,25 +112,43 @@ def main():
     manifest=[dict(path=p.relative_to(ROOT/'materials').as_posix(),sha256=hashlib.sha256(p.read_bytes()).hexdigest()) for p in sorted((ROOT/'materials').rglob('*')) if p.is_file() and p.relative_to(ROOT/'materials').parts[0] in ('original','resources')]
     write_json(ROOT/'docs/source-manifest.json',manifest)
     variants=[]
-    for n in range(1,31):
-        v=copy.deepcopy(data)
-        for p in v['products']:p['price']=str(Decimal(p['price'])+Decimal(17*n));p['name']=f"{p['name']} · коллекция {n:02d}"
-        for s in v['stock']:s['available']=(s['id']+n)%18
-        for u in v['users']:u['login']=f"v{n:02d}_{u['login']}"
-        for i in v['items']:i['price']=str(Decimal(i['price'])+Decimal(17*n))
+    tasks=json.loads((OUT/'tasks.json').read_text(encoding='utf-8'))
+    for n, domain in enumerate(domains(OUT/'variant-domains.txt'),1):
+        title, _, unit, _, _, _, _ = domain
+        v=domain_data(data,domain,n)
+        cover_stock_boundaries(v)
         id=f'V{n:02d}';vdir=OUT/'variants'/id;vdir.mkdir(parents=True,exist_ok=True)
         write_json(vdir/'data.json',v)
         (vdir/'database.sql').write_text(sql(v,'prog_demo_'+id.lower()))
         write_json(ROOT/'docs/variant-controls'/f'{id}.json',control(v))
-        statement=f'''# Учебный вариант {n}\n\nМагазин «Чудо Обувь», коллекция {n:02d}. Создайте базу в 3НФ, каталог, оформление заказа и работу менеджера/администратора. Это авторский тренировочный вариант инвариантного ядра, не официальный вариант профильной вариативной части.\n\nИсходные данные находятся в data.json и шести CSV. database.sql — отдельный образец решения для сверки после самостоятельного выполнения; в экзаменационный ZIP он не включается. Используйте исходное руководство по стилю и изображения. Для контрольного расчёта дата 15.05.2026, для рабочего приложения — текущая дата. Вход только по логину.\n\n1. Импортируйте {len(v['products'])} модель, {len(v['stock'])} позиций, {len(v['users'])} пользователей и 10 заказов/30 строк. Сохраните ER PDF и SQL с данными.\n2. Покажите фото, категорию, название, производство, состав, цену со скидкой и «много/мало». Скидка 25% при отсутствии заказа в предыдущем календарном месяце; подсветка суммарного остатка ≤3.\n3. Реализуйте поиск по названию и описанию, фильтр категории и сортировку цены совместно без кнопки поиска. По логину выберите размер и количество, сформируйте несколько строк, подтвердите или отмените заказ. Остаток не может стать отрицательным.\n4. Менеджер и администратор работают со списком и составом заказов. Администратор дополнительно меняет дату и удаляет строки. Передайте исходники структурой, исполняемый результат, SQL с данными, ER PDF и README.\n'''
+        domain_materials(vdir,domain,RES/'picture.png')
+        client_login = next(user['login'] for user in v['users'] if user['login'].endswith('_asidorova'))
+        manager_login = next(user['login'] for user in v['users'] if user['login'].endswith('_papetrov'))
+        admin_login = next(user['login'] for user in v['users'] if user['login'].endswith('_isivanov'))
+        requirements = [task['text'] for task in tasks]
+        requirements[0] = requirements[0].replace('описанию «Чудо Обувь»',f'описанию предметной области «{title}»').replace('данные приложения 2','данные шести CSV')
+        requirements[1] = requirements[1].replace('по макету страницы 38','по макету в руководстве по стилю').replace('Соблюдайте стиль приложения 3.', 'Используйте иллюстрации и заглушку из папки «Ресурсы».')
+        details = [
+            f'Исходные данные: {len(v["products"])} модель, {len(v["stock"])} размерные позиции, {len(v["users"])} пользователей, {len(v["orders"])} заказов и {len(v["items"])} товарных строк.',
+            'Суммарные остатки считайте по всем размерам модели.',
+            f'Для проверки используйте логин клиента {client_login}.',
+            f'Для проверки используйте логины {manager_login} и {admin_login}.',
+        ]
+        heading=f'# {id} · {title}'
+        intro=f'Учебный вариант базового уровня. Размер модели задаётся числом ({unit}).'
+        inputs='В ZIP входят описание предметной области, руководство по стилю, data.json и шесть CSV с одними и теми же исходными данными. Для сверки скидки используйте 15.05.2026. Для обычной работы используйте текущую дату.'
+        numbered='\n'.join(f'{index}. {text} {detail}' for index,(text,detail) in enumerate(zip(requirements,details),1))
+        statement=f'{heading}\n\n{intro}\n\n{inputs}\n\n{numbered}\n'
         (vdir/'Задание.md').write_text(statement)
         import csv
         for name in ['products','stock','sizes','users','orders','items']:
             values=v[name]
             if name=='sizes':values=[dict(size=x) for x in values]
             with (vdir/(name+'.csv')).open('w',newline='',encoding='utf-8-sig') as f:
-                writer=csv.DictWriter(f,fieldnames=values[0]);writer.writeheader();writer.writerows(values)
-        variants.append(dict(id=id,title=f'Коллекция {n:02d}',database='prog_demo_'+id.lower(),counts={k:len(v[k]) for k in ['products','stock','users','orders','items']}))
+                writer=csv.DictWriter(f,fieldnames=values[0],lineterminator='\n');writer.writeheader();writer.writerows(values)
+        variants.append(dict(id=id,title=title,database='prog_demo_'+id.lower(),counts={k:len(v[k]) for k in ['products','stock','users','orders','items']}))
+    if len(variants)!=30 or len({item['title'] for item in variants})!=30:
+        raise ValueError('Нужны 30 разных предметных областей')
     write_json(OUT/'variants.json',variants)
     print('Prepared original sample and 30 coherent author variants.')
 
