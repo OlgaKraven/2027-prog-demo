@@ -50,7 +50,7 @@ function overview() {
         <li>Базовый уровень</li><li><span>Время экзамена</span> <time datetime="PT3H30M">3 ч 30 мин</time></li>
       </ul>
       <p class="lead">В четырёх заданиях вы спроектируете базу данных, создадите каталог обуви и реализуете оформление заказов и работу с ними.</p>
-      <div class="button-row">${btn('Открыть маршрут обучения →','data-mode="learn"',true)}${btn('Материалы задания','id="materials-open"')}</div>
+      <div class="button-row">${btn('Открыть маршрут обучения →','data-mode="learn"',true)}</div>
     </div>
     <div class="banner-mascot"><img src="mascot-exam.png" width="680" height="680" alt="Носорог-студент готовится к демоэкзамену"></div>
   </section>${criteria()}`;
@@ -150,36 +150,34 @@ const materialDocuments = [
   {name:'Руководство по стилю',path:'materials/style-guide.html'}
 ];
 const materialWorkbooks = sourceWorkbooks.map(name=>({name,path:'materials/resources/'+name}));
-const materialDownload = '<a class="btn" href="downloads/task-inputs.zip" download>Скачать исходные файлы · ZIP</a>';
-function stageMaterials(stageId) {
+const materialDownload = {name:'Скачать исходные файлы · ZIP',path:'downloads/task-inputs.zip',download:true};
+function stageMaterials(stageId,training=false) {
   const [condition,description,style]=materialDocuments;
   const taskCondition = (number,page)=>({...condition,name:'Условие задания '+number+' · КИМ',page});
   return {
-    documents:[materialDocuments,materialWorkbooks],
-    M1:[[taskCondition(1,35),description],materialWorkbooks],
-    M2:[[taskCondition(2,37),style],[]],
-    M3:[[taskCondition(3,39)],materialWorkbooks.filter(file=>file.name==='Users_import.xlsx')],
-    M4:[[taskCondition(4,41)],[]]
+    documents:[condition,materialDownload],
+    M1:[taskCondition(1,35),description,...materialWorkbooks,...(training?[materialDownload]:[])],
+    M2:[taskCondition(2,37),style],
+    M3:[taskCondition(3,39),...(training?materialWorkbooks.filter(file=>file.name==='Users_import.xlsx'):[])],
+    M4:[taskCondition(4,41)]
   }[stageId];
 }
 function lessonBrief(lesson) {
   const task = D.tasks.find(entry=>entry.id===lesson.id);
   return `<div class="lesson-brief">
+    ${assignmentFiles(stageMaterials(lesson.id))}
     <p>${E(task?.text||preparation)}</p>
-    <section class="lesson-files"><h3>Материалы задания</h3>
-      ${materialReader(...stageMaterials(lesson.id))}
-      ${['documents','M1','M2'].includes(lesson.id)?`<div class="button-row">${materialDownload}</div>`:''}
-    </section>
     ${task?stageResult(lesson):''}
     ${btn(savedLessonStep(lesson.id)===null?'Перейти к шагам →':stepIndex(lesson)===lesson.steps.length?'Что сохранить →':'Продолжить с шага '+(stepIndex(lesson)+1)+' →','data-lesson-view="steps"',true)}
   </div>`;
 }
-function materialReader(documents,workbooks=[]) {
-  const choices=(files)=>`<div class="material-choices">${files.map(({name,path,page})=>
-    btn(E(name),`data-material-path="${E(path)}" data-page="${page||''}" aria-pressed="false"`)).join('')}</div>`;
+function assignmentFiles(files) {
+  return `<section class="lesson-files"><h3>Материалы задания</h3>${materialReader(files)}</section>`;
+}
+function materialReader(files) {
   return `<div class="material-reader">
-    ${documents.length?choices(documents):''}
-    ${workbooks.length?`<details class="material-workbooks"><summary>Исходные таблицы Excel</summary>${choices(workbooks)}</details>`:''}
+    <ul class="material-list">${files.map(({name,path,page,download})=>
+      `<li><a href="${E(path+(page?'#page='+page:''))}" ${download?'download':`data-material-path="${E(path)}" data-page="${page||''}"`}>${E(name)}</a></li>`).join('')}</ul>
     <div class="material-preview" data-material-preview></div>
   </div>`;
 }
@@ -198,11 +196,14 @@ function drawMaterial(preview,{name,path,page},showTitle=true) {
 }
 function bindMaterialReaders(container) {
   container.querySelectorAll('.material-reader').forEach(reader=>{
-    const buttons=reader.querySelectorAll('[data-material-path]');
-    buttons.forEach(button=>button.onclick=()=>{
-      buttons.forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
+    const links=reader.querySelectorAll('[data-material-path]');
+    links.forEach(anchor=>anchor.onclick=event=>{
+      if(event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+      event.preventDefault();
+      links.forEach(item=>item.removeAttribute('aria-current'));
+      anchor.setAttribute('aria-current','true');
       const preview=reader.querySelector('[data-material-preview]');
-      drawMaterial(preview,{name:button.textContent,path:button.dataset.materialPath,page:button.dataset.page});
+      drawMaterial(preview,{name:anchor.textContent,path:anchor.dataset.materialPath,page:anchor.dataset.page});
       preview.querySelector('h4').focus();
     });
   });
@@ -240,7 +241,7 @@ const lessonScenarios = {
 function lessonHelp(lesson) {
   const database=lesson.id==='M1';
   const scenarios=lessonScenarios[lesson.id].map(([title,answer])=>
-    `<details><summary>${E(title)}</summary><p>${E(answer)}</p></details>`).join('');
+    `<section><h4>${E(title)}</h4><p>${E(answer)}</p></section>`).join('');
   const topics=[
     ['summary','Объяснение',database
       ? '<h3>От исходных книг к базе</h3><p>Сначала спроектируйте связи и создайте десять таблиц в DBeaver. Затем импортёр C# читает пять исходных XLSX или шесть CSV учебного варианта и готовит data.sql. Выполните этот файл на пустой схеме, сверьте данные и сохраните SQL и ER в PDF.</p>'
@@ -347,7 +348,6 @@ function learn() {
           btn(title,`data-lesson-view="${id}" ${id===learningView?'aria-current="page"':''}`)).join('')}
       </nav>
       ${learningView==='brief' ? lessonBrief(lesson) : learningView==='help' ? lessonHelp(lesson) : `
-        ${stage==='documents'?`<div class="button-row">${btn('Материалы задания','id="materials-open"')}</div>`:''}
         <article class="study-step" aria-labelledby="lesson-step-title">
           <header class="step-heading">
             <h3 id="lesson-step-title" tabindex="-1"><span class="lesson-step-number" aria-label="Шаг ${index+1} из ${lesson.steps.length+1}">${index+1}</span><span>${E(step?.title||lessonResultTitle)}</span></h3>
@@ -415,10 +415,9 @@ function conditionParagraphs(text) {
   return text.split(/(?<=[.!?])\s+(?=[А-ЯЁ])/u).map(line=>`<p>${E(line)}</p>`).join('');
 }
 function trainingSample() {
-  const dialog=modal('Условие КИМ и приложения',`<div class="practice-condition"><p>Краткое описание четырёх заданий «Чудо Обувь». Полные формулировки доступны в КИМ.</p>
+  modal('Условия четырёх заданий',`<div class="practice-condition"><p>Краткое описание четырёх заданий «Чудо Обувь». Полные формулировки доступны в КИМ.</p>
     ${D.tasks.map((task,i)=>`<section><h3>Задание ${i+1}. ${E(task.title)}</h3>${conditionParagraphs(task.text)}</section>`).join('')}
-    ${materialReader(materialDocuments,materialWorkbooks)}<div class="button-row">${materialDownload}</div></div>`);
-  bindMaterialReaders(dialog);
+    </div>`);
 }
 function variantBrief(entry,index) {
   const lines=D.variantBriefs[entry.id].split(/\r?\n/).filter(line=>line.trim()&&!line.startsWith('# '));
@@ -442,8 +441,9 @@ function practice() {
   const taskCard = `<article class="training-task">
     <h2>${E(task.title)}</h2>
     <p class="task-meta">Задание ${index+1} · ${task.minutes} мин${mock?' · '+entry.id+' · '+E(entry.title):''}</p>
+    ${mock?'':assignmentFiles(stageMaterials(task.id,true))}
     <section class="practice-condition"><h3>Условие задания</h3>${conditionParagraphs(mock?D.variantTasks[entry.id][index]:task.text)}</section>
-    ${mock?'':`<div class="task-support">${btn('Материалы задания','id="training-task-materials" aria-haspopup="dialog"')}${locked?'':btn('Подсказка к заданию',`data-help="${task.id}"`)}</div>`}
+    ${mock||locked?'':`<div class="task-support">${btn('Подсказка к заданию',`data-help="${task.id}"`)}</div>`}
     <section class="self-check training-checklist" aria-labelledby="training-check-title">
       <header><h3 id="training-check-title">Самопроверка</h3><span id="training-check-count" aria-live="polite">${checked.filter(Boolean).length} из ${checked.length}</span></header>
       ${task.checks.map((text,i)=>`<label><input type="checkbox" data-check="${task.id}:${i}" ${locked?'disabled':''} ${checked[i]?'checked':''}>${E(text)}</label>`).join('')}
@@ -453,7 +453,7 @@ function practice() {
   return `<section class="training-page practice-page training-compact ${mock?'mock-exam':''}">
     <header class="workspace-intro">
       <div><h1>${mock?'Пробный экзамен':'Тренировка'}</h1><p>${mock?'30 учебных вариантов · 4 задания · 75 баллов':'«Чудо Обувь» · официальный образец КИМ'}</p></div>
-      ${!mock&&status!=='paused'?btn('Условие КИМ и приложения','id="training-sample" aria-haspopup="dialog"'):''}
+      ${!mock&&status!=='paused'?btn('Условия четырёх заданий','id="training-sample" aria-haspopup="dialog"'):''}
     </header>
     <div class="attempt-layout">
       ${timerBox(attempt,index,mock)}
@@ -565,11 +565,6 @@ function modal(title,html='',extra=''){const d=document.createElement('dialog');
 function showMaterial(file) {
   const dialog=modal(file.name,'<div class="material-preview"></div>');
   drawMaterial(dialog.querySelector('.material-preview'),file,false);
-}
-function materials(stageId='documents') {
-  const dialog=modal('Материалы задания',`${materialReader(...stageMaterials(stageId))}
-    ${['documents','M1','M2'].includes(stageId)?`<div class="button-row">${materialDownload}</div>`:''}`);
-  bindMaterialReaders(dialog);
 }
 function tour(kind='site'){const steps=kind==='lesson'?['Выберите этап в навигации. Чтобы посмотреть весь путь, вернитесь к карте обучения.','Прочитайте «Как это понять», выполните самостоятельные действия и проверьте результат.','Полный файл для сверки раскрывается отдельно. Не заменяйте разбор простым копированием.','Шаг и отметка самостоятельного выполнения сохраняются в этом браузере.']:['Обучение ведёт от исходных данных к работающей программе.','Тренировка использует официальный образец и позволяет поставить работу на паузу.','Пробный экзамен содержит 30 авторских комплектов с отдельными попытками и непрерывным временем.','В примерах доступны исходный код и ER, преподавателю — показ актуальных учебных шагов.'];let i=0;const d=modal('Гид по курсу','','course-tour');function draw(){d.querySelector('.modal-body').innerHTML=`<p class="section-code">${i+1} / ${steps.length}</p><p>${E(steps[i])}</p><div class="button-row">${btn('Назад',`id="tour-prev" ${i===0?'disabled':''}`)}${btn(i===steps.length-1?'Готово':'Далее','id="tour-next"',true)}</div>`;d.querySelector('#tour-prev').onclick=()=>{i--;draw();};d.querySelector('#tour-next').onclick=()=>{if(i===steps.length-1)d.close();else{i++;draw();}};}draw();}
 function er(workspace) {
@@ -879,8 +874,6 @@ function bind() {
     render();
     document.getElementById('theme').focus({preventScroll:true});
   });
-  on('materials-open',()=>materials());
-  on('training-task-materials',()=>materials(D.tasks[practiceIndex()].id));
   on('step-related-file',()=>{
     const path=current().steps[stepIndex()].relatedFile;
     showMaterial({name:path.split('/').pop(),path});

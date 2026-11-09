@@ -18,8 +18,8 @@ for(const width of [390,768,1440])for(const dark of [false,true]){
  });
  assert.deepEqual(layout,{sideBySide:width>760,stageColumns:1,markerWidth:48});
  await page.getByRole('button',{name:'Открыть подготовку →'}).click();
- assert.equal(await page.locator('.lesson-files [data-material-path]').count(),8);
- await page.getByRole('button',{name:'Задания базового уровня · КИМ'}).click();
+ assert.equal(await page.locator('.lesson-files .material-list a').count(),2);
+ await page.getByRole('link',{name:'Задания базового уровня · КИМ'}).click();
  assert.match(await page.locator('.lesson-files iframe').getAttribute('src'),/#page=35$/);
  assert.equal(await page.getByText(/Метод_рекомендации|Создание базы в DBeaver/).count(),0);
  assert(await page.getByRole('link',{name:'Скачать исходные файлы · ZIP'}).isVisible());
@@ -27,6 +27,7 @@ for(const width of [390,768,1440])for(const dark of [false,true]){
  await page.getByRole('button',{name:'К маршруту обучения'}).click();
  assert(await page.getByRole('button',{name:'Продолжить с шага 1 →'}).isVisible());
  await go('learn');await shot('learn');
+ assert.equal(await page.locator('.study-step .material-list, #materials-open').count(),0);
  const stages=await page.evaluate(()=>COURSE.stages.map(s=>({id:s.id,count:s.steps.length})));
  for(const s of stages){
   await go('learn',s.id);
@@ -43,15 +44,14 @@ for(const width of [390,768,1440])for(const dark of [false,true]){
  await go('mock');assert.equal(await page.locator('[data-timer=pause]').count(),0);assert.equal(await page.locator('#variant option').count(),30);await shot('mock','.attempt-layout');
  await page.goto('http://127.0.0.1:4209/?mode=learn&module=M1&view=brief');
  assert.equal(await page.locator('.lesson-files [data-material-path]').count(),7);
- assert.equal(await page.getByRole('button',{name:'Руководство по стилю'}).count(),0);
- await page.getByText('Исходные таблицы Excel',{exact:true}).click();
- await page.getByRole('button',{name:'Products_import.xlsx',exact:true}).click();
+ assert.equal(await page.getByRole('link',{name:'Руководство по стилю'}).count(),0);
+ await page.getByRole('link',{name:'Products_import.xlsx',exact:true}).click();
  assert.equal(await page.locator('.material-table tbody tr').count(),5);
  assert(await page.getByText('Первые 5 записей из 31.').isVisible());
  assert.equal(context.pages().length,1);
  await page.getByRole('button',{name:'Справка',exact:true}).click();
  await page.getByRole('tab',{name:'Ситуации'}).click();
- await page.getByText('Импорт останавливается на request_id',{exact:true}).click();
+ assert.equal(await page.locator('.lesson-situations details').count(),0);
  assert(await page.getByText(/снимите Not Null/).isVisible());
  await page.getByRole('button',{name:'Шаги',exact:true}).click();
  await page.locator('#lesson-steps').click();await page.getByRole('button',{name:'Свяжите таблицы внешними ключами',exact:true}).click();
