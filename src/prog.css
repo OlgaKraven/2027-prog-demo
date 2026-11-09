@@ -643,3 +643,44 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
 .example-instructions :is(p,li) { max-width: 75ch; }
 .example-instructions h2 { font-size: var(--text-section); }
 .example-instructions li + li { margin-top: 8px; }
+
+.material-reader { min-width: 0; }
+.material-reader label { display: grid; gap: 6px; max-width: 34rem; }
+.material-reader select, .er-step-controls select { width: 100%; min-width: 0; }
+.material-preview:not(:empty) { margin-block: 16px 22px; }
+.material-preview-head, .er-workspace-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+.material-preview-head h4, .er-workspace-heading h3 { margin: 0; }
+.material-table { overflow: auto; max-height: 24rem; }
+.material-table table { border-collapse: collapse; min-width: max-content; }
+.material-table :is(th,td) { border: 1px solid var(--workspace-line); padding: 7px 10px; text-align: left; max-width: 27ch; }
+.material-table th { background: var(--soft); }
+.material-preview iframe, .step-guide iframe { width: 100%; height: clamp(22rem, 62vh, 46rem); border: 1px solid var(--workspace-line); display: block; margin-top: 10px; background: white; }
+.step-guide { margin: 14px 0; }
+.lesson-views .btn[aria-selected="true"], .er-controls .btn[aria-pressed="true"] { color: var(--red); border-bottom-color: var(--red); }
+.lesson-situations details { border-top: 1px solid var(--workspace-line); padding: 10px 0; }
+.lesson-situations p { margin: 8px 0 3px; max-width: 72ch; }
+.database-terms dt { font-weight: 700; }
+.database-terms dd { margin: 0 0 10px; }
+.lesson-reason { margin-block: 16px; }
+.er-workspace { border: 1px solid var(--workspace-line); border-radius: 12px; padding: clamp(12px,2vw,18px); margin-block: 20px; }
+.er-workspace-heading { margin-bottom: 12px; }
+.er-controls { align-items: center; }
+.er-controls .btn { margin: 0; white-space: normal; }
+.er-step-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 14px; margin-bottom: 12px; }
+.er-step-controls label { display: grid; gap: 5px; flex: 1 1 15rem; min-width: 0; }
+.er-step-buttons { display: flex; align-items: center; gap: 9px; }
+.er-step-buttons .btn { margin: 0; }
+.er-workspace .er-grid { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 12px; }
+.er-workspace .er-origin { margin: 0; white-space: normal; }
+.er-workspace .er-origin h4 { margin: 0; }
+.er-empty { padding: 18px; background: var(--soft); border-radius: 12px; }
+.er-live-diagram { max-height: 64vh; }
+.er-live-diagram svg [role="button"] { cursor: pointer; }
+.er-live-diagram svg [role="button"]:focus,
+.er-live-diagram svg [aria-pressed="true"] { fill: #a20e24; text-decoration: underline; }
+.er-expanded { width: min(96vw, 1200px); padding: 0; }
+.er-expanded .er-workspace { margin: 0; border: 0; }
+@media (max-width: 720px) { .er-workspace .er-grid { grid-template-columns: minmax(0,1fr); } }
+.er-zoom-controls { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.er-zoom-controls .btn { margin: 0; }
+.er-live-diagram svg { max-width: none; }

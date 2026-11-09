@@ -107,6 +107,11 @@ def cover_stock_boundaries(data):
 
 def main():
     data=prepare();write_json(OUT/'sample.json',data)
+    previews = {}
+    for path in sorted(RES.glob('*.xlsx')):
+        rows = xlsx_rows(path)
+        previews[path.name] = {'columns': list(rows[0]), 'rows': rows[:5], 'total': len(rows)}
+    write_json(OUT/'workbooks.json', previews)
     (OUT/'sample.sql').write_text(sql(data,'prog_demo_sample'))
     write_json(ROOT/'docs/sample-control.json',control(data))
     manifest=[dict(path=p.relative_to(ROOT/'materials').as_posix(),sha256=hashlib.sha256(p.read_bytes()).hexdigest()) for p in sorted((ROOT/'materials').rglob('*')) if p.is_file() and p.relative_to(ROOT/'materials').parts[0] in ('original','resources')]

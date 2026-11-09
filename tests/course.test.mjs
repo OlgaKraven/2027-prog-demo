@@ -55,7 +55,7 @@ test('all exam downloads are complete and cover the stock and discount boundarie
   assert(variantSchema.includes(schema));
   assert.deepEqual(Object.fromEntries(Object.entries(data).map(([key,rows])=>[key,rows.length])),
     Object.fromEntries(Object.entries(sample).map(([key,rows])=>[key,rows.length])));
-  const brief=files.get('Задание.md').toString();
+  const brief=files.get('Задание.md').toString().replaceAll('\r\n','\n');
   assert(brief.startsWith(`# ${variant.id} · ${variant.title}\n`));
   assert(!brief.includes('Чудо Обувь'));
   const lines=Array.from(brief.matchAll(/^[1-4]\. (.+)$/gm),match=>match[1]);

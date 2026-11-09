@@ -58,5 +58,25 @@
   "stock-race": {
     "file": "materials/screens/stock-race.png",
     "caption": "Приложение отклоняет заказ после изменения остатка в отдельной учебной базе."
+  },
+  "db-connection": {
+    "file": "materials/screens/dbeaver-connection-test.png",
+    "caption": "Успешная проверка подключения к MariaDB в DBeaver."
+  },
+  "db-create-table": {
+    "file": "materials/screens/dbeaver-create-table-menu.png",
+    "caption": "Откройте Create New Table в папке Tables своей базы."
+  },
+  "db-import-report": {
+    "file": "materials/screens/vs-import-result.png",
+    "caption": "После запуска импортёра проверьте сводку и полученный data.sql."
+  },
+  "db-import-dialog": {
+    "file": "materials/screens/dbeaver-script-confirmation.png",
+    "caption": "Подтвердите выполнение всего скрипта после выбора подключения."
+  },
+  "db-er-result": {
+    "file": "materials/screens/dbeaver-er.png",
+    "caption": "Готовая ER-диаграмма из DBeaver с таблицами, полями и связями."
   }
 }

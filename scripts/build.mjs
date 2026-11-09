@@ -33,7 +33,7 @@ for (const [file,source] of Object.entries(code)) {
 const variants=read('content/variants.json'),variantBriefs={},variantTasks={},variantArchives={};
 for (const {id} of variants) {
   const dir='content/variants/'+id, files={};
-  variantBriefs[id]=fs.readFileSync(dir+'/Задание.md','utf8');
+  variantBriefs[id]=fs.readFileSync(dir+'/Задание.md','utf8').replaceAll('\r\n','\n');
   const numbered=[...variantBriefs[id].matchAll(/^([1-4])\. (.+)$/gm)];
   if (numbered.length!==tasks.length||numbered.some((match,index)=>Number(match[1])!==index+1)) {
     throw new Error('Неверная нумерация заданий варианта '+id);
@@ -59,7 +59,7 @@ fs.writeFileSync(out+'/downloads/prog-demo-example.zip',ExamCore.zip(example));
 fs.rmSync(out+'/downloads/prog-demo-windows.zip',{force:true});
 const screens=fs.existsSync('content/screens.json')?read('content/screens.json'):{};
 const launchGuide=fs.readFileSync('docs/launch.html','utf8').match(/<body>\s*<h1>.*?<\/h1>([\s\S]*?)<\/body>/i)[1];
-const data={launchGuide,stages,tasks,criteria,variants,variantBriefs,variantTasks,code,originals,windowsBuild:!!release,kim:'materials/original/КИМ 09.02.07-2-2027 Том 1.pdf',er:read('content/er.json'),erSvg:fs.readFileSync('materials/ER.svg','utf8'),screens};
+const data={workbooks:read('content/workbooks.json'),launchGuide,stages,tasks,criteria,variants,variantBriefs,variantTasks,code,originals,windowsBuild:!!release,kim:'materials/original/КИМ 09.02.07-2-2027 Том 1.pdf',er:read('content/er.json'),erSvg:fs.readFileSync('materials/ER.svg','utf8'),screens};
 fs.writeFileSync(out+'/content.js','globalThis.COURSE='+JSON.stringify(data)+';');
 const slides = [{kind:'cover',chapter:'intro',title:'Демонстрационный экзамен'}];
 const chapters = [{id:'intro',label:'Демонстрационный экзамен',index:0}];

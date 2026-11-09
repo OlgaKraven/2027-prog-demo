@@ -141,23 +141,137 @@ function lessonBrief(lesson) {
   const task = D.tasks.find(entry=>entry.id===lesson.id);
   return `<div class="lesson-brief">
     <p>${E(task?.text||preparation)}</p>
-    ${task ? stageResult(lesson) : `<section class="lesson-files"><h3>Исходные документы</h3>
-      <ul>${sourceWorkbooks.map(name=>`<li><a href="materials/resources/${E(name)}" download>${E(name)}</a></li>`).join('')}</ul>
+    ${lesson.id==='M1'?`<section class="lesson-files"><h3>Приложения и примеры</h3>${materialReader(databaseMaterials())}</section>${stageResult(lesson)}`:task ? stageResult(lesson) : `<section class="lesson-files"><h3>Исходные документы</h3>
+      <ul>${sourceWorkbooks.map(name=>`<li><a href="materials/resources/${E(name)}" data-workbook="${E(name)}">${E(name)}</a></li>`).join('')}</ul>
     </section>`}
-    <div class="button-row">${link('КИМ · PDF',D.kim+'#page=35')}<a class="btn" href="downloads/original-inputs.zip" download>Приложения · ZIP</a></div>
+    <div class="button-row">${lesson.id==='M1'?'':btn('Материалы задания','id="materials-open"')}<a class="btn" href="downloads/original-inputs.zip" download>Приложения · ZIP</a></div>
     ${btn(get('step:'+lesson.id)===null?'Перейти к шагам →':stepIndex(lesson)===lesson.steps.length?'Что сохранить →':'Продолжить с шага '+(stepIndex(lesson)+1)+' →','data-lesson-view="steps"',true)}
   </div>`;
 }
-function lessonHelp(lesson) {
-  return `<div class="lesson-help">
-    <h3>Как пройти этап</h3>
-    <p>Читайте объяснение, выполните действия в указанном порядке и проверьте результат. Код и снимки открываются в соответствующих шагах.</p>
-    ${stageResult(lesson)}
-    <div class="button-row">${btn('Материалы задания','id="materials-open"')}${btn('Гид по разбору','data-guide="lesson"')}</div>
+const databaseMaterials = () => [
+  {name:'Условие КИМ · задание 1', path:D.kim, page:35},
+  ...sourceWorkbooks.map(name=>({name,path:'materials/resources/'+name})),
+  {name:'Описание предметной области',path:'materials/description.html'},
+  {name:'Создание базы в DBeaver',path:'docs/DBeaver.html'},
+  {name:'Перечень полей и ключей',path:'docs/Database-fields.html'},
+  {name:'Подготовка данных в C#',path:'docs/Import.html'},
+  {name:'ER готового примера',path:'materials/ER.pdf'}
+];
+function materialReader(files) {
+  return `<div class="material-reader">
+    <label>Материал<select data-material-choice><option value="">Выберите документ</option>${files.map(({name,path,page})=>
+      `<option value="${E(path)}" data-page="${page||''}">${E(name)}</option>`).join('')}</select></label>
+    <div class="material-preview" data-material-preview aria-live="polite"></div>
   </div>`;
 }
+function bindMaterialReaders(container) {
+  container.querySelectorAll('.material-reader').forEach(reader=>{
+    const select=reader.querySelector('[data-material-choice]');
+    const preview=reader.querySelector('[data-material-preview]');
+    const draw=()=>{
+      const path=select.value;
+      if(!path){preview.replaceChildren();return;}
+      const option=select.selectedOptions[0], name=option.textContent, page=option.dataset.page;
+      const workbook=D.workbooks[path.split('/').pop()];
+      const source=path+(page?'#page='+page:'');
+      const body=workbook? `<p>Первые ${workbook.rows.length} записей из ${workbook.total}.</p>
+        <div class="material-table" tabindex="0" aria-label="Данные книги"><table>
+        <thead><tr>${workbook.columns.map(column=>`<th scope="col">${E(column)}</th>`).join('')}</tr></thead>
+        <tbody>${workbook.rows.map(row=>`<tr>${workbook.columns.map(column=>`<td>${E(row[column]??'')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`
+        : /\.(html|pdf)$/.test(path)?`<iframe src="${E(source)}" title="${E(name)}" loading="lazy"></iframe>`:'';
+      preview.innerHTML=`<div class="material-preview-head"><h4>${E(name)}</h4>
+        <a href="${E(path)}" download>Скачать файл</a></div>${body}`;
+    };
+    select.onchange=draw;
+    draw();
+  });
+}
+const lessonScenarios = {
+  documents: [
+    ['DBeaver запустился, но подключение не проходит','Убедитесь, что сервер MySQL или MariaDB запущен. Сверьте адрес и порт сервера с настройками подключения. DBeaver сам сервер не запускает.'],
+    ['В архиве несколько папок и ZIP','Распакуйте и внешний комплект, и вложенный архив приложения. Найдите пять книг *_import.xlsx. Отдельно сохраните исходники и папку своего решения.'],
+    ['Неясно, где вводить пароль','Реквизиты СУБД нужны для подключения к базе. Покупатель входит в «Чудо Обувь» по учебному логину.']
+  ],
+  M1: [
+    ['DBeaver пишет Connection refused','Проверьте, запущен ли сервер, и возьмите порт из его настроек. В учебной среде встречаются 3306 и 3307. Снова нажмите Test Connection.'],
+    ['Таблица осталась NewTable или с другой кодировкой','Задайте имя, нажмите Tab и сверьте заголовок вкладки. В SQL Preview проверьте свою базу и DEFAULT CHARSET=utf8mb4. При отличии нажмите Cancel и поправьте свойства.'],
+    ['Внешний ключ ссылается на другую таблицу','Фильтр categories показывает и subcategories. Выделите точную таблицу categories, выберите PRIMARY и сопоставьте category_id с id. Проверьте оба имени в SQL Preview.'],
+    ['Импорт останавливается на request_id','У исторических заказов нет номера запроса. Откройте orders.request_id в редакторе столбца, снимите Not Null и проверьте изменение перед Execute. После ошибки прервите сценарий и выполните ROLLBACK в том же подключении.'],
+    ['Не найдена модель для строки остатка','Сверьте наименование и производителя в обеих книгах. Импортёр нормализует пробелы и явно сопоставляет сокращение для «Барбари». Посмотрите отчёт и устраните неоднозначность до повторного запуска.'],
+    ['Из Excel получилось 30 заказов','Строки одной покупки повторяют номер. В orders нужен один заголовок на номер, а в order_items — отдельная строка на каждую позицию. В образце 10 заголовков и 30 строк.']
+  ],
+  M2: [
+    ['Каталог пуст или не открывается','Проверьте имя учебной базы и результат SELECT COUNT(*) FROM products. Сверьте строку подключения и убедитесь, что импорт завершился COMMIT.'],
+    ['Вместо фотографии пустое место','Сравните products.image с точным именем файла в Assets/Images. Проверьте, что каталог ресурсов копируется в выходную папку и используется заглушка picture.png.'],
+    ['Скидка не совпадает со сверкой','Используйте контрольную дату 15.05.2026. Сравните продажи именно предыдущего календарного месяца и расчёт для выбранной модели.']
+  ],
+  M3: [
+    ['Покупатель не может войти','Возьмите логин из Users_import.xlsx, например asidorova. Используйте точное написание. Реквизиты СУБД вводятся в другом окне.'],
+    ['У модели нет выбранного размера','Откройте карточку и проверьте складскую позицию с нужным size_id. Для добавления доступен только размер с положительным остатком.'],
+    ['После подтверждения остаток изменился неожиданно','Сверьте остаток конкретного размера до и после подтверждения. Если одна позиция недоступна, проверьте откат всей покупки.']
+  ],
+  M4: [
+    ['У менеджера нет кнопки «Изменить дату»','Это действие администратора. Откройте один заказ сначала как papetrov, потом как isivanov и сравните окна.'],
+    ['При смене роли появляется предупреждение','Если в корзине есть тестовые позиции, программа спрашивает об очистке. Подтвердите только после проверки корзины или завершения учебного заказа.'],
+    ['EXE работает только рядом с исходниками','Перенесите всю папку Release с DLL и Assets. Восстановите SQL в отдельной базе и запустите EXE из скопированной папки.']
+  ]
+};
+function lessonHelp(lesson) {
+  const database=lesson.id==='M1';
+  const scenarios=lessonScenarios[lesson.id].map(([title,answer])=>
+    `<details><summary>${E(title)}</summary><p>${E(answer)}</p></details>`).join('');
+  const topics=[
+    ['summary','Объяснение',database
+      ? '<h3>От исходных книг к базе</h3><p>Сначала спроектируйте связи и создайте десять таблиц в DBeaver. Затем импортёр C# читает пять исходных XLSX или шесть CSV учебного варианта и готовит data.sql. Выполните этот файл на пустой схеме, сверьте данные и сохраните SQL и ER в PDF.</p>'
+      : '<h3>Как пройти этап</h3><p>Откройте «Условие и файлы», затем выполняйте шаги по порядку. Перед переходом к следующему действию сверьте ожидаемый результат.</p>'],
+    ...(database?[
+      ['example','Пример','<h3>Одна модель, несколько остатков</h3><p>Если у кроссовок есть размеры 19 и 20, название, фото, состав и цена хранятся в одной строке products. В sizes есть два значения размера. В stock_items — две строки с собственным остатком. Если покупатель заказал размер 19, order_items ссылается именно на эту складскую позицию.</p>'],
+      ['terms','Термины','<h3>Ключи и ограничения</h3><dl class="database-terms"><dt>PK</dt><dd>Однозначно определяет строку.</dd><dt>FK</dt><dd>Ссылается на существующую строку другой таблицы.</dd><dt>UNIQUE</dt><dd>Запрещает вторую складскую позицию с той же парой product_id и size_id.</dd><dt>COMMIT и ROLLBACK</dt><dd>Подтверждают или отменяют транзакцию импорта.</dd></dl>']
+    ]:[]),
+    ['errors','Ситуации',`<h3>Что делать, если возникла ошибка</h3><div class="lesson-situations">${scenarios}</div>`]
+  ];
+  return `<div class="lesson-help">
+    <div class="lesson-views help-topics" role="tablist" aria-label="Темы справки">${topics.map(([id,title],index)=>btn(E(title),
+      `id="help-tab-${id}" role="tab" aria-controls="help-panel-${id}" aria-selected="${index===0}" tabindex="${index===0?0:-1}"`)).join('')}</div>
+    ${topics.map(([id,,html],index)=>`<section id="help-panel-${id}" role="tabpanel" aria-labelledby="help-tab-${id}" ${index?'hidden':''}>${html}</section>`).join('')}
+  </div>`;
+}
+function bindHelpTopics() {
+  const tabs=[...root.querySelectorAll('.help-topics [role="tab"]')];
+  function select(tab) {
+    for (const item of tabs) {
+      item.setAttribute('aria-selected',String(item===tab));
+      item.tabIndex=item===tab?0:-1;
+      document.getElementById(item.getAttribute('aria-controls')).hidden=item!==tab;
+    }
+    tab.focus();
+  }
+  tabs.forEach((tab,index)=>{
+    tab.onclick=()=>select(tab);
+    tab.onkeydown=event=>{
+      const target={ArrowLeft:tabs[(index+tabs.length-1)%tabs.length],ArrowRight:tabs[(index+1)%tabs.length],Home:tabs[0],End:tabs.at(-1)}[event.key];
+      if(target){event.preventDefault();select(target);}
+    };
+  });
+}
 function shot(s){const x=D.screens[s.shot||s.file];return x?`<figure class="microshot"><button class="image-open" data-image="${E(x.file)}" aria-label="Увеличить: ${E(x.caption)}"><img src="${E(x.file)}" alt="${E(x.caption)}" loading="lazy"></button><figcaption>${E(x.caption)}</figcaption></figure>`:'';}
-function explain(s){return `<section class="lesson-explanation"><h3>Как это понять</h3><p>${E(s.why)}</p><h3>Что сделать самостоятельно</h3><ol>${s.actions.map(a=>`<li>${E(a)}</li>`).join('')}</ol>${s.code?`<pre tabindex="0">${E(s.code)}</pre>`:''}${s.file?`<details><summary>Полный файл для сверки · ${E(s.file)}</summary><p>Сначала разберите действие и поля. Сверка показывает итоговый файл, включая последующие операции.</p><pre tabindex="0">${E(D.code[s.file]||'')}</pre></details>`:''}${s.guide?`<div class="button-row">${link(s.guide.title,s.guide.path)}</div>`:''}${shot(s)}<div class="step-result"><strong>Проверьте себя</strong><p>${E(s.check)}</p></div></section>`;}
+function explain(s,database=false) {
+  const reason=`<p class="lesson-reason"><strong>Зачем это нужно.</strong> ${E(s.why)}</p>`;
+  const guide=s.guide?(database?`<details class="step-guide"><summary>${E(s.guide.title)}</summary>
+    <iframe src="${E(s.guide.path)}" title="${E(s.guide.title)}" loading="lazy"></iframe></details>`:
+    `<div class="button-row">${link(s.guide.title,s.guide.path)}</div>`):'';
+  return `<section class="lesson-explanation">
+    ${database?'':`<h3>Как это понять</h3><p>${E(s.why)}</p>`}
+    <h3>${database?'Что сделать':'Что сделать самостоятельно'}</h3>
+    <ol>${s.actions.map(a=>`<li>${E(a)}</li>`).join('')}</ol>
+    ${s.erStep===undefined?'':btn('Построить ER-схему',`data-step="${s.erStep}"`)}
+    ${s.erWorkspace?'<section class="er-workspace" id="er-workspace" aria-label="Построение ER-схемы"></section>':''}
+    ${s.code?`<pre tabindex="0">${E(s.code)}</pre>`:''}
+    ${s.file?`<details><summary>Полный файл для сверки · ${E(s.file)}</summary><p>Сначала разберите действие и поля. Сверка показывает итоговый файл, включая последующие операции.</p><pre tabindex="0">${E(D.code[s.file]||'')}</pre></details>`:''}
+    ${database?shot(s)+guide:guide+shot(s)}
+    <div class="step-result"><strong>${database?'Как проверить результат':'Проверьте себя'}</strong><p>${E(s.check)}</p></div>
+    ${database?reason:''}</section>`;
+}
 const lessonResultTitle = 'Что сохранить';
 const stepIndex = (lesson=current()) => Math.max(0,Math.min(lesson.steps.length,get('step:'+lesson.id,0)));
 function stepArrow(index,previous,label) {
@@ -199,14 +313,13 @@ function learn() {
           btn(title,`data-lesson-view="${id}" ${id===learningView?'aria-current="page"':''}`)).join('')}
       </nav>
       ${learningView==='brief' ? lessonBrief(lesson) : learningView==='help' ? lessonHelp(lesson) : `
-        ${stage==='M1'?`<div class="button-row">${btn('Построить ER-схему','id="er-launch"')}</div>`:''}
         ${stage==='documents'?`<div class="button-row">${btn('Материалы задания','id="materials-open"')}</div>`:''}
         <article class="study-step" aria-labelledby="lesson-step-title">
           <header class="step-heading">
             <h3 id="lesson-step-title" tabindex="-1"><span class="lesson-step-number" aria-label="Шаг ${index+1} из ${lesson.steps.length+1}">${index+1}</span><span>${E(step?.title||lessonResultTitle)}</span></h3>
             ${btn('<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>','id="lesson-steps" aria-label="Все шаги" title="Все шаги" aria-haspopup="dialog"')}
           </header>
-          ${step?explain(step):`<div class="lesson-result">${stageResult(lesson)}</div>`}
+          ${step?explain(step,lesson.id==='M1'):`<div class="lesson-result">${stageResult(lesson)}</div>`}
           <div class="study-controls${step?'':' lesson-result-controls'}">
             ${index>0?stepArrow(index-1,true,'Предыдущий шаг'):''}
             ${step?stepArrow(index+1,false,index+1===lesson.steps.length?lessonResultTitle:'Следующий шаг'):`
@@ -423,9 +536,159 @@ function teacher() {
   </section>`;
 }
 function modal(title,html='',extra=''){const d=document.createElement('dialog');d.className='course-dialog '+extra;d.setAttribute('aria-label',title);d.innerHTML=`<header class="modal-head"><h2>${E(title)}</h2>${btn('Закрыть','data-close')}</header><div class="modal-body">${html}</div>`;document.body.append(d);d.querySelector('[data-close]').onclick=()=>d.close();d.addEventListener('close',()=>d.remove(),{once:true});d.showModal();return d;}
-function materials(){modal('Материалы задания',`<div class="artifact-list">${D.originals.map(f=>link(f.name,f.path)).join('')}${link('Описание предметной области','materials/description.html')}${link('Руководство по стилю','materials/style-guide.html')}${link('ER-схема','materials/ER.pdf')}</div><p>Официальный образец базового уровня. Учебные варианты находятся в разделе «Пробный экзамен».</p>`);}
+function materials(initial='') {
+  const docs=[...D.originals.map(file=>({...file,page:file.path===D.kim?35:undefined})),
+    ...databaseMaterials().filter(file=>file.path!==D.kim),
+    {name:'Руководство по стилю',path:'materials/style-guide.html'}];
+  const dialog=modal('Материалы задания',`${materialReader(docs)}
+    <p><a href="downloads/original-inputs.zip" download>Скачать исходный комплект ZIP</a></p>`);
+  if(initial)dialog.querySelector('[data-material-choice]').value='materials/resources/'+initial;
+  bindMaterialReaders(dialog);
+}
 function tour(kind='site'){const steps=kind==='lesson'?['Выберите этап в навигации. Чтобы посмотреть весь путь, вернитесь к карте обучения.','Прочитайте «Как это понять», выполните самостоятельные действия и проверьте результат.','Полный файл для сверки раскрывается отдельно. Не заменяйте разбор простым копированием.','Шаг и отметка самостоятельного выполнения сохраняются в этом браузере.']:['Обучение ведёт от исходных данных к работающей программе.','Тренировка использует официальный образец и позволяет поставить работу на паузу.','Пробный экзамен содержит 30 авторских комплектов с отдельными попытками и непрерывным временем.','В примерах доступны исходный код и ER, преподавателю — показ актуальных учебных шагов.'];let i=0;const d=modal('Гид по курсу','','course-tour');function draw(){d.querySelector('.modal-body').innerHTML=`<p class="section-code">${i+1} / ${steps.length}</p><p>${E(steps[i])}</p><div class="button-row">${btn('Назад',`id="tour-prev" ${i===0?'disabled':''}`)}${btn(i===steps.length-1?'Готово':'Далее','id="tour-next"',true)}</div>`;d.querySelector('#tour-prev').onclick=()=>{i--;draw();};d.querySelector('#tour-next').onclick=()=>{if(i===steps.length-1)d.close();else{i++;draw();}};}draw();}
-function er(){const all=D.er.tables.flatMap(t=>[{table:t,field:null},...t.fields.map(field=>({table:t,field}))]);let index=0,full=false;const d=modal('Построение схемы данных');function draw(){const x=all[index];const shown=full?D.er.tables:D.er.tables.slice(0,D.er.tables.indexOf(x.table)+1);d.querySelector('.modal-body').innerHTML=`<div class="er-controls">${btn('Поэтапное построение','id="er-steps"')}${btn('Готовая схема','id="er-full"')}${btn('Как читать схему','id="er-help"')}${link('Скачать ER · PDF','materials/ER.pdf')}</div>${full?`<div class="er-diagram">${D.erSvg}</div>`:''}<div class="er-grid"><div class="er-tables">${shown.map(t=>`<section class="er-card"><h3>${E(t.id)}</h3>${t.fields.filter((f,i)=>full||t!==x.table||(x.field&&i<=t.fields.indexOf(x.field))).map(f=>`<button class="er-field" data-origin="${t.id}.${f.id}">${f.pk?'PK ':f.fk?'FK ':''}${E(f.id)} <small>${E(f.type)}</small></button>`).join('')}</section>`).join('')}</div><aside class="er-origin" aria-live="polite"><h3>${E(x.table.id+(x.field?' · '+x.field.id:''))}</h3><p>${E(x.field?.origin||x.table.origin)}</p><p>PK — первичный ключ. FK — внешний ключ; каждая дочерняя строка ссылается на одну родительскую.</p>${D.er.links.filter(l=>l.source===x.table.id).map(l=>`<p>${E(l.field)} → ${E(l.target+'.'+l.key)} · N : 1</p>`).join('')}</aside></div><div class="button-row">${btn('← Назад',`id="er-prev" ${index===0?'disabled':''}`)}<span>${index+1} / ${all.length}</span>${btn('Далее →',`id="er-next" ${index===all.length-1?'disabled':''}`,true)}</div>`;d.querySelector('#er-prev').onclick=()=>{index--;draw();};d.querySelector('#er-next').onclick=()=>{index++;draw();};d.querySelector('#er-full').onclick=()=>{full=true;draw();};d.querySelector('#er-steps').onclick=()=>{full=false;draw();};d.querySelector('#er-help').onclick=()=>modal('Как читать ER','<p>Одна строка — одно поле. PK уникально определяет запись. FK хранит ключ связанной таблицы. Например, несколько строк заказа принадлежат одному заголовку: N : 1. Нажмите поле, чтобы увидеть источник; технический ID добавляет разработчик.</p>');d.querySelectorAll('[data-origin]').forEach(b=>b.onclick=()=>{const [t,f]=b.dataset.origin.split('.');index=all.findIndex(x=>x.table.id===t&&x.field?.id===f);draw();});}draw();}
+function er(workspace) {
+  const embedded=Boolean(workspace);
+  const dialog=embedded?null:modal('Построение ER-схемы','<section class="er-workspace" aria-label="Построение ER-схемы"></section>');
+  const host=workspace||dialog.querySelector('.er-workspace');
+  const {tables,links}=D.er;
+  const parts=[{label:'Исходные книги'},...tables.flatMap(table=>[
+    {table,label:table.id},
+    ...table.fields.map(field=>({table,field,label:table.id+'.'+field.id}))
+  ])];
+  let index=embedded?Math.max(0,Math.min(parts.length-1,get('er-step',0))):0;
+  let full=false, selected=null, expanded=null, zoom=1, fit=false;
+  function draw(focusId) {
+    const previous=host.querySelector('.er-live-diagram');
+    const scroll=[previous?.scrollLeft||0,previous?.scrollTop||0];
+    const item=selected||parts[index], {table,field}=item;
+    const visible=full?parts:parts.slice(0,index+1);
+    const visibleTables=tables.filter(candidate=>visible.some(part=>part.table===candidate));
+    const edge=field&&links.find(link=>link.source===table.id&&link.field===field.id);
+    const origin=field?.origin||table?.origin;
+    const source=origin?.match(/[^\s→]+\.xlsx/)?.[0];
+    host.innerHTML=`<header class="er-workspace-heading"><h3>Схема и пояснения</h3>
+      ${embedded?btn(expanded?'Вернуться к шагу':'На весь экран','id="er-expand"'):''}</header>
+      <div class="er-controls" role="group" aria-label="Вид схемы">
+        ${btn('Поэтапное построение',`id="er-steps" aria-pressed="${!full}"`)}
+        ${btn('Готовая схема',`id="er-full" aria-pressed="${full}"`)}
+        ${btn('Как читать схему','id="er-help" aria-expanded="false" aria-controls="er-reading"')}
+        <a href="materials/ER.pdf" download>Скачать ER · PDF</a>
+      </div>
+      <p id="er-reading" hidden>PK определяет строку, FK ссылается на ключ другой таблицы. Стрелка ведёт от FK к PK. Например, несколько складских позиций ссылаются на одну модель.</p>
+      ${full?'':`<div class="er-step-controls">
+        <label>Этап построения<select id="er-jump">${parts.map((part,i)=>`<option value="${i}" ${i===index?'selected':''}>${i+1}. ${E(part.label)}</option>`).join('')}</select></label>
+        <div class="er-step-buttons">${btn('←',`id="er-prev" aria-label="Предыдущий этап схемы" ${index===0?'disabled':''}`)}
+          <span aria-live="polite">${index+1} из ${parts.length}</span>
+          ${btn('→',`id="er-next" aria-label="Следующий этап схемы" ${index===parts.length-1?'disabled':''}`,true)}</div>
+      </div>`}
+      ${visibleTables.length?`<div class="er-zoom-controls" role="group" aria-label="Масштаб схемы">
+        ${btn('−','id="er-smaller" aria-label="Уменьшить схему"')}
+        ${btn('100%','id="er-scale" aria-label="Вернуть масштаб 100 процентов"')}
+        ${btn('+','id="er-larger" aria-label="Увеличить схему"')}
+        ${btn('По ширине','id="er-fit"')}
+        ${btn('К элементу',`id="er-focus" ${table?'':'disabled'}`)}
+      </div>`:''}
+      <div class="er-grid">
+        ${visibleTables.length?`<div class="er-diagram er-live-diagram" tabindex="0" aria-label="Диаграмма с прокруткой">${D.erSvg}</div>`
+          :'<div class="er-empty">Нажмите стрелку вправо или выберите этап, чтобы добавить первую таблицу.</div>'}
+        <aside class="er-origin" aria-live="polite">
+          ${table?`<h4>${E(item.label)}</h4><p>${E(origin||'')}</p>
+            ${field?`<p>Тип <code>${E(field.type)}</code>${field.pk?' · PK':field.fk?' · FK':''}</p>`:''}
+            ${edge?`<p><code>${E(edge.source+'.'+edge.field)} → ${E(edge.target+'.'+edge.key)}</code> · ${E(edge.cardinality)}</p>`:''}
+            ${source?btn('Открыть '+E(source),'id="er-source"'):''}`
+          :'<h4>Исходные книги</h4><p>Выберите таблицу или поле. Справа появится источник и объяснение связи.</p>'}
+        </aside>
+      </div>`;
+    const byId=id=>host.querySelector('#'+id);
+    const on=(id,fn)=>{const node=byId(id);if(node)node.onclick=fn;};
+    const move=(next,id)=>{
+      index=next;selected=null;
+      if(embedded)set('er-step',index);
+      draw(id);
+    };
+    on('er-next',()=>move(index+1,'er-next'));
+    on('er-prev',()=>move(index-1,'er-prev'));
+    if(byId('er-jump'))byId('er-jump').onchange=event=>move(Number(event.target.value),'er-jump');
+    on('er-full',()=>{full=true;selected=null;zoom=1;fit=false;draw('er-full');});
+    on('er-steps',()=>{full=false;selected=null;zoom=1;fit=false;draw('er-steps');});
+    on('er-help',()=>{
+      const hint=byId('er-reading');
+      hint.hidden=!hint.hidden;
+      byId('er-help').setAttribute('aria-expanded',String(!hint.hidden));
+    });
+    on('er-source',()=>materials(source));
+    on('er-expand',()=>{
+      if(expanded){expanded.close();return;}
+      const anchor=document.createComment('ER workspace');
+      host.before(anchor);
+      expanded=document.createElement('dialog');
+      expanded.className='course-dialog er-expanded';
+      expanded.setAttribute('aria-label','Построение ER-схемы');
+      expanded.append(host);document.body.append(expanded);
+      expanded.addEventListener('close',()=>{
+        anchor.replaceWith(host);expanded.remove();expanded=null;draw('er-expand');
+      },{once:true});
+      expanded.showModal();draw('er-expand');
+    });
+    const diagram=host.querySelector('.er-diagram svg');
+    if(diagram) {
+      const visibleFields=new Set(visible.filter(part=>part.field).map(part=>part.label));
+      diagram.querySelectorAll('polyline').forEach((line,i)=>{
+        const wire=links[i];
+        if(!visibleFields.has(wire.source+'.'+wire.field)||!visibleFields.has(wire.target+'.'+wire.key))line.remove();
+      });
+      const selectPart=(node,part)=>{
+        node.setAttribute('role','button');node.setAttribute('tabindex','0');
+        node.setAttribute('aria-label',part.label);
+        if(part.label===item.label)node.setAttribute('aria-pressed','true');
+        node.id='er-select-'+part.label.replace('.','-');
+        node.onclick=()=>{selected=part;draw(node.id);};
+        node.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();node.onclick();}};
+      };
+      diagram.querySelectorAll('svg > g > g').forEach((group,i)=>{
+        const candidate=tables[i];
+        if(!visibleTables.includes(candidate)){group.remove();return;}
+        const rows=group.querySelectorAll('text');
+        selectPart(rows[0],parts.find(part=>part.table===candidate&&!part.field));
+        candidate.fields.forEach((row,j)=>{
+          const name=candidate.id+'.'+row.id;
+          if(visibleFields.has(name))selectPart(rows[j+1],parts.find(part=>part.label===name));
+          else rows[j+1].remove();
+        });
+      });
+      const box=diagram.parentElement;
+      const width=full?1680:Math.max(...visibleTables.map(candidate=>candidate.x+candidate.width))+25;
+      if(!full){
+        const height=Math.max(...visibleTables.map(candidate=>candidate.y+60+25*candidate.fields.length))+25;
+        diagram.setAttribute('viewBox',`0 0 ${width} ${height}`);
+      }
+      const baseWidth=Math.min(width,1250);
+      const focusElement=()=>{
+        const selectedNode=diagram.querySelector('[aria-pressed="true"]');
+        if(!selectedNode)return;
+        const bounds=selectedNode.getBoundingClientRect(), viewport=box.getBoundingClientRect();
+        box.scrollBy(bounds.left+bounds.width/2-viewport.left-viewport.width/2,
+          bounds.top+bounds.height/2-viewport.top-viewport.height/2);
+      };
+      const scale=()=>{
+        diagram.style.minWidth='0';
+        diagram.style.width=fit?'100%':(baseWidth*zoom)+'px';
+        byId('er-scale').textContent=(fit?Math.round(box.clientWidth/baseWidth*100):Math.round(zoom*100))+'%';
+      };
+      scale();
+      box.scrollTo(...scroll);
+      if(['er-jump','er-next','er-prev'].includes(focusId))focusElement();
+      on('er-focus',focusElement);
+      on('er-smaller',()=>{fit=false;zoom=Math.max(.4,zoom-.15);scale();});
+      on('er-larger',()=>{fit=false;zoom=Math.min(2,zoom+.15);scale();});
+      on('er-scale',()=>{fit=false;zoom=1;scale();});
+      on('er-fit',()=>{fit=true;scale();box.scrollTo(0,0);});
+    }
+    const target=focusId&&byId(focusId);
+    if(target)(target.disabled?byId('er-jump'):target)?.focus({preventScroll:true});
+  }
+  draw();
+}
 function settings(){const d=modal('Настройка перед занятием',`<div class="settings-form">${['ФИО преподавателя','Должность','Кафедра или лаборатория'].map((name,i)=>`<label>${name}<input data-teacher="${i}" value="${E(get('teacher:'+i,''))}"></label>`).join('')}</div>`);d.querySelectorAll('[data-teacher]').forEach(e=>e.oninput=()=>set('teacher:'+e.dataset.teacher,e.value));}
 function fileModal(file) {
   const dialog=modal('Исходники примера',`${exampleFilePicker('code-file',file)}
@@ -573,7 +836,15 @@ function bind() {
     render();
     document.getElementById('theme').focus({preventScroll:true});
   });
-  on('materials-open',materials);
+  on('materials-open',()=>materials());
+  root.querySelectorAll('[data-workbook]').forEach(link=>link.onclick=event=>{
+    event.preventDefault();
+    materials(link.dataset.workbook);
+  });
+  bindMaterialReaders(root);
+  bindHelpTopics();
+  const erHost=document.getElementById('er-workspace');
+  if(erHost)er(erHost);
   on('lesson-steps',showLessonSteps);
   on('done',event=>{
     set('done:'+stage,event.target.checked);
@@ -589,7 +860,7 @@ function bind() {
     render();
     document.getElementById('task-complete').focus({preventScroll:true});
   },'onchange');
-  on('er-launch',er);
+  on('er-launch',()=>er());
   on('example-launch',exampleInstructions);
   on('example-file',event=>{
     document.getElementById('example-file-description').textContent=describeExampleFile(event.target.value);
