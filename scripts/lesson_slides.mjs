@@ -58,7 +58,7 @@ function demonstration(blocks){
   return pages;
 }
 
-export function buildLessonSlides(stage,step,index,screens,lessonBlocks){
+export function buildLessonSlides(stage,step,index,screens,lessonBlocks,erImage='materials/ER.svg'){
   const database=stage.id==='M1';
   const pages=[];
   const addText=(html,label='Порядок работы')=>{
@@ -86,7 +86,7 @@ export function buildLessonSlides(stage,step,index,screens,lessonBlocks){
     }
   }
   if(step.erWorkspace)pages.push({
-    image:{file:'materials/ER.svg',caption:'Таблицы и связи схемы «Чудо Обувь».'},
+    image:{file:erImage,caption:'Таблицы и связи схемы «Чудо Обувь».'},
     label:'Готовая ER-схема'
   });
   if(step.code)pages.push({code:step.code,label:'Код'});

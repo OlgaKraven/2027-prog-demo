@@ -59,11 +59,28 @@ def literal(value):
     return "CONVERT(X'"+str(value).encode('utf8').hex()+"' USING utf8mb4)"
 
 
-def sql(data, database):
+def postgres_literal(value):
+    if isinstance(value, bool):
+        return 'TRUE' if value else 'FALSE'
+    if isinstance(value, (int, float, Decimal)):
+        return str(value)
+    if value is None:
+        return 'NULL'
+    return "convert_from(decode('" + value.encode('utf-8').hex() + "','hex'),'UTF8')"
+
+
+def sql(data, database, postgres=False):
     if not database.replace('_','').isalnum():raise ValueError('Unsafe database name')
-    lines=[f'CREATE DATABASE IF NOT EXISTS `{database}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;',f'USE `{database}`;',(ROOT/'scripts/schema.sql').read_text(),'START TRANSACTION;']
+    if postgres:
+        lines = ['START TRANSACTION;', (OUT/'postgresql/schema.sql').read_text(encoding='utf-8')]
+    else:
+        lines=[f'CREATE DATABASE IF NOT EXISTS `{database}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;',f'USE `{database}`;',(ROOT/'scripts/schema.sql').read_text(),'START TRANSACTION;']
     def insert(table,columns,values):
-        for row in values:lines.append(f"INSERT INTO {table}({columns}) VALUES("+','.join(literal(v) for v in row)+');')
+        for row in values:
+            fields = [postgres_literal(v) if postgres else literal(v) for v in row]
+            if postgres and table == 'orders':
+                fields[1] += '::timestamp'
+            lines.append(f"INSERT INTO {table}({columns}) VALUES("+','.join(fields)+');')
     insert('roles','id,name',enumerate(data['roles'],1))
     insert('users','id,login,last_name,first_name,patronymic,role_id',((u['id'],u['login'],u['last_name'],u['first_name'],u['patronymic'],data['roles'].index(u['role'])+1) for u in data['users']))
     insert('categories','id,name',enumerate(data['categories'],1))
@@ -74,6 +91,9 @@ def sql(data, database):
     insert('stock_items','id,product_id,size_id,available',((s['id'],s['product_id'],data['sizes'].index(s['size'])+1,s['available']) for s in data['stock']))
     insert('orders','id,order_date,user_id,created_by,stock_accounted',((o['id'],o['date'].replace('T',' '),o['user_id'],o['user_id'],False) for o in data['orders']))
     insert('order_items','id,order_id,stock_id,quantity,unit_price',((i['id'],i['order_id'],i['stock_id'],i['quantity'],Decimal(i['price'])) for i in data['items']))
+    if postgres:
+        for table in ('orders', 'order_items'):
+            lines.append(f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), COALESCE(MAX(id), 1), MAX(id) IS NOT NULL) FROM {table};")
     return '\n'.join(lines+['COMMIT;'])+'\n'
 
 
@@ -113,6 +133,7 @@ def main():
         previews[path.name] = {'columns': list(rows[0]), 'rows': rows[:5], 'total': len(rows)}
     write_json(OUT/'workbooks.json', previews)
     (OUT/'sample.sql').write_text(sql(data,'prog_demo_sample'))
+    (OUT/'postgresql/sample.sql').write_text(sql(data,'prog_demo_sample',postgres=True), encoding='utf-8')
     write_json(ROOT/'docs/sample-control.json',control(data))
     manifest=[dict(path=p.relative_to(ROOT/'materials').as_posix(),sha256=hashlib.sha256(p.read_bytes()).hexdigest()) for p in sorted((ROOT/'materials').rglob('*')) if p.is_file() and p.relative_to(ROOT/'materials').parts[0] in ('original','resources')]
     write_json(ROOT/'docs/source-manifest.json',manifest)

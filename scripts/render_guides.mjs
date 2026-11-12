@@ -69,7 +69,7 @@ export function buildGuideRedirects(output) {
     'import-decisions':['M1','Проверьте сопоставление']
   };
   for(const [name,[module,card]] of Object.entries(routes)){
-    const route='../?'+new URLSearchParams({mode:'learn',module,view:'steps',card});
+    const route='../?'+new URLSearchParams({mode:'learn',module,stack:'mysql',view:'steps',card});
     fs.writeFileSync(`${output}/${name}.html`,`<!doctype html><html lang="ru"><meta charset="utf-8"><title>Маршрут обучения</title><meta http-equiv="refresh" content="0; url=${escape(route)}"><p><a href="${escape(route)}">Открыть карточку маршрута</a></p></html>`);
   }
 }

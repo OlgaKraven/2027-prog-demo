@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="examples/Core/ProgDemo.Core.csproj" />
+  <Project Path="examples/Import/ProgDemo.Import.csproj" />
+  <Project Path="examples/Wpf/ProgDemo.Wpf.csproj" />
+</Solution>

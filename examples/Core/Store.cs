@@ -1,21 +1,31 @@
 using MySqlConnector;
 using System.Data;
+using System.Data.Common;
 
 namespace ProgDemo;
 
-public sealed class Store(string connectionString)
+public sealed class Store(Func<DbConnection> createConnection, bool postgres)
 {
-    private MySqlConnection Open()
+    public Store(string connectionString) : this(() => new MySqlConnection(connectionString), false) { }
+
+    private DbConnection Open()
     {
-        var connection = new MySqlConnection(connectionString);
+        var connection = createConnection();
         try { connection.Open(); return connection; }
         catch { connection.Dispose(); throw; }
     }
-    private static MySqlCommand Command(MySqlConnection c, MySqlTransaction? tx, string sql, params object?[] values)
+    private static DbCommand Command(DbConnection c, DbTransaction? tx, string sql, params object?[] values)
     {
-        var command = new MySqlCommand(sql, c, tx);
+        var command = c.CreateCommand();
+        command.Transaction = tx;
+        command.CommandText = sql;
         for (int i = 0; i < values.Length; i++)
-            command.Parameters.AddWithValue("p" + i, values[i] ?? DBNull.Value);
+        {
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = "p" + i;
+            parameter.Value = values[i] ?? DBNull.Value;
+            command.Parameters.Add(parameter);
+        }
         return command;
     }
     public User? Login(string login)
@@ -25,7 +35,7 @@ public sealed class Store(string connectionString)
         using var reader = cmd.ExecuteReader();
         return reader.Read() ? new User(reader.GetInt32(0), reader.GetString(1), reader.GetString(2), reader.GetString(3)) : null;
     }
-    private static User RequireUser(MySqlConnection c, MySqlTransaction? tx, User claimed)
+    private static User RequireUser(DbConnection c, DbTransaction? tx, User claimed)
     {
         // Recheck the stored identity and role at the operation boundary.
         using var cmd = Command(c, tx, "SELECT u.id,u.login,CONCAT_WS(' ',u.last_name,u.first_name,u.patronymic),r.name FROM users u JOIN roles r ON r.id=u.role_id WHERE u.id=@p0 AND u.login=@p1", claimed.Id, claimed.Login);
@@ -56,21 +66,22 @@ public sealed class Store(string connectionString)
     {
         using var c = Open();
         var (start, end) = Rules.PreviousMonth(date);
-        using var cmd = Command(c, null, """
+        var match = postgres ? "ILIKE" : "LIKE";
+        using var cmd = Command(c, null, $"""
             SELECT p.id,c.name,m.name,p.name,p.image,p.composition,p.description,p.price,
                 COALESCE((SELECT SUM(s.available) FROM stock_items s WHERE s.product_id=p.id),0),
                 EXISTS(SELECT 1 FROM order_items oi JOIN stock_items s ON s.id=oi.stock_id
                     JOIN orders o ON o.id=oi.order_id WHERE s.product_id=p.id AND o.order_date>=@p0 AND o.order_date<@p1)
             FROM products p JOIN subcategories sc ON sc.id=p.subcategory_id
                 JOIN categories c ON c.id=sc.category_id JOIN manufacturers m ON m.id=p.manufacturer_id
-            WHERE (@p2='' OR p.name LIKE @p3 OR p.description LIKE @p3) AND (@p4='' OR c.name=@p4)
+            WHERE (@p2='' OR p.name {match} @p3 OR p.description {match} @p3) AND (@p4='' OR c.name=@p4)
             """, start, end, search, "%" + search + "%", category);
         using var reader = cmd.ExecuteReader();
         var result = new List<Product>();
         while (reader.Read())
         {
             var price = reader.GetDecimal(7);
-            result.Add(new Product(reader.GetInt32(0),reader.GetString(1),reader.GetString(2),reader.GetString(3),reader.GetString(4),reader.GetString(5),reader.GetString(6),price,Rules.Price(price,reader.GetBoolean(9)),reader.GetInt32(8)));
+            result.Add(new Product(reader.GetInt32(0),reader.GetString(1),reader.GetString(2),reader.GetString(3),reader.GetString(4),reader.GetString(5),reader.GetString(6),price,Rules.Price(price,reader.GetBoolean(9)),Convert.ToInt32(reader.GetValue(8))));
         }
         return descending ? result.OrderByDescending(p => p.Price).ThenBy(p => p.Id).ToList()
             : result.OrderBy(p => p.Price).ThenBy(p => p.Id).ToList();
@@ -104,9 +115,7 @@ public sealed class Store(string connectionString)
                     return reader.GetInt32(0);
                 }
             }
-            using (var order = Command(c, tx, "INSERT INTO orders(order_date,user_id,created_by,request_id,stock_accounted) VALUES(@p0,@p1,@p2,@p3,1)", date, customerId, user.Id, requestId.ToString())) order.ExecuteNonQuery();
-            int id;
-            using (var last = Command(c, tx, "SELECT LAST_INSERT_ID()")) id = Convert.ToInt32(last.ExecuteScalar());
+            int id = InsertOrder(c, tx, date, customerId, user.Id, requestId);
             var (start,end) = Rules.PreviousMonth(calculationDate ?? date);
             foreach (var item in basket)
             {
@@ -129,6 +138,16 @@ public sealed class Store(string connectionString)
             return id;
         }
         catch { tx.Rollback(); throw; }
+    }
+    private int InsertOrder(DbConnection c, DbTransaction tx, DateTime date, int customerId, int actorId, Guid requestId)
+    {
+        const string insert = "INSERT INTO orders(order_date,user_id,created_by,request_id,stock_accounted) VALUES(@p0,@p1,@p2,@p3,TRUE)";
+        using var order = Command(c, tx, postgres ? insert + " RETURNING id" : insert, date, customerId, actorId, requestId.ToString());
+        if (postgres)
+            return Convert.ToInt32(order.ExecuteScalar());
+        order.ExecuteNonQuery();
+        using var last = Command(c, tx, "SELECT LAST_INSERT_ID()");
+        return Convert.ToInt32(last.ExecuteScalar());
     }
     public List<OrderHeader> Orders(User actor)
     {
@@ -176,7 +195,7 @@ public sealed class Store(string connectionString)
             else
             {
                 var returned=new List<(int StockId,int Quantity)>();
-                using(var cmd=Command(c,tx,"SELECT stock_id,quantity FROM order_items WHERE order_id=@p0 AND (@p1 IS NULL OR id=@p1) ORDER BY stock_id FOR UPDATE",orderId,lineId))
+                using(var cmd=Command(c,tx,"SELECT stock_id,quantity FROM order_items WHERE order_id=@p0 AND id=COALESCE(@p1,id) ORDER BY stock_id FOR UPDATE",orderId,lineId))
                 {
                     using var reader=cmd.ExecuteReader();
                     while(reader.Read())returned.Add((reader.GetInt32(0),reader.GetInt32(1)));

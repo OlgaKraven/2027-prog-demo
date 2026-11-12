@@ -1,5 +1,7 @@
 using ProgDemo;
 using MySqlConnector;
+using Npgsql;
+using System.Data.Common;
 using System.Text.Json;
 
 var results=new List<object>();
@@ -9,13 +11,24 @@ void Denied(Action action){bool failed=false;try{action();}catch(Exception e) wh
 Check("previous calendar month across year",()=>{var (s,e)=Rules.PreviousMonth(new DateTime(2027,1,5));Assert(s==new DateTime(2026,12,1)&&e==new DateTime(2027,1,1),"Calendar boundaries");});
 Check("discount and rounding",()=>{Assert(Rules.Price(100m,false)==75m&&Rules.Price(100m,true)==100m,"Discount");Assert(Rules.Price(10.01m,false)==7.51m,"Rounding");});
 Check("quantity boundaries 3 4 5 6",()=>{Assert(Rules.LowStock(3)&&!Rules.LowStock(4),"Color");Assert(Rules.QuantityLabel(5)=="мало"&&Rules.QuantityLabel(6)=="много","Quantity label");});
-var connection=Environment.GetEnvironmentVariable("PROG_DEMO_CONNECTION");
+var postgresConnection = Environment.GetEnvironmentVariable("PROG_DEMO_POSTGRES_CONNECTION");
+bool postgres = !string.IsNullOrWhiteSpace(postgresConnection);
+var connection = postgres ? postgresConnection : Environment.GetEnvironmentVariable("PROG_DEMO_CONNECTION");
 if(!string.IsNullOrWhiteSpace(connection))
 {
-    var builder=new MySqlConnectionStringBuilder(connection);
-    if(!builder.Database.StartsWith("prog_demo_checks",StringComparison.Ordinal))throw new Exception("Integration checks require a separate prog_demo_checks* database.");
-    var store=new Store(connection);var date=new DateTime(2026,5,15);
-    object? Scalar(string sql){using var c=new MySqlConnection(connection);c.Open();using var cmd=new MySqlCommand(sql,c);return cmd.ExecuteScalar();}
+    string? database = postgres ? new NpgsqlConnectionStringBuilder(connection).Database
+        : new MySqlConnectionStringBuilder(connection).Database;
+    if(database?.StartsWith("prog_demo_checks",StringComparison.Ordinal)!=true)throw new Exception("Integration checks require a separate prog_demo_checks* database.");
+    DbConnection Connect() => postgres ? new NpgsqlConnection(connection) : new MySqlConnection(connection);
+    var store=new Store(Connect,postgres);var date=new DateTime(2026,5,15);
+    object? Scalar(string sql)
+    {
+        using var c=Connect();
+        c.Open();
+        using var cmd=c.CreateCommand();
+        cmd.CommandText=sql;
+        return cmd.ExecuteScalar();
+    }
     var admin=store.Login("isivanov")!;var manager=store.Login("papetrov")!;var client=store.Login("asidorova")!;
     Check("imported rows",()=>{Assert(Convert.ToInt32(Scalar("SELECT COUNT(*) FROM products"))==31,"products");Assert(Convert.ToInt32(Scalar("SELECT COUNT(*) FROM stock_items"))==92,"stock");Assert(Convert.ToInt32(Scalar("SELECT COUNT(*) FROM orders"))==10,"orders");Assert(Convert.ToInt32(Scalar("SELECT COUNT(*) FROM order_items"))==30,"lines");});
     Check("login without password and unknown login",()=>Assert(admin.IsAdmin&&manager.CanManage&&store.Login("missing") is null&&store.Login("' OR 1=1 --") is null,"Login"));

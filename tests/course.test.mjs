@@ -145,6 +145,35 @@ test('the example archive contains sources, the sample database and the availabl
  }
  assert(!fs.existsSync('site/downloads/prog-demo-windows.zip'));
 });
+test('the WPF route, presentation and download use the PostgreSQL materials', () => {
+ const context = {};
+ for (const name of ['content','deck-wpf-data','er-data'])
+  vm.runInNewContext(fs.readFileSync('site/'+name+'.js','utf8'),context);
+ const {COURSE:course,TEACHER_DECK:deck,ER_GUIDE:er}=context;
+ assert.equal(deck.stackName,course.stacks.postgresql.name);
+ assert.deepEqual(Array.from(course.wpfStages,stage=>stage.id),['documents','M1','M2','M3','M4']);
+ for (const stage of course.wpfStages) {
+  const chapter=deck.chapters.find(item=>item.id===stage.id);
+  assert.deepEqual(Array.from(chapter.steps,step=>step.title),[...Array.from(stage.steps,step=>step.title),'Что сохранить']);
+  for (const step of stage.steps) {
+   assert(step.actions.length && step.check);
+   if (step.file) assert(fs.existsSync('site/code/'+step.file+'.txt'),step.file);
+  }
+ }
+ assert(deck.slides.some(slide=>slide.image?.file==='materials/ER-postgresql.svg'));
+ const orderDate=er.stacks.postgresql.tables.find(table=>table.id==='orders').fields.find(field=>field.id==='order_date');
+ assert.equal(orderDate.type,'TIMESTAMP WITHOUT TIME ZONE');
+ const wpf=zipEntries('prog-demo-wpf');
+ for (const name of ['ProgDemo.PostgreSql.slnx','examples/Wpf/MainWindow.xaml','examples/Core/Store.cs',
+  'examples/Import/CsvInput.cs','materials/ER-postgresql.pdf','docs/launch-postgresql.html'])
+  assert(wpf.has(name),name);
+ const sql=wpf.get('content/postgresql/sample.sql').toString('utf8');
+ assert.equal([...sql.matchAll(/^CREATE TABLE /gm)].length,10);
+ assert.equal([...sql.matchAll(/^INSERT INTO orders\(/gm)].length,10);
+ assert.equal([...sql.matchAll(/^INSERT INTO order_items\(/gm)].length,30);
+ assert(!/^USE |^CREATE DATABASE /m.test(sql));
+ assert.equal(wpf.has('Windows/ProgDemo.Wpf.exe'),course.wpfWindowsBuild);
+});
 test('original supplied source files keep their recorded bytes',()=>{for(const f of read('docs/source-manifest.json'))assert.equal(createHash('sha256').update(fs.readFileSync('materials/'+f.path)).digest('hex'),f.sha256,f.path);});
 test('supplied PDF and ZIP match the independently recorded input baseline',()=>{for(const f of read('docs/input-baseline.json'))assert.equal(createHash('sha256').update(fs.readFileSync('materials/original/'+f.name)).digest('hex'),f.sha256,f.name);});
 test('profile part cannot claim unpublished tasks or points',()=>{const p=read('content/profile.json');assert.equal(p.document,null);assert.equal(p.tasks.length,0);assert.equal(p.points,null);});

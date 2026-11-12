@@ -13,12 +13,14 @@
   const oldPosition=get('deck-route-slide',null);
   const restored=oldPosition===null?deck.previousIndexes?.[get('deck-slide',0)]
     :deck.previousRouteIndexes?.findLast(([start])=>start<=oldPosition)?.[1];
-  const savedIndex=get('deck-sequential-slide',restored??0);
+  const positionKey=deck.stack==='postgresql'?'deck-postgresql-slide':'deck-sequential-slide';
+  const savedIndex=get(positionKey,restored??0);
   let dark=get('dark',false), index=!audience&&Number.isInteger(savedIndex)
     ?Math.max(0,Math.min(deck.slides.length-1,savedIndex)):0;
   let channel, target, laser=false, channelId;
   let lastFocus;
   const frame=by('frame'), form=by('profile'), status=by('status');
+  by('back').href='./?mode=teacher&stack='+(deck.stack||'mysql');
   function announce(text){status.textContent=text;status.hidden=!text;}
   function updateTheme(){
     document.documentElement.classList.toggle('dark',dark&&!printable);
@@ -81,7 +83,7 @@
     const speaker=by('speaker');
     speaker.innerHTML='<h2>Сценарий преподавателя</h2><h3>'+esc(slide.title)+'</h3>'+
       (slide.body?'<p>'+esc(slide.body)+'</p>':'')+(slide.actions?.length?'<p><strong>Покажите группе</strong></p>'+actionList(slide.actions):'')+
-      (slide.source?'<p>Файл для сверки: '+(slide.source.startsWith('examples/')
+      (slide.source?'<p>Файл для сверки: '+(/^(examples|content\/postgresql)\//.test(slide.source)
         ?'<a href="code/'+esc(slide.source)+'.txt" target="_blank" rel="noopener">'+esc(slide.source)+'</a>'
         :'<code>'+esc(slide.source)+'</code>')+'</p>':'')+
       (slide.note?'<p>'+esc(slide.note)+'</p>':'')+(slide.check?'<p class="speaker-check"><strong>Что проверить:</strong> '+esc(slide.check)+'</p>':'')+
@@ -105,7 +107,7 @@
   }
   function go(value,focus){
     index=Math.min(deck.slides.length-1,Math.max(0,value));
-    put('deck-sequential-slide',index);
+    put(positionKey,index);
     draw(focus);sendState();
   }
   function open(id){

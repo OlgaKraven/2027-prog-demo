@@ -22,19 +22,26 @@ function readRoute(restore=false) {
   const requestedMode = query.get('mode') || (restore ? get('mode','overview') : 'overview');
   const requestedStage = query.get('module') || (restore ? get('stage','documents') : 'documents');
   const requestedVariant = query.get('variant') || (restore ? get('variant','V01') : 'V01');
+  const requestedStack = query.get('stack') || (restore ? get('stack','mysql') : 'mysql');
   const view = query.get('view');
   return {
     mode: requestedMode==='criteria'||modes.some(([id])=>id===requestedMode) ? requestedMode : 'overview',
     stage: D.stages.some(item=>item.id===requestedStage) ? requestedStage : 'documents',
     variant: D.variants.some(item=>item.id===requestedVariant) ? requestedVariant : 'V01',
+    stack: Object.hasOwn(D.stacks,requestedStack) ? requestedStack : 'mysql',
     learningView: ['map','brief','steps','help'].includes(view) ? view : query.has('module') ? 'steps' : 'map'
   };
 }
-let {mode,stage,variant,learningView} = readRoute(true);
+let {mode,stage,variant,stack,learningView} = readRoute(true);
 let dark = get('dark',false);
+const isWpf = () => stack==='postgresql';
+const learningStages = () => isWpf()?D.wpfStages:D.stages;
+const progressKey = key => isWpf()?'postgresql:'+key:key;
+const stageDone = id => get(progressKey('done:'+id),false);
+const erPdf = () => isWpf()?'materials/ER-postgresql.pdf':'materials/ER.pdf';
 const btn=(text,attrs='',primary=false)=>`<button class="btn${primary?' primary':''}" ${attrs}>${text}</button>`;
 const link=(text,path)=>`<a class="btn" href="${E(path)}" target="_blank" rel="noopener">${E(text)}</a>`;
-const current=()=>D.stages.find(s=>s.id===stage),scope=()=>mode+':'+(mode==='mock'?variant:'sample'),timer=()=>C.restoreTimer(JSON.stringify(get('timer:'+scope())),210*60,mode);
+const current=()=>learningStages().find(s=>s.id===stage),scope=()=>mode+':'+(mode==='mock'?variant:'sample'),timer=()=>C.restoreTimer(JSON.stringify(get('timer:'+scope())),210*60,mode);
 const header = (title, text) => `<div class="route-heading"><h1 tabindex="-1">${E(title)}</h1>${text?'<p>'+E(text)+'</p>':''}</div>`;
 function iconButton(title, path, attributes) {
   return `<button type="button" class="btn" data-icon-button aria-label="${E(title)}" ${attributes}>
@@ -57,7 +64,7 @@ function overview() {
 }
 const shortStages = ['Старт', 'База', 'Каталог', 'Заказ', 'Сдача'];
 function stageNavigation(items, active, practice = false) {
-  const completed = items.filter(item=>practice ? mode==='training' && practiceDone(item.id) : get('done:'+item.id,false));
+  const completed = items.filter(item=>practice ? mode==='training' && practiceDone(item.id) : stageDone(item.id));
   return `<nav class="stage-nav" aria-label="${practice?'Задания':'Этапы обучения'}">
     <div class="stage-nav-caption"><strong>${practice?'Задания':'Этапы'}</strong>
       ${mode==='mock'?'':`<span>Выполнено ${completed.length} из ${items.length}</span>`}
@@ -91,10 +98,10 @@ const previousLessonSteps={
   M4:[0,1,5,6,7,8,9,10,11,12,13,14,16]
 };
 const databaseCards=[0,1,2,3,13,14,15,16,17,18,20,21,22,23,24,25,19,26];
-const lessonStepKey=id=>['M1','M4'].includes(id)?'step:'+id+':route':previousLessonSteps[id]?'step:'+id+':cards':'step:'+id;
+const lessonStepKey=id=>isWpf()?progressKey('step:'+id):['M1','M4'].includes(id)?'step:'+id+':route':previousLessonSteps[id]?'step:'+id+':cards':'step:'+id;
 function savedLessonStep(id) {
   const saved=get(lessonStepKey(id));
-  if(saved!==null||!previousLessonSteps[id])return saved;
+  if(isWpf()||saved!==null||!previousLessonSteps[id])return saved;
   if(id==='M1'||id==='M4'){
     const intermediate=get('step:'+id+':cards');
     if(intermediate!==null)return id==='M1'?(databaseCards[intermediate]??0):Math.min(intermediate===15?16:intermediate,16);
@@ -106,27 +113,35 @@ const requestedCard=new URLSearchParams(location.search).get('card');
 if(mode==='learn'&&learningView==='steps'&&requestedCard){
   const steps=current().steps;
   const index=/^\d+$/.test(requestedCard)?Math.min(Number(requestedCard),steps.length)
-    : steps.findIndex(step=>requestedCard==='designer'?step.details:step.details?.includes(requestedCard));
+    : steps.findIndex(step=>requestedCard==='designer'?step.details:step.title===requestedCard||step.details?.includes(requestedCard));
   if(index>=0)set(lessonStepKey(stage),index);
 }
 function resumeView(id) {
-  return savedLessonStep(id)!==null || get('done:'+id,false) ? 'steps' : 'brief';
+  return savedLessonStep(id)!==null || stageDone(id) ? 'steps' : 'brief';
 }
 function stageResult(item) {
   return `<strong>Что сохранить</strong><ul class="result-files">${stageOutputs[item.id].map(([name,note])=>
-    `<li>${name.includes('.')?`<code>${E(name)}</code>`:E(name)} · ${E(note)}</li>`).join('')}</ul>`;
+    `<li>${name.includes('.')?`<code>${E(name)}</code>`:E(isWpf()?name.replace('Windows Forms','WPF'):name)} · ${E(note)}</li>`).join('')}</ul>`;
+}
+function stackPicker() {
+  return `<div class="map-stack">
+    <label for="stack">Стек обучения</label>
+    <select id="stack"><button type="button"><selectedcontent></selectedcontent></button>
+      ${Object.entries(D.stacks).map(([id,{name,tools}])=>`<option value="${id}" ${stack===id?'selected':''}>
+        <span>${E(name)}</span><span class="stack-tools"><span class="stack-separator"> · </span>${E(tools)}</span>
+      </option>`).join('')}
+    </select>
+  </div>`;
 }
 function learningMap() {
-  const opened = get('opened-stage','documents');
+  const opened = get(progressKey('opened-stage'),'documents');
+  const stages = learningStages();
   return `<section class="map-panel">
     <div class="map-intro"><h1 tabindex="-1">Маршрут обучения</h1><p>Сначала разберите исходные документы. Дальше каждый этап даёт результат для следующего.</p></div>
-    <section class="map-stack" aria-labelledby="map-stack-title">
-      <strong id="map-stack-title">Стек обучения</strong>
-      <div class="map-stack-value">Windows Forms + MySQL / MariaDB<span>Windows · Visual Studio · C# и .NET 10 · DBeaver</span></div>
-    </section>
+    ${stackPicker()}
     <div class="learning-map">
-      <ol class="map-nodes" aria-label="Этапы обучения">${D.stages.map((item,index)=>{
-        const done = get('done:'+item.id,false);
+      <ol class="map-nodes" aria-label="Этапы обучения">${stages.map((item,index)=>{
+        const done = stageDone(item.id);
         const current = !done && item.id===opened;
         const status = done?' · Завершён':current?' · Текущий этап':'';
         return `<li><button type="button" class="map-node" data-map-stage="${item.id}" aria-pressed="${item.id===stage}"
@@ -136,10 +151,10 @@ function learningMap() {
         </button></li>`;
       }).join('')}</ol>
       <article class="map-detail" aria-label="Выбранный этап">
-        ${D.stages.map(item=>{
+        ${stages.map(item=>{
           const saved = savedLessonStep(item.id);
           const task = D.tasks.find(entry=>entry.id===item.id);
-          const action = get('done:'+item.id,false) ? 'Открыть этап'
+          const action = stageDone(item.id) ? 'Открыть этап'
             : saved===item.steps.length ? 'Что сохранить'
             : saved!==null ? 'Продолжить с шага '+(saved+1)
             : task ? 'Прочитать условие' : 'Открыть подготовку';
@@ -165,7 +180,7 @@ const materialWorkbooks = sourceWorkbooks.map(name=>({name,path:'materials/resou
 const materialDownload = {name:'Скачать исходные файлы · ZIP',path:'downloads/task-inputs.zip',download:true};
 function stageMaterials(stageId,training=false) {
   const [condition,description,style]=materialDocuments;
-  const taskCondition = (number,page)=>({...condition,name:'Условие задания '+number+' · КИМ',page});
+  const taskCondition = (number,page)=>({...condition,name:training?'КИМ · задание '+number+' · PDF':'Условие задания '+number+' · КИМ',page});
   return {
     documents:[condition,materialDownload],
     M1:[taskCondition(1,35),description,...materialWorkbooks,...(training?[materialDownload]:[])],
@@ -251,6 +266,8 @@ const lessonScenarios = {
   ]
 };
 function lessonHelp(lesson) {
+  if(isWpf())return `<div class="lesson-help"><h3>Как проверить этап</h3>
+    <ul>${lesson.steps.map(step=>`<li><strong>${E(step.title)}</strong> · ${E(step.check)}</li>`).join('')}</ul></div>`;
   const database=lesson.id==='M1';
   const scenarios=lessonScenarios[lesson.id].map(([title,answer])=>
     `<section><h4>${E(title)}</h4><p>${E(answer)}</p></section>`).join('');
@@ -290,17 +307,26 @@ function bindHelpTopics() {
 }
 function shot(s){const x=D.screens[s.shot||s.file];return x?`<figure class="microshot"><button class="image-open" data-image="${E(x.file)}" aria-label="Увеличить: ${E(x.caption)}"><img src="${E(x.file)}" alt="${E(x.caption)}" loading="lazy"></button><figcaption>${E(x.caption)}</figcaption></figure>`:'';}
 function explain(s,database=false) {
+  const actions=s.actions.map(action=>`<li>${E(action)}</li>`).join('');
+  const check=`<div class="step-result"><strong>${database?'Как проверить результат':'Проверьте себя'}</strong><p>${E(s.check)}</p></div>`;
+  if(s.erWorkspace)return `
+    <section class="lesson-explanation er-review">
+      <h4>Что сверить</h4>
+      <p>${E(s.why)}</p>
+      <ol>${actions}</ol>
+    </section>
+    <section class="er-workspace" id="er-workspace" aria-labelledby="er-title"></section>
+    ${check}`;
   const reason=`<p class="lesson-reason"><strong>Зачем это нужно.</strong> ${E(s.why)}</p>`;
   return `<section class="lesson-explanation">
     ${database?'':`<h3>Как это понять</h3><p>${E(s.why)}</p>`}
     <h3>${database?'Что сделать':'Что сделать самостоятельно'}</h3>
-    ${!s.details||s.detailsSupplement?`<ol>${s.actions.map(a=>`<li>${E(a)}</li>`).join('')}</ol>`:''}
+    ${!s.details||s.detailsSupplement?`<ol>${actions}</ol>`:''}
     ${s.details?`<div class="step-instructions">${s.details.map((section,i)=>`${i?`<h4>${E(section)}</h4>`: ''}${D.lessonDetails[section]}`).join('')}</div>`:''}
-    ${s.erWorkspace?'<section class="er-workspace" id="er-workspace" aria-label="Построение ER-схемы"></section>':''}
     ${s.code?`<pre tabindex="0">${E(s.code)}</pre>`:''}
     ${s.file&&!s.details?`<details><summary>Полный файл для сверки · ${E(s.file)}</summary><p>Сначала разберите действие и поля. Сверка показывает итоговый файл, включая последующие операции.</p><pre tabindex="0">${E(D.code[s.file]||'')}</pre></details>`:''}
     ${s.details?'':shot(s)}
-    <div class="step-result"><strong>${database?'Как проверить результат':'Проверьте себя'}</strong><p>${E(s.check)}</p></div>
+    ${check}
     ${database?reason:''}</section>`;
 }
 const lessonResultTitle = 'Что сохранить';
@@ -329,13 +355,13 @@ function showLessonSteps() {
 function learn() {
   if (learningView==='map') return learningMap();
   const lesson=current(), index=stepIndex(lesson), step=lesson.steps[index];
-  const done=get('done:'+stage,false), next=D.stages[D.stages.indexOf(lesson)+1];
+  const stages=learningStages(), done=stageDone(stage), next=stages[stages.indexOf(lesson)+1];
   return `<div class="lesson-top">
-    ${header('Обучение','Чудо Обувь')}
+    ${header('Обучение',D.stacks[stack].name)}
     ${btn('← К маршруту','data-mode="learn" aria-label="К маршруту обучения"')}
   </div>
   <div class="route-layout lesson-layout">
-    ${stageNavigation(D.stages,stage)}
+    ${stageNavigation(stages,stage)}
     <section class="route-panel lesson-card" aria-labelledby="lesson-title">
       <h2 id="lesson-title" tabindex="-1">${E(lesson.title)}</h2>
       <p class="task-meta">${E(stageTitle(lesson))}</p>
@@ -344,7 +370,7 @@ function learn() {
           btn(title,`data-lesson-view="${id}" ${id===learningView?'aria-current="page"':''}`)).join('')}
       </nav>
       ${learningView==='brief' ? lessonBrief(lesson) : learningView==='help' ? lessonHelp(lesson) : `
-        <article class="study-step" aria-labelledby="lesson-step-title">
+        <article class="study-step${step?.erWorkspace?' study-step-er':''}" aria-labelledby="lesson-step-title">
           <header class="step-heading">
             <h3 id="lesson-step-title" tabindex="-1"><span class="lesson-step-number" aria-label="Шаг ${index+1} из ${lesson.steps.length+1}">${index+1}</span><span>${E(step?.title||lessonResultTitle)}</span></h3>
             ${btn('<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>','id="lesson-steps" aria-label="Все шаги" title="Все шаги" aria-haspopup="dialog"')}
@@ -410,11 +436,6 @@ function timerBox(attempt,index,mock) {
 function conditionParagraphs(text) {
   return text.split(/(?<=[.!?])\s+(?=[А-ЯЁ])/u).map(line=>`<p>${E(line)}</p>`).join('');
 }
-function trainingSample() {
-  modal('Условия четырёх заданий',`<div class="practice-condition"><p>Краткое описание четырёх заданий «Чудо Обувь». Полные формулировки доступны в КИМ.</p>
-    ${D.tasks.map((task,i)=>`<section><h3>Задание ${i+1}. ${E(task.title)}</h3>${conditionParagraphs(task.text)}</section>`).join('')}
-    </div>`);
-}
 function variantBrief(entry,index) {
   const lines=D.variantBriefs[entry.id].split(/\r?\n/).filter(line=>line.trim()&&!line.startsWith('# '));
   const items=D.variantTasks[entry.id];
@@ -437,8 +458,8 @@ function practice() {
   const taskCard = `<article class="training-task">
     <h2>${E(task.title)}</h2>
     <p class="task-meta">Задание ${index+1} · ${task.minutes} мин${mock?' · '+entry.id+' · '+E(entry.title):''}</p>
-    ${mock?'':assignmentFiles(stageMaterials(task.id,true))}
     <section class="practice-condition"><h3>Условие задания</h3>${conditionParagraphs(mock?D.variantTasks[entry.id][index]:task.text)}</section>
+    ${mock?'':assignmentFiles(stageMaterials(task.id,true))}
     ${mock||locked?'':`<div class="task-support">${btn('Подсказка к заданию',`data-help="${task.id}"`)}</div>`}
     <section class="self-check training-checklist" aria-labelledby="training-check-title">
       <header><h3 id="training-check-title">Самопроверка</h3><span id="training-check-count" aria-live="polite">${checked.filter(Boolean).length} из ${checked.length}</span></header>
@@ -449,7 +470,6 @@ function practice() {
   return `<section class="training-page practice-page training-compact ${mock?'mock-exam':''}">
     <header class="workspace-intro">
       <div><h1>${mock?'Пробный экзамен':'Тренировка'}</h1><p>${mock?'30 учебных вариантов · 4 задания · 75 баллов':'«Чудо Обувь» · официальный образец КИМ'}</p></div>
-      ${!mock&&status!=='paused'?btn('Условия четырёх заданий','id="training-sample" aria-haspopup="dialog"'):''}
     </header>
     <div class="attempt-layout">
       ${timerBox(attempt,index,mock)}
@@ -478,7 +498,7 @@ const exampleDescriptions = {
   'BasketForm.cs':'Показывает позиции заказа, позволяет изменить количество, подтвердить заказ или отказаться.',
   'OrdersForm.cs':'Открывает список заказов менеджеру и администратору.',
   'OrderDetailsForm.cs':'Показывает состав заказа и действия, доступные администратору.',
-  'sample.sql':'Создаёт учебную базу и загружает исходные модели, остатки, пользователей и заказы.',
+  'sample.sql':'Создаёт таблицы и загружает исходные модели, остатки, пользователей и заказы.',
   'schema.sql':'Описывает структуру таблиц, ключи и ограничения без учебных данных.',
   'Store.cs':'Выполняет запросы каталога, проверяет роли и сохраняет изменения заказов в базе.'
 };
@@ -492,28 +512,33 @@ function describeExampleFile(file) {
   return 'Вспомогательный файл примера. Откройте его, чтобы посмотреть код.';
 }
 function exampleFilePicker(id,selected) {
-  const files=Object.keys(D.code).filter(file=>file.startsWith('examples/')||file.endsWith('.sql'));
+  const files=Object.keys(D.code).filter(file=>isWpf()
+    ? /^examples\/(Wpf|Core|Import)\//.test(file)||file.startsWith('content/postgresql/')
+    : (file.startsWith('examples/')||file.endsWith('.sql'))&&!/^examples\/Wpf\/|^content\/postgresql\//.test(file));
   return `<label class="example-file-label">Файл<select id="${id}">${files.map(file=>
     `<option ${file===selected?'selected':''}>${E(file)}</option>`).join('')}</select></label>`;
 }
 function examples() {
-  const selected='examples/WinForms/CatalogForm.cs';
+  const selected=isWpf()?'examples/Wpf/MainWindow.xaml':'examples/WinForms/CatalogForm.cs';
+  const archive=isWpf()?'prog-demo-wpf.zip':'prog-demo-example.zip';
+  const windowsBuild=isWpf()?D.wpfWindowsBuild:D.windowsBuild;
   const shots=['login','examples/WinForms/CatalogForm.cs','examples/WinForms/BasketForm.cs','examples/WinForms/OrdersForm.cs'];
   return `<section class="training-page example-page">
     ${header('Готовый пример','Скачайте рабочий проект «Чудо Обувь» с учебными данными.')}
+    ${stackPicker()}
     <div class="example-grid">
       <article class="route-panel">
-        <h2>Windows Forms и MySQL / MariaDB</h2>
-        <p>В архиве есть решение Visual Studio, SQL с учебными данными и ER-диаграмма.${D.windowsBuild?' Готовая программа находится в папке Windows.':''}</p>
+        <h2>${E(D.stacks[stack].name)}</h2>
+        <p>В архиве есть решение Visual Studio, SQL с учебными данными и ER-диаграмма.${windowsBuild?' Готовая программа находится в папке Windows.':''}</p>
         <div class="example-actions">
-          <a class="btn primary" href="downloads/prog-demo-example.zip" download>Скачать готовый пример · ZIP</a>
+          <a class="btn primary" href="downloads/${archive}" download>Скачать готовый пример · ZIP</a>
           ${btn('Инструкция по запуску','id="example-launch" aria-haspopup="dialog"')}
         </div>
         <div class="example-accounts"><p>Откройте окно «Вход» и введите учебный логин.</p>
           <table aria-label="Учебные записи"><thead><tr><th scope="col">Роль</th><th scope="col">Логин</th></tr></thead>
           <tbody>${exampleAccounts.map(([role,login])=>`<tr><th scope="row">${role}</th><td><code>${login}</code></td></tr>`).join('')}</tbody></table>
         </div>
-        <div class="example-actions">${btn('Построить ER-схему','id="er-launch"')}${link('ER · PDF','materials/ER.pdf')}</div>
+        <div class="example-actions">${link('ER · PDF',erPdf())}</div>
       </article>
       <article class="route-panel">
         <h2>Внутри проекта</h2><p>Откройте файл, чтобы прочитать и скопировать код.</p>
@@ -522,13 +547,13 @@ function examples() {
         ${btn('Открыть файл','id="open-file"')}
       </article>
     </div>
-    <h2 class="example-gallery-heading">Работающая информационная система</h2>
+    ${isWpf()?'':`<h2 class="example-gallery-heading">Работающая информационная система</h2>
     <p>Рассмотрите вход, каталог, корзину и список заказов на снимках из Windows.</p>
-    <div class="screenshot-index">${shots.map(key=>shot({shot:key})).join('')}</div>
+    <div class="screenshot-index">${shots.map(key=>shot({shot:key})).join('')}</div>`}
   </section>`;
 }
 function exampleInstructions() {
-  modal('Инструкция по запуску',`<div class="example-instructions">${D.launchGuide}</div>`);
+  modal('Инструкция по запуску',`<div class="example-instructions">${isWpf()?D.wpfLaunchGuide:D.launchGuide}</div>`);
 }
 function criteria() {
   const total = D.criteria.reduce((sum,[,points])=>sum+points,0);
@@ -545,16 +570,18 @@ function criteria() {
 }
 function teacher() {
   return `<section class="training-page">
-    ${header('Преподавателю','Разбор официального образца ДЭ 2027 для занятия.')}
-    <article class="route-panel">
-      <h2>Презентация по демоэкзамену</h2>
-      <p>Windows Forms + MySQL / MariaDB. На слайдах — четыре задания «Чудо Обувь», пошаговая демонстрация, код и реальные снимки приложения.</p>
-      <p>Заполните данные преподавателя для титульного слайда. В режиме показа слайды открываются в отдельном окне для аудитории, а сценарий остаётся у преподавателя.</p>
-      <div class="button-row">${btn('Данные преподавателя','id="teacher-settings"')}
-        <a class="btn primary" id="deck-open" href="deck.html">Открыть презентацию</a>
-        <a class="btn" href="deck.html?print=1&amp;dialog=1" target="_blank" rel="noopener">Печать / сохранить PDF</a>
-      </div>
-    </article>
+    ${header('Преподавателю','Разбор официального образца ДЭ 2027. Режим показа открывает отдельное окно для аудитории.')}
+    <div class="button-row">${btn('Данные преподавателя','id="teacher-settings"')}</div>
+    ${Object.entries(D.stacks).map(([id,{name,deck}])=>`<section class="teacher-stack" aria-labelledby="teacher-${id}">
+      <h2 id="teacher-${id}">${E(name)}</h2>
+      <article class="route-panel">
+        <h3>Чудо Обувь</h3>
+        <div class="button-row">
+          <a class="btn primary" id="deck-open${id==='mysql'?'':'-postgresql'}" href="${deck}">Открыть презентацию</a>
+          <a class="btn" href="${deck}?print=1&amp;dialog=1" target="_blank" rel="noopener">Печать / сохранить PDF</a>
+        </div>
+      </article>
+    </section>`).join('')}
   </section>`;
 }
 function modal(title,html='',extra=''){const d=document.createElement('dialog');d.className='course-dialog '+extra;d.setAttribute('aria-label',title);d.innerHTML=`<header class="modal-head"><h2>${E(title)}</h2>${btn('Закрыть','data-close')}</header><div class="modal-body">${html}</div>`;document.body.append(d);d.querySelector('[data-close]').onclick=()=>d.close();d.addEventListener('close',()=>d.remove(),{once:true});d.showModal();return d;}
@@ -607,7 +634,7 @@ function tour(){
     body.innerHTML=`<p class="tour-position">Раздел ${index+1} из ${tourTopics.length}</p>
       <h3 tabindex="-1">${E(topic.title)}</h3>
       <ul>${topic.items.map(text=>`<li>${E(text)}</li>`).join('')}</ul>
-      <p><a href="?mode=${topic.mode}${topic.mode==='learn'?'&amp;view=map':''}">Открыть раздел «${E(section)}»</a></p>
+      <p><a href="?mode=${topic.mode}&amp;stack=${stack}${topic.mode==='learn'?'&amp;view=map':''}">Открыть раздел «${E(section)}»</a></p>
       <div class="button-row">${btn('Назад',`id="tour-prev" ${index===0?'disabled':''}`)}
         ${btn(index===tourTopics.length-1?'Готово':'Далее','id="tour-next"',true)}</div>`;
     body.querySelector('#tour-prev').onclick=()=>{index--;draw(true);};
@@ -615,166 +642,6 @@ function tour(){
     if(focus)body.querySelector('h3').focus();
   }
   draw(true);
-}
-function er(workspace) {
-  const embedded=Boolean(workspace);
-  const dialog=embedded?null:modal('Построение ER-схемы','<section class="er-workspace" aria-label="Построение ER-схемы"></section>');
-  const host=workspace||dialog.querySelector('.er-workspace');
-  const {tables,links}=D.er;
-  const parts=[{label:'Исходные книги'},...tables.flatMap(table=>[
-    {table,label:table.id},
-    ...table.fields.map(field=>({table,field,label:table.id+'.'+field.id}))
-  ])];
-  let index=embedded?Math.max(0,Math.min(parts.length-1,get('er-step',0))):0;
-  let full=false, selected=null, expanded=null, zoom=1, fit=false;
-  function draw(focusId) {
-    const previous=host.querySelector('.er-live-diagram');
-    const scroll=[previous?.scrollLeft||0,previous?.scrollTop||0];
-    const item=selected||parts[index], {table,field}=item;
-    const visible=full?parts:parts.slice(0,index+1);
-    const visibleTables=tables.filter(candidate=>visible.some(part=>part.table===candidate));
-    const edge=field&&links.find(link=>link.source===table.id&&link.field===field.id);
-    const origin=field?.origin||table?.origin;
-    const source=origin?.match(/[^\s→]+\.xlsx/)?.[0];
-    host.innerHTML=`<header class="er-workspace-heading"><h3>Схема и пояснения</h3>
-      ${embedded?btn(expanded?'Вернуться к шагу':'На весь экран','id="er-expand"'):''}</header>
-      <div class="er-controls" role="group" aria-label="Вид схемы">
-        ${btn('Поэтапное построение',`id="er-steps" aria-pressed="${!full}"`)}
-        ${btn('Готовая схема',`id="er-full" aria-pressed="${full}"`)}
-        ${btn('Как читать схему','id="er-help" aria-expanded="false" aria-controls="er-reading"')}
-        <a href="materials/ER.pdf" download>Скачать ER · PDF</a>
-      </div>
-      <p id="er-reading" hidden>PK определяет строку, FK ссылается на ключ другой таблицы. Стрелка ведёт от FK к PK. Например, несколько складских позиций ссылаются на одну модель.</p>
-      ${full?'':`<div class="er-step-controls">
-        <label>Этап построения<select id="er-jump">${parts.map((part,i)=>`<option value="${i}" ${i===index?'selected':''}>${i+1}. ${E(part.label)}</option>`).join('')}</select></label>
-        <div class="er-step-buttons">${btn('←',`id="er-prev" aria-label="Предыдущий этап схемы" ${index===0?'disabled':''}`)}
-          <span aria-live="polite">${index+1} из ${parts.length}</span>
-          ${btn('→',`id="er-next" aria-label="Следующий этап схемы" ${index===parts.length-1?'disabled':''}`,true)}</div>
-      </div>`}
-      ${visibleTables.length?`<div class="er-zoom-controls" role="group" aria-label="Масштаб схемы">
-        ${btn('−','id="er-smaller" aria-label="Уменьшить схему"')}
-        ${btn('100%','id="er-scale" aria-label="Вернуть масштаб 100 процентов"')}
-        ${btn('+','id="er-larger" aria-label="Увеличить схему"')}
-        ${btn('По ширине','id="er-fit"')}
-        ${btn('К элементу',`id="er-focus" ${table?'':'disabled'}`)}
-      </div>`:''}
-      <div class="er-grid">
-        ${visibleTables.length?`<div class="er-diagram er-live-diagram" tabindex="0" aria-label="Диаграмма с прокруткой">${D.erSvg}</div>`
-          :'<div class="er-empty">Нажмите стрелку вправо или выберите этап, чтобы добавить первую таблицу.</div>'}
-        <aside class="er-origin" aria-live="polite">
-          ${table?`<h4><code>${E(item.label)}</code></h4>
-            <section><h5>Назначение</h5><p>${E(field?.meaning||table.meaning)}</p></section>
-            ${origin?`<section><h5>Источник</h5><p>${E(origin)}</p>
-              ${source?btn('Открыть исходную книгу','id="er-source"'):''}</section>`:''}
-            ${edge?`<section><h5>Связь</h5><p><code>${E(edge.source+'.'+edge.field)} → ${E(edge.target+'.'+edge.key)}</code> · ${E(edge.cardinality)}</p></section>`:''}
-            ${field?`<section><h5>Свойства в SQL</h5><dl class="er-sql-properties">
-              <dt>Тип</dt><dd><code>${E(field.type)}</code></dd>
-              ${field.pk||field.fk||field.unique?`<dt>Ключи</dt><dd>${[field.pk?'PK':'',field.fk?'FK':'',field.unique?'UNIQUE':''].filter(Boolean).join(' · ')}</dd>`:''}
-              <dt>NULL</dt><dd>${field.nullable?'Разрешён':'Запрещён'}</dd>
-              ${field.default!==null?`<dt>По умолчанию</dt><dd><code>${E(field.default)}</code></dd>`:''}
-            </dl></section>`:''}`
-          :'<h4>Исходные книги</h4><p>Выберите таблицу или поле, чтобы увидеть назначение, источник и свойства.</p>'}
-        </aside>
-      </div>`;
-    const byId=id=>host.querySelector('#'+id);
-    const on=(id,fn)=>{const node=byId(id);if(node)node.onclick=fn;};
-    const move=(next,id)=>{
-      index=next;selected=null;
-      if(embedded)set('er-step',index);
-      draw(id);
-    };
-    on('er-next',()=>move(index+1,'er-next'));
-    on('er-prev',()=>move(index-1,'er-prev'));
-    if(byId('er-jump'))byId('er-jump').onchange=event=>move(Number(event.target.value),'er-jump');
-    on('er-full',()=>{full=true;selected=null;zoom=1;fit=false;draw('er-full');});
-    on('er-steps',()=>{full=false;selected=null;zoom=1;fit=false;draw('er-steps');});
-    on('er-help',()=>{
-      const hint=byId('er-reading');
-      hint.hidden=!hint.hidden;
-      byId('er-help').setAttribute('aria-expanded',String(!hint.hidden));
-    });
-    on('er-source',()=>showMaterial(materialWorkbooks.find(file=>file.name===source)));
-    on('er-expand',()=>{
-      if(expanded){expanded.close();return;}
-      const anchor=document.createComment('ER workspace');
-      host.before(anchor);
-      expanded=document.createElement('dialog');
-      expanded.className='course-dialog er-expanded';
-      expanded.setAttribute('aria-label','Построение ER-схемы');
-      expanded.append(host);document.body.append(expanded);
-      expanded.addEventListener('close',()=>{
-        anchor.replaceWith(host);expanded.remove();expanded=null;draw('er-expand');
-      },{once:true});
-      expanded.showModal();draw('er-expand');
-    });
-    const diagram=host.querySelector('.er-diagram svg');
-    if(diagram) {
-      const visibleFields=new Set(visible.filter(part=>part.field).map(part=>part.label));
-      diagram.querySelectorAll('polyline').forEach((line,i)=>{
-        const wire=links[i];
-        if(!visibleFields.has(wire.source+'.'+wire.field)||!visibleFields.has(wire.target+'.'+wire.key))line.remove();
-      });
-      const selectPart=(node,part)=>{
-        node.setAttribute('role','button');node.setAttribute('tabindex','0');
-        node.setAttribute('aria-label',part.label);
-        if(part.label===item.label)node.setAttribute('aria-pressed','true');
-        node.id='er-select-'+part.label.replace('.','-');
-        node.onclick=()=>{selected=part;draw(node.id);};
-        node.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();node.onclick();}};
-      };
-      diagram.querySelectorAll('svg > g > g').forEach((group,i)=>{
-        const candidate=tables[i];
-        if(!visibleTables.includes(candidate)){group.remove();return;}
-        if(candidate===table)group.setAttribute('data-er-active-table','');
-        const rows=group.querySelectorAll('text');
-        selectPart(rows[0],parts.find(part=>part.table===candidate&&!part.field));
-        candidate.fields.forEach((row,j)=>{
-          const name=candidate.id+'.'+row.id;
-          if(visibleFields.has(name))selectPart(rows[j+1],parts.find(part=>part.label===name));
-          else rows[j+1].remove();
-        });
-      });
-      const box=diagram.parentElement;
-      const width=full?1680:Math.max(...visibleTables.map(candidate=>candidate.x+candidate.width))+25;
-      if(!full){
-        const height=Math.max(...visibleTables.map(candidate=>candidate.y+60+25*candidate.fields.length))+25;
-        diagram.setAttribute('viewBox',`0 0 ${width} ${height}`);
-      }
-      const baseWidth=Math.min(width,1250);
-      const focusElement=()=>{
-        const selectedNode=diagram.querySelector('[aria-pressed="true"]');
-        if(!selectedNode||!box.isConnected)return;
-        const group=selectedNode.closest('[data-er-active-table]');
-        const viewport=box.getBoundingClientRect();
-        const heading=selectedNode.getBoundingClientRect(), card=group.getBoundingClientRect();
-        const left=card.width<=box.clientWidth
-          ? card.left+(card.width-box.clientWidth)/2 : heading.left-12;
-        const top=card.height<=box.clientHeight
-          ? card.top+(card.height-box.clientHeight)/2 : heading.top-12;
-        box.scrollTo({
-          left:box.scrollLeft+left-viewport.left-box.clientLeft,
-          top:box.scrollTop+top-viewport.top-box.clientTop,
-          behavior:'instant'
-        });
-      };
-      const scale=()=>{
-        diagram.style.minWidth='0';
-        diagram.style.width=fit?'100%':(baseWidth*zoom)+'px';
-        byId('er-scale').textContent=(fit?Math.round(box.clientWidth/baseWidth*100):Math.round(zoom*100))+'%';
-      };
-      scale();
-      box.scrollTo(...scroll);
-      if(!full||selected)requestAnimationFrame(focusElement);
-      on('er-focus',focusElement);
-      on('er-smaller',()=>{fit=false;zoom=Math.max(.4,zoom-.15);scale();});
-      on('er-larger',()=>{fit=false;zoom=Math.min(2,zoom+.15);scale();});
-      on('er-scale',()=>{fit=false;zoom=1;scale();});
-      on('er-fit',()=>{fit=true;scale();box.scrollTo(0,0);});
-    }
-    const target=focusId&&byId(focusId);
-    if(target)(target.disabled?byId('er-jump'):target)?.focus({preventScroll:true});
-  }
-  draw();
 }
 function settings(){const d=modal('Настройка перед занятием',`<div class="settings-form">${['ФИО преподавателя','Должность','Кафедра или лаборатория'].map((name,i)=>`<label>${name}<input data-teacher="${i}" value="${E(get('teacher:'+i,''))}"></label>`).join('')}</div>`);d.querySelectorAll('[data-teacher]').forEach(e=>e.oninput=()=>set('teacher:'+e.dataset.teacher,e.value));}
 function fileModal(file) {
@@ -810,6 +677,7 @@ function navigate(next) {
   const previous = location.href;
   if(next.mode) mode=next.mode;
   if(next.stage) stage=next.stage;
+  if(next.stack) stack=next.stack;
   if(next.view) learningView=next.view;
   render();
   const target = location.href;
@@ -820,19 +688,19 @@ function navigate(next) {
   if (!next.preserveScroll) window.scrollTo(0,0);
 }
 function render() {
-  set('mode',mode);set('stage',stage);set('variant',variant);
+  set('mode',mode);set('stage',stage);set('variant',variant);set('stack',stack);
   document.body.classList.toggle('dark',dark);
-  const url = new URLSearchParams({mode,module:stage,variant});
+  const url = new URLSearchParams({mode,module:stage,stack,variant});
   if (mode==='learn') {
     url.set('view',learningView);
-    if (learningView!=='map') set('opened-stage',stage);
+    if (learningView!=='map') set(progressKey('opened-stage'),stage);
     if (learningView==='steps' && savedLessonStep(stage)===null) set(lessonStepKey(stage),0);
   }
   history.replaceState(null,'','?'+url);
   const views = {overview,learn,training:practice,mock:practice,examples,criteria,teacher};
   root.innerHTML = `<div class="shell">
     <header class="top">
-      <a class="brand" href="?mode=overview"><span class="brand-emblem">ДЭ</span><span><strong>09.02.07 · Информационные системы и программирование</strong><small>Программист · 2027</small></span></a>
+      <a class="brand" href="?mode=overview&amp;stack=${stack}"><span class="brand-emblem">ДЭ</span><span><strong>09.02.07 · Информационные системы и программирование</strong><small>Программист · 2027</small></span></a>
       <div class="top-tools">
         ${iconButton(dark?'Включить светлую тему':'Включить тёмную тему',dark?toolIcons.sun:toolIcons.moon,'id="theme"')}
         ${iconButton('Гид по курсу',toolIcons.tour,'id="tour-open" aria-haspopup="dialog"')}
@@ -926,15 +794,25 @@ function bind() {
   bindMaterialReaders(root);
   bindHelpTopics();
   const erHost=document.getElementById('er-workspace');
-  if(erHost)er(erHost);
+  if(erHost){
+    const erKey=progressKey('er-step');
+    ExamErGuide.mount(erHost,{
+      stack, pdf:erPdf(), materials:stageMaterials('M1'),
+      get:()=>get(erKey,0), set:(_,value)=>set(erKey,value),
+      openSource:name=>showMaterial(materialWorkbooks.find(file=>file.name===name))
+    });
+  }
+  on('stack',event=>{
+    navigate({stack:event.target.value,preserveScroll:true});
+    document.getElementById('stack').focus({preventScroll:true});
+  },'onchange');
   on('lesson-steps',showLessonSteps);
   on('done',event=>{
-    set('done:'+stage,event.target.checked);
+    set(progressKey('done:'+stage),event.target.checked);
     render();
     document.getElementById('done').focus({preventScroll:true});
   },'onchange');
   on('variant',event=>{variant=event.target.value;showVariantBrief=false;render();document.getElementById('variant').focus();},'onchange');
-  on('training-sample',trainingSample);
   on('mock-brief',()=>{showVariantBrief=!showVariantBrief;render();document.getElementById('mock-brief').focus();});
   on('timer-sound',event=>{set('timer-sound',event.target.checked);enableTimerSound();},'onchange');
   on('task-complete',event=>{
@@ -942,7 +820,6 @@ function bind() {
     render();
     document.getElementById('task-complete').focus({preventScroll:true});
   },'onchange');
-  on('er-launch',()=>er());
   on('example-launch',exampleInstructions);
   on('example-file',event=>{
     document.getElementById('example-file-description').textContent=describeExampleFile(event.target.value);
@@ -980,14 +857,15 @@ function tick() {
 document.addEventListener('keydown',event=>{
   if (mode!=='learn'||learningView!=='steps'||!['ArrowLeft','ArrowRight'].includes(event.key)
       ||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey||document.querySelector('dialog[open]')
-      ||event.target.closest?.('input,select,textarea,[contenteditable],a,button:not([data-step]),pre')) return;
+      ||event.target.closest?.('input,select,textarea,[contenteditable],a,button:not([data-step]),pre,#er-workspace')) return;
   const next=stepIndex()+(event.key==='ArrowLeft'?-1:1);
   if (next<0||next>current().steps.length) return;
   event.preventDefault();
   goToLessonStep(next);
 });
 window.addEventListener('popstate',()=>{
-  ({mode,stage,variant,learningView}=readRoute());
+  ExamErGuide.closeExpanded();
+  ({mode,stage,variant,stack,learningView}=readRoute());
   render();
 });
 render();setInterval(tick,500);

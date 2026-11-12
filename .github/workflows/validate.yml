@@ -14,7 +14,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - run: npm ci
       - run: dotnet build examples/WinForms/ProgDemo.WinForms.csproj -c Release --nologo
+      - run: dotnet build examples/Wpf/ProgDemo.Wpf.csproj -c Release --nologo
       - run: dotnet run --project examples/Import -- materials/resources output/import-check prog_demo_student
       - run: python -B scripts/check_import.py --report output/csv-import-check.json
       - shell: pwsh

@@ -6,12 +6,12 @@
 
 ## Учебные разделы
 
-- Обучение: условие, подготовка и четыре задания.
+- Обучение: условие, подготовка и четыре задания. На карте можно выбрать Windows Forms + MySQL / MariaDB или WPF + PostgreSQL.
 - Тренировка: официальный образец и пауза.
 - Пробный экзамен: 30 авторских учебных вариантов инвариантного ядра.
-- Примеры: программное решение C# Windows Forms + MySQL/MariaDB, SQL, ER и исходные данные.
+- Примеры: решения для обоих стеков, SQL, ER и исходные данные.
 - Критерии: инвариантная часть.
-- Преподавателю: презентация по учебным шагам.
+- Преподавателю: отдельная презентация по учебным шагам каждого стека.
 
 Гость просматривает каталог; пользователь входит по логину без пароля. Менеджер и администратор управляют заказами. Приложение рассчитывает скидку по предыдущему календарному месяцу, хранит остатки по размерам, сохраняет и отменяет заказы транзакционно.
 
@@ -19,13 +19,19 @@
 
 ## Разработка и проверка
 
-Для работы с веб-курсом скачайте [полный репозиторий](https://github.com/OlgaKraven/2027-prog-demo). Команды Node.js: `npm run prepare:data`, `npm run build`, `npm test`, `npm run preview`. Первое преобразование ER: Python 3 с reportlab, `python3 scripts/diagram.py`. При Windows используйте `py -3` вместо `python3`. У diagram.py параметр шрифта задаётся переменной `PROG_DEMO_FONT`, если Arial не найден стандартно.
+Для работы с веб-курсом скачайте [полный репозиторий](https://github.com/OlgaKraven/2027-prog-demo). После `npm ci` используйте `npm run build`, `npm test` и `npm run preview`. Для повторной подготовки учебных данных используйте `npm run prepare:data`. Если Windows не разрешает команду `python3`, передайте `-B scripts/prepare_data.py` установленному Python 3.
+
+Для обновления ER-диаграмм в PDF и SVG после `npm ci` запустите `python3 scripts/diagram.py` с установленным `reportlab`. Для другого шрифта укажите путь к TTF в `PROG_DEMO_FONT`.
 
 Готовый пример: откройте `ProgDemo.sln` в Visual Studio с .NET desktop development и .NET 10. Импортируйте `content/sample.sql` в новую пустую учебную MySQL; не запускайте повторно поверх заполненной базы. При старте приложение предложит реквизиты подключения. Они не сохраняются в файле. Дополнительно поддерживается `PROG_DEMO_CONNECTION` в локальном профиле запуска. Не включайте пароль в Git.
 
 Скачайте готовый пример одним ZIP в разделе «Примеры». Если в комплект включена папка `Windows`, восстановите базу из `content/sample.sql`, установите .NET Desktop Runtime 10 и запустите `Windows/ProgDemo.WinForms.exe`. [Порядок запуска и проверки](https://olgakraven.github.io/2027-prog-demo/docs/launch.html).
 
 Для контрольной даты задайте `PROG_DEMO_DATE=2026-05-15`; без неё используется текущая дата. Исходные заказы датированы 2026 годом и не переписываются. Интеграционные проверки `examples/Checks` разрешены только в отдельной базе с префиксом `prog_demo_checks`; настройки берутся из `PROG_DEMO_CONNECTION`. В Windows передайте путь JSON-отчёта первым аргументом, если нужно сохранить результаты.
+
+Для WPF откройте `ProgDemo.PostgreSql.slnx`. В pgAdmin создайте пустую базу `prog_demo_sample` и выполните в ней `content/postgresql/sample.sql`. Для сборки из командной строки используйте `dotnet build examples/Wpf/ProgDemo.Wpf.csproj -c Release`. После сборки `npm run build` включает EXE и Assets в ZIP примера WPF. Для ввода реквизитов используйте окно подключения или локальную переменную `PROG_DEMO_POSTGRES_CONNECTION`. [Инструкция запуска WPF](docs/launch-postgresql.html).
+
+Для отдельной базы варианта подготовьте структуру по `content/postgresql/schema.sql` и выполните `dotnet run --project examples/Import -- ПАПКА_С_ИСХОДНИКАМИ НОВАЯ_ПАПКА_РЕЗУЛЬТАТА --postgres`. Затем откройте `data.sql` в Query Tool своей базы. Для проверки общего слоя через PostgreSQL выполните `dotnet run --project examples/Checks` с `PROG_DEMO_POSTGRES_CONNECTION`, указывающей на отдельную БД `prog_demo_checks_*`.
 
 Оригинальные PDF/ZIP, изображения и XLSX сохраняются в `materials`. Происхождение и контрольные суммы — `docs/source-manifest.json`, решения импорта — `docs/import-decisions.md`. Учебная оболочка основана на `OlgaKraven/2027-dkip-demo`, commit `6427060c45e51b307f4cc047f58aaa674623f8a8`; предметные требования взяты из КИМ `-2`, не из КИМ `-5`.
 

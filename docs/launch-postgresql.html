@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Запуск примера WPF + PostgreSQL</title>
+  <style>
+    body { margin: 40px auto; padding: 0 22px; max-width: 950px; }
+    code { overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <h1>Запуск примера WPF + PostgreSQL</h1>
+  <h2>1. Восстановите учебную базу</h2>
+  <ol>
+    <li>Распакуйте ZIP примера целиком. В pgAdmin подключитесь к запущенному PostgreSQL и создайте пустую базу <code>prog_demo_sample</code> с кодировкой UTF-8.</li>
+    <li>Откройте Query Tool именно для новой базы. Загрузите <code>content/postgresql/sample.sql</code> и выполните весь скрипт. Он создаст таблицы, загрузит исходные записи и установит следующие номера заказов.</li>
+    <li>Обновите таблицы и сверьте количество строк: 31 модель, 92 размерные позиции, 35 размеров, 20 пользователей, 10 заказов и 30 строк заказа.</li>
+  </ol>
+  <h2>2. Откройте приложение</h2>
+  <ul>
+    <li>Если в ZIP есть папка <code>Windows</code>, установите .NET Desktop Runtime 10 для архитектуры сборки и запустите <code>Windows/ProgDemo.Wpf.exe</code>. Оставьте DLL и Assets в той же папке.</li>
+    <li>Для сборки из исходников откройте <code>ProgDemo.PostgreSql.slnx</code> в Visual Studio с .NET 10 SDK и компонентом разработки классических приложений .NET. Назначьте <code>ProgDemo.Wpf</code> стартовым проектом и нажмите F5.</li>
+  </ul>
+  <p>В окне подключения укажите адрес, порт и реквизиты PostgreSQL. Имя базы — <code>prog_demo_sample</code>. После подключения откроется гостевой каталог. Для контрольной даты скидки задайте <code>PROG_DEMO_DATE=2026-05-15</code> в локальном профиле запуска.</p>
+  <h2>3. Проверьте заказ</h2>
+  <ol>
+    <li>Войдите по учебному логину <code>asidorova</code>. Найдите модель, выберите категорию и сортировку, откройте карточку модели щелчком по строке.</li>
+    <li>Добавьте две размерные позиции. Измените количество в «Мой заказ», подтвердите заказ и сверьте остатки.</li>
+    <li>Войдите как <code>papetrov</code> и найдите заказ в списке. Войдите как <code>isivanov</code>, измените дату и удалите строку. Сверьте итог заказа и остаток.</li>
+  </ol>
+  <h2>4. Подготовьте данные для своего варианта</h2>
+  <p>В новой пустой базе создайте таблицы по <code>content/postgresql/schema.sql</code>. Назначьте <code>ProgDemo.Import</code> стартовым проектом и нажмите Ctrl+F5. Укажите папку с XLSX либо CSV, новую папку для результата и <code>--postgres</code>. В Query Tool целевой базы выполните полученный <code>data.sql</code>.</p>
+</body>
+</html>

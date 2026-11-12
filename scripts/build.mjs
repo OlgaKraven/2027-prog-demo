@@ -4,7 +4,13 @@ import {createHash} from 'node:crypto';
 import {stages,tasks,criteria,sourceWorkbooks,stageOutputs} from '../content/course.mjs';
 import {buildGuideRedirects,renderLessonDetails} from './render_guides.mjs';
 import {buildLessonSlides} from './lesson_slides.mjs';
+import {stages as wpfStages} from '../content/postgresql/course.mjs';
+import {buildErData} from './er-data.mjs';
 import '../src/core.js';
+const stacks = {
+  mysql:{name:'Windows Forms + MySQL / MariaDB', tools:'Windows · Visual Studio · C# и .NET 10 · DBeaver', deck:'deck.html'},
+  postgresql:{name:'WPF + PostgreSQL', tools:'Windows · Visual Studio · C# и .NET 10 · pgAdmin', deck:'deck-wpf.html'}
+};
 const localNames = new Set(['bin', 'obj', '.vs', '__pycache__', '.ds_store', 'thumbs.db', 'launchsettings.json']);
 function isCourseFile(file) {
   const name = path.basename(file).toLowerCase();
@@ -18,7 +24,8 @@ fs.cpSync('materials',out+'/materials',{recursive:true,filter:isCourseFile});
 fs.rmSync(out+'/docs',{recursive:true,force:true});fs.mkdirSync(out+'/docs',{recursive:true});
 fs.copyFileSync('docs/launch.html',out+'/docs/launch.html');
 buildGuideRedirects(out+'/docs');
-for(const file of ['docs/launch.html','materials/description.html','materials/style-guide.html']){
+fs.copyFileSync('docs/launch-postgresql.html',out+'/docs/launch-postgresql.html');
+for(const file of ['docs/launch.html','docs/launch-postgresql.html','materials/description.html','materials/style-guide.html']){
   const target=out+'/'+file;
   const html=fs.readFileSync(target,'utf8').replace('<style>', '<link rel="stylesheet" href="../typography.css"><style>')
     .replace('</style>', 'body{max-width:none;font:var(--text-body)/1.6 var(--font-ui)}h1{font-size:var(--text-page)}h2{font-size:var(--text-section)}code,pre{font-family:var(--font-code)}</style>');
@@ -28,10 +35,10 @@ fs.mkdirSync(out+'/downloads',{recursive:true});
 const read=p=>JSON.parse(fs.readFileSync(p,'utf8'));
 const code={};
 function walk(dir,fn){for(const f of fs.readdirSync(dir,{withFileTypes:true})){if(!isCourseFile(f.name))continue;const p=path.join(dir,f.name).replaceAll('\\','/');if(f.isDirectory())walk(p,fn);else fn(p,fs.readFileSync(p));}}
-for(const dir of ['examples','scripts'])walk(dir,(p,b)=>{if(/\.(cs|csproj|sql|py)$/.test(p)&&!p.endsWith('/vm.py'))code[p]=b.toString('utf8');});
+for(const dir of ['examples','scripts','content/postgresql'])walk(dir,(p,b)=>{if(/\.(cs|csproj|sql|py|xaml)$/.test(p)&&!p.endsWith('/vm.py'))code[p]=b.toString('utf8');});
 code['content/sample.sql']=fs.readFileSync('content/sample.sql','utf8');
 for (const [file,source] of Object.entries(code)) {
-  if (!file.startsWith('examples/')) continue;
+  if (!file.startsWith('examples/') && !file.startsWith('content/postgresql/')) continue;
   const destination=path.join(out,'code',file+'.txt');
   fs.mkdirSync(path.dirname(destination),{recursive:true});
   fs.writeFileSync(destination,source);
@@ -53,7 +60,9 @@ for (const {id} of variants) {
 }
 fs.writeFileSync(out+'/downloads/exam-30-variants.zip',ExamCore.zip(variantArchives));
 const example={};
-for(const dir of ['examples','materials'])walk(dir,(p,b)=>example[p]=b);
+for(const dir of ['examples','materials'])walk(dir,(p,b)=>{
+  if(!p.startsWith('examples/Wpf/')&&!p.startsWith('materials/ER-postgresql.'))example[p]=b;
+});
 walk('docs',(p,b)=>{if(/\.(md|json)$/.test(p))example[p]=b;});
 for(const file of ['.gitignore','content/sample.sql','README.md','ProgDemo.sln','docs/launch.html'])example[file]=fs.readFileSync(file);
 const original={};walk('materials/original',(p,b)=>original[p.slice('materials/original/'.length)]=b);fs.writeFileSync(out+'/downloads/original-inputs.zip',ExamCore.zip(original));
@@ -66,9 +75,20 @@ if (release) {
   walk(release,(file,bytes)=>example['Windows/'+file.slice(release.length+1)]=bytes);
 }
 fs.writeFileSync(out+'/downloads/prog-demo-example.zip',ExamCore.zip(example));
+const wpfExample={};
+for(const dir of ['examples/Wpf','examples/Core','examples/Import','content/postgresql','materials/resources'])
+  walk(dir,(p,b)=>{if(!p.endsWith('.mjs'))wpfExample[p]=b;});
+for(const file of ['ProgDemo.PostgreSql.slnx','docs/launch-postgresql.html','materials/ER-postgresql.pdf'])
+  wpfExample[file]=fs.readFileSync(file);
+const wpfRelease='examples/Wpf/bin/Release/net10.0-windows';
+const wpfWindowsBuild=fs.existsSync(wpfRelease+'/ProgDemo.Wpf.exe');
+if(wpfWindowsBuild)
+  walk(wpfRelease,(file,bytes)=>wpfExample['Windows/'+file.slice(wpfRelease.length+1)]=bytes);
+fs.writeFileSync(out+'/downloads/prog-demo-wpf.zip',ExamCore.zip(wpfExample));
 fs.rmSync(out+'/downloads/prog-demo-windows.zip',{force:true});
 const screens=fs.existsSync('content/screens.json')?read('content/screens.json'):{};
 const launchGuide=fs.readFileSync('docs/launch.html','utf8').match(/<body>\s*<h1>.*?<\/h1>([\s\S]*?)<\/body>/i)[1];
+const wpfLaunchGuide=fs.readFileSync('docs/launch-postgresql.html','utf8').match(/<body>\s*<h1>.*?<\/h1>([\s\S]*?)<\/body>/i)[1];
 const lessonBlocks={};
 for(const guide of ['Forms-designer','Visual-Studio','DBeaver','Database-fields','Import']){
   for(const [title,html] of Object.entries(renderLessonDetails(fs.readFileSync(`docs/${guide}.md`,'utf8')))){
@@ -83,7 +103,9 @@ if(usedDetails.length!==Object.keys(lessonBlocks).length||
   throw new Error('Каждый раздел инструкции должен соответствовать одной карточке маршрута');
 }
 const lessonDetails=Object.fromEntries(Object.entries(lessonBlocks).map(([title,blocks])=>[title,blocks.join('\n')]));
-const data={lessonDetails,sourceWorkbooks,stageOutputs,workbooks:read('content/workbooks.json'),launchGuide,stages,tasks,criteria,variants,variantBriefs,variantTasks,code,windowsBuild:!!release,kim:'materials/original/КИМ 09.02.07-2-2027 Том 1.pdf',er:read('content/er.json'),erSvg:fs.readFileSync('materials/ER.svg','utf8'),screens};
+const er=read('content/er.json');
+fs.writeFileSync(out+'/er-data.js','globalThis.ER_GUIDE='+JSON.stringify(await buildErData(er))+';');
+const data={lessonDetails,sourceWorkbooks,stageOutputs,workbooks:read('content/workbooks.json'),launchGuide,wpfLaunchGuide,stacks,stages,wpfStages,tasks,criteria,variants,variantBriefs,variantTasks,code,windowsBuild:!!release,wpfWindowsBuild,kim:'materials/original/КИМ 09.02.07-2-2027 Том 1.pdf',er,screens};
 fs.writeFileSync(out+'/content.js','globalThis.COURSE='+JSON.stringify(data)+';');
 const previousIndexes=[0,0];
 const previousRoute={
@@ -117,9 +139,25 @@ for (const stage of stages) {
   }
 }
 fs.writeFileSync(out+'/deck-data.js','globalThis.TEACHER_DECK='+JSON.stringify({
-  code:'09.02.07-2-2027',stackName:'Windows Forms + MySQL / MariaDB',chapters,slides,previousIndexes,previousRouteIndexes
+  code:'09.02.07-2-2027',stackName:stacks.mysql.name,chapters,slides,previousIndexes,previousRouteIndexes
 })+';');
-for (const page of ['index.html','deck.html']) {
+const wpfSlides=[{...slides[0]}], wpfChapters=[{...chapters[0]}];
+for(const stage of wpfStages){
+  const chapter={id:stage.id,label:stage.title,index:wpfSlides.length,steps:[]};
+  wpfChapters.push(chapter);
+  for(const [index,step] of stage.steps.entries()){
+    chapter.steps.push({title:step.title,index:wpfSlides.length});
+    wpfSlides.push(...buildLessonSlides(stage,step,index,{}, {}, 'materials/ER-postgresql.svg'));
+  }
+  const outputs=stageOutputs[stage.id].map(([name,note])=>name.replace('Windows Forms','WPF')+' · '+note);
+  chapter.steps.push({title:'Что сохранить',index:wpfSlides.length});
+  wpfSlides.push({kind:'content',chapter:stage.id,step:stage.steps.length,title:'Что сохранить',items:outputs});
+}
+fs.writeFileSync(out+'/deck-wpf-data.js','globalThis.TEACHER_DECK='+JSON.stringify({
+  code:'09.02.07-2-2027',stack:'postgresql',stackName:stacks.postgresql.name,chapters:wpfChapters,slides:wpfSlides
+})+';');
+fs.writeFileSync(out+'/deck-wpf.html',fs.readFileSync('src/deck.html','utf8').replace('deck-data.js','deck-wpf-data.js'));
+for (const page of ['index.html','deck.html','deck-wpf.html']) {
   const html=fs.readFileSync(out+'/'+page,'utf8').replace(/\b(src|href)="([^"?]+\.(?:js|css))"/g,
     (_,attr,file)=>`${attr}="${file}?v=${createHash('sha256').update(fs.readFileSync(out+'/'+file)).digest('hex').slice(0,12)}"`);
   fs.writeFileSync(out+'/'+page,html);

@@ -22,8 +22,9 @@ try
     }
     var input=Path.GetFullPath(Ask(0,"Папка с пятью распакованными XLSX или шестью CSV авторского варианта:"));
     var output=Path.GetFullPath(Ask(1,"Папка для результата:",Path.Combine(input,"Prepared")));
-    var database=Ask(2,"Имя пустой учебной базы, созданной в конструкторе (Enter — prog_demo_student):","prog_demo_student");
-    if(!Regex.IsMatch(database,"^[a-z][a-z0-9_]{0,60}$"))throw new InvalidOperationException("Имя базы: латинская буква, затем строчные латинские буквы, цифры и _. Максимум 61 символ.");
+    var database=Ask(2,"Имя пустой базы MySQL (Enter — prog_demo_student) или --postgres для PostgreSQL:","prog_demo_student");
+    bool postgres = database == "--postgres";
+    if(!postgres && !Regex.IsMatch(database,"^[a-z][a-z0-9_]{0,60}$"))throw new InvalidOperationException("Имя базы: латинская буква, затем строчные латинские буквы, цифры и _. Максимум 61 символ.");
     var data=new Dictionary<string,List<Dictionary<string,string>>>();
     var hashes=new Dictionary<string,string>();
     if(File.Exists(Path.Combine(input,"products.csv")))data=CsvInput.ReadVariant(input,hashes);
@@ -51,8 +52,8 @@ try
         return candidates[0].i+1;
     }
     // Structure is created in the DB designer. This file contains data only.
-    var sql=new StringBuilder($"USE `{database}`;\nSTART TRANSACTION;\n");
-    void Row(string table,string columns,params object?[] values)=>sql.Append("INSERT INTO ").Append(table).Append('(').Append(columns).Append(") VALUES(").AppendJoin(',',values.Select(Literal)).AppendLine(");");
+    var sql=new StringBuilder(postgres ? "START TRANSACTION;\n" : $"USE `{database}`;\nSTART TRANSACTION;\n");
+    void Row(string table,string columns,params object?[] values)=>sql.Append("INSERT INTO ").Append(table).Append('(').Append(columns).Append(") VALUES(").AppendJoin(',',values.Select(value => Literal(value, postgres))).AppendLine(");");
     for(int i=0;i<roles.Length;i++)Row("roles","id,name",i+1,roles[i]);
     for(int i=0;i<users.Count;i++)
     {
@@ -92,6 +93,9 @@ try
     }
     foreach(var (id,h) in headers)Row("orders","id,order_date,user_id,created_by,stock_accounted",id,h.Item1,h.Item2,h.Item2,false);
     foreach(var line in lines)Row("order_items","id,order_id,stock_id,quantity,unit_price",line);
+    if (postgres)
+        foreach (string table in new[] { "orders", "order_items" })
+            sql.AppendLine($"SELECT setval(pg_get_serial_sequence('{table}', 'id'), COALESCE(MAX(id), 1), MAX(id) IS NOT NULL) FROM {table};");
     sql.AppendLine("COMMIT;");
     Directory.CreateDirectory(output);
     // Existing results are not overwritten accidentally.
@@ -117,10 +121,11 @@ static int Integer(string s,string field,int minimum)
 static decimal Number(string s)=>decimal.Parse(s,CultureInfo.InvariantCulture);
 static string SizeKey(string s)=>Number(s).ToString("0.#",CultureInfo.InvariantCulture);
 static string Key(string s)=>Regex.Replace(s.Trim(),@"\s+"," ");
-static string Literal(object? value)=>value switch
+static string Literal(object? value, bool postgres)=>value switch
 {
-    null=>"NULL",bool b=>b?"1":"0",int n=>n.ToString(CultureInfo.InvariantCulture),decimal n=>n.ToString(CultureInfo.InvariantCulture),
+    null=>"NULL",bool b=>postgres?(b?"TRUE":"FALSE"):(b?"1":"0"),int n=>n.ToString(CultureInfo.InvariantCulture),decimal n=>n.ToString(CultureInfo.InvariantCulture),
     DateTime date=>"'"+date.ToString("yyyy-MM-dd HH:mm:ss",CultureInfo.InvariantCulture)+"'",
+    string s when postgres => "convert_from(decode('" + Convert.ToHexString(Encoding.UTF8.GetBytes(s)) + "','hex'),'UTF8')",
     _=>"CONVERT(X'"+Convert.ToHexString(Encoding.UTF8.GetBytes(value.ToString()!))+"' USING utf8mb4)"
 };
 static List<Dictionary<string,string>> ReadXlsx(string path)

@@ -527,7 +527,7 @@ export const stages=[
         "actions": [
           "Выделите ProgDemo.Core и выберите Project → Add Class… → Store.cs.",
           "Поместите полный файл сверки и разберите Open, Command, Login и Categories.",
-          "Проверьте, что значения передаются как @p0… через AddWithValue, а не вставляются в SQL строкой."
+          "Проверьте, что значения передаются как @p0… через параметры команды, а не вставляются в SQL строкой."
         ],
         "check": "Core собирается; ошибочный SQL не смешивается с пользовательским вводом.",
         "file": "examples/Core/Store.cs",
