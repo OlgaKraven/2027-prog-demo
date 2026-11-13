@@ -6,6 +6,7 @@ import {buildGuideRedirects,renderLessonDetails} from './render_guides.mjs';
 import {buildLessonSlides} from './lesson_slides.mjs';
 import {stages as wpfStages} from '../content/postgresql/course.mjs';
 import {buildErData} from './er-data.mjs';
+import {buildErLayout} from './er-layout.mjs';
 import '../src/core.js';
 const stacks = {
   mysql:{name:'Windows Forms + MySQL / MariaDB', tools:'Windows · Visual Studio · C# и .NET 10 · DBeaver', deck:'deck.html'},
@@ -86,7 +87,15 @@ if(wpfWindowsBuild)
   walk(wpfRelease,(file,bytes)=>wpfExample['Windows/'+file.slice(wpfRelease.length+1)]=bytes);
 fs.writeFileSync(out+'/downloads/prog-demo-wpf.zip',ExamCore.zip(wpfExample));
 fs.rmSync(out+'/downloads/prog-demo-windows.zip',{force:true});
-const screens=fs.existsSync('content/screens.json')?read('content/screens.json'):{};
+const screens=read('content/screens.json');
+for(const image of Object.values(screens)){
+  if(!image.detail)continue;
+  const {crop,size:[width,height],...detail}=image.detail;
+  const file=image.file.replace(/\.[^.]+$/,'-detail.svg');
+  const jpeg=fs.readFileSync(image.file).toString('base64');
+  fs.writeFileSync(out+'/'+file,`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${crop.join(' ')}"><image href="data:image/jpeg;base64,${jpeg}" width="${width}" height="${height}"/></svg>`);
+  image.detail={...detail,file};
+}
 const launchGuide=fs.readFileSync('docs/launch.html','utf8').match(/<body>\s*<h1>.*?<\/h1>([\s\S]*?)<\/body>/i)[1];
 const wpfLaunchGuide=fs.readFileSync('docs/launch-postgresql.html','utf8').match(/<body>\s*<h1>.*?<\/h1>([\s\S]*?)<\/body>/i)[1];
 const lessonBlocks={};
@@ -104,7 +113,48 @@ if(usedDetails.length!==Object.keys(lessonBlocks).length||
 }
 const lessonDetails=Object.fromEntries(Object.entries(lessonBlocks).map(([title,blocks])=>[title,blocks.join('\n')]));
 const er=read('content/er.json');
-fs.writeFileSync(out+'/er-data.js','globalThis.ER_GUIDE='+JSON.stringify(await buildErData(er))+';');
+const erGuide=await buildErData(er);
+fs.writeFileSync(out+'/er-data.js','globalThis.ER_GUIDE='+JSON.stringify(erGuide)+';');
+const erDetails=[
+  {title:'Роль и пользователь', fields:{roles:['id','name'],users:['id','login','role_id']},
+    caption:'Пользователь хранит ссылку на роль. Одна роль назначается нескольким пользователям.',
+    script:'Укажите на users.role_id и проведите по стрелке к roles.id. Название роли хранится в справочнике. При оформлении и изменении заказа приложение сверяет роль с записью пользователя в базе.'},
+  {title:'Размерный остаток модели', fields:{products:['id','name'],sizes:['id','label'],stock_items:['id','product_id','size_id','available']},
+    caption:'Пара «модель + размер» определяет строку остатка. Для заказа используется доступное количество в этой строке.',
+    script:'Проследите две связи от stock_items. Поле product_id определяет модель, size_id определяет размер. Два размера одной модели могут иметь разные остатки. Сумма остатков даёт количество для каталога.'},
+  {title:'Заказ и его позиции', fields:{orders:['id','order_date'],stock_items:['id','product_id','size_id'],order_items:['id','order_id','stock_id','quantity','unit_price']},
+    caption:'Строка связывает заказ с размерной позицией и хранит количество и цену за пару.',
+    script:'Начните с номера заказа и найдите по нему строки order_items. В каждой строке stock_id определяет модель и размер, а unit_price сохраняет цену на момент оформления. Покажите, как из этих строк получается сумма заказа.'}
+];
+async function erSlideImages(file, schema) {
+  const images=[];
+  for(const [index,{fields,title,caption,script}] of erDetails.entries()){
+    const tables=schema.tables.filter(table=>fields[table.id]).map(table=>({
+      ...table,fields:table.fields.filter(field=>fields[table.id].includes(field.id))
+    }));
+    const links=schema.links.filter(link=>fields[link.from]?.includes(link.field)&&fields[link.to]?.includes(link.target));
+    const graph=await buildErLayout({tables,links});
+    const escape=ExamCore.escape;
+    const cards=graph.nodes.map(({id,x,y,width,height})=>{
+      const table=tables.find(item=>item.id===id);
+      const rows=table.fields.map((field,i)=>`<text x="12" y="${93+i*44}" font-size="17">${escape(field.id)}${field.pk?' · PK':field.fk?' · FK':''}</text>`).join('');
+      return `<g transform="translate(${x} ${y})"><rect width="${width}" height="${height}" rx="10" fill="#fff" stroke="#c6d0df"/><path d="M 0 65 H ${width}" stroke="#c6d0df"/><text x="12" y="26" font-size="17" font-weight="700">${escape(table.title)}</text><text x="12" y="48" font-size="15" fill="#526175">${escape(id)}</text>${rows}</g>`;
+    }).join('');
+    const wires=graph.edges.flatMap(edge=>edge.sections.map(section=>{
+      const points=[section.endPoint,...(section.bendPoints||[]).toReversed(),section.startPoint];
+      const child=points[0],parent=points.at(-1);
+      return `<polyline points="${points.map(point=>point.x+','+point.y).join(' ')}" fill="none" stroke="#a51f42" stroke-width="2" marker-end="url(#fk)"/><text x="${child.x-16}" y="${child.y-6}">N</text><text x="${parent.x+8}" y="${parent.y-6}">1</text>`;
+    })).join('');
+    const fragment=file.replace('.svg','-detail-'+(index+1)+'.svg');
+    fs.writeFileSync(out+'/'+fragment,`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${graph.width} ${graph.height}" font-family="system-ui,sans-serif" fill="#202a3a"><defs><marker id="fk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#a51f42"/></marker></defs><rect width="100%" height="100%" fill="#eef2f7"/>${cards}${wires}</svg>`);
+    images.push({file:fragment,title,caption,script});
+  }
+  return [{file,title:'Связи базы данных «Чудо Обувь»',
+    caption:'Обзор десяти таблиц. Связи пользователей, остатков и заказов раскрыты на следующих слайдах.',
+    script:'На схеме три узла для показа. Сначала разберите права пользователя, затем остатки по размеру, после этого заказ и его позиции. На следующих слайдах эти связи видны крупнее.'}, ...images];
+}
+const mysqlErImages=await erSlideImages('materials/ER.svg',erGuide.stacks.mysql);
+const postgresErImages=await erSlideImages('materials/ER-postgresql.svg',erGuide.stacks.postgresql);
 const data={lessonDetails,sourceWorkbooks,stageOutputs,workbooks:read('content/workbooks.json'),launchGuide,wpfLaunchGuide,stacks,stages,wpfStages,tasks,criteria,variants,variantBriefs,variantTasks,code,windowsBuild:!!release,wpfWindowsBuild,kim:'materials/original/КИМ 09.02.07-2-2027 Том 1.pdf',er,screens};
 fs.writeFileSync(out+'/content.js','globalThis.COURSE='+JSON.stringify(data)+';');
 const previousIndexes=[0,0];
@@ -116,7 +166,8 @@ const previousRoute={
   M4:[280,281,286,294,299,308,309,312,320,321,322,327,328,329,334,335,342]
 };
 const previousRouteIndexes=[];
-const slides = [{kind:'cover',chapter:'intro',title:'Демонстрационный экзамен'}];
+const slides = [{kind:'cover',chapter:'intro',title:'Демонстрационный экзамен',
+  script:'На примере «Чудо Обувь» мы пройдём четыре задания базового уровня. Начнём с исходных данных, затем проверим, как одна модель и один размер проходят от базы до подтверждённого заказа.'}];
 const chapters = [{id:'intro',label:'Демонстрационный экзамен',index:0}];
 for (const stage of stages) {
   const chapter={id:stage.id,label:stage.title,index:slides.length,steps:[]};
@@ -128,11 +179,12 @@ for (const stage of stages) {
     previousIndexes.push(slides.length);
     if(oldImage&&[step.why,...step.actions,step.check].join(' ').length>650)previousIndexes.push(slides.length);
     if(step.code)previousIndexes.push(slides.length);
-    slides.push(...buildLessonSlides(stage,step,index,screens,lessonBlocks));
+    slides.push(...buildLessonSlides(stage,step,index,screens,lessonBlocks,mysqlErImages));
   }
   const title='Что сохранить';
   chapter.steps.push({title,index:slides.length});
-  slides.push({kind:'content',chapter:stage.id,step:stage.steps.length,title,items:stageOutputs[stage.id].map(([name,note])=>name+' · '+note)});
+  slides.push({kind:'content',chapter:stage.id,step:stage.steps.length,title,items:stageOutputs[stage.id].map(([name,note])=>name+' · '+note),
+    script:'Сопоставьте результаты на слайде с файлами и окнами, которые группа только что проверила. Уточните, где студент найдёт каждый результат в своём проекте.'});
   previousRouteIndexes.push([previousRoute[stage.id][0]-1,chapter.index]);
   for(const [index,oldIndex] of previousRoute[stage.id].entries()){
     previousRouteIndexes.push([oldIndex,chapter.steps[index]?.index??chapter.steps.at(-1).index]);
@@ -147,11 +199,12 @@ for(const stage of wpfStages){
   wpfChapters.push(chapter);
   for(const [index,step] of stage.steps.entries()){
     chapter.steps.push({title:step.title,index:wpfSlides.length});
-    wpfSlides.push(...buildLessonSlides(stage,step,index,{}, {}, 'materials/ER-postgresql.svg'));
+    wpfSlides.push(...buildLessonSlides(stage,step,index,screens,{},postgresErImages));
   }
   const outputs=stageOutputs[stage.id].map(([name,note])=>name.replace('Windows Forms','WPF')+' · '+note);
   chapter.steps.push({title:'Что сохранить',index:wpfSlides.length});
-  wpfSlides.push({kind:'content',chapter:stage.id,step:stage.steps.length,title:'Что сохранить',items:outputs});
+  wpfSlides.push({kind:'content',chapter:stage.id,step:stage.steps.length,title:'Что сохранить',items:outputs,
+    script:'Сопоставьте результаты на слайде с файлами и окнами, которые группа только что проверила. Уточните, где студент найдёт каждый результат в своём проекте.'});
 }
 fs.writeFileSync(out+'/deck-wpf-data.js','globalThis.TEACHER_DECK='+JSON.stringify({
   code:'09.02.07-2-2027',stack:'postgresql',stackName:stacks.postgresql.name,chapters:wpfChapters,slides:wpfSlides

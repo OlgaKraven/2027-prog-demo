@@ -498,6 +498,8 @@ const exampleDescriptions = {
   'BasketForm.cs':'Показывает позиции заказа, позволяет изменить количество, подтвердить заказ или отказаться.',
   'OrdersForm.cs':'Открывает список заказов менеджеру и администратору.',
   'OrderDetailsForm.cs':'Показывает состав заказа и действия, доступные администратору.',
+  'MainWindow.xaml':'Задаёт разметку каталога, карточки модели, корзины и списка заказов WPF.',
+  'MainWindow.xaml.cs':'Обрабатывает вход, переходы между разделами, оформление заказа и действия менеджера и администратора.',
   'sample.sql':'Создаёт таблицы и загружает исходные модели, остатки, пользователей и заказы.',
   'schema.sql':'Описывает структуру таблиц, ключи и ограничения без учебных данных.',
   'Store.cs':'Выполняет запросы каталога, проверяет роли и сохраняет изменения заказов в базе.'
@@ -519,10 +521,13 @@ function exampleFilePicker(id,selected) {
     `<option ${file===selected?'selected':''}>${E(file)}</option>`).join('')}</select></label>`;
 }
 function examples() {
-  const selected=isWpf()?'examples/Wpf/MainWindow.xaml':'examples/WinForms/CatalogForm.cs';
-  const archive=isWpf()?'prog-demo-wpf.zip':'prog-demo-example.zip';
-  const windowsBuild=isWpf()?D.wpfWindowsBuild:D.windowsBuild;
-  const shots=['login','examples/WinForms/CatalogForm.cs','examples/WinForms/BasketForm.cs','examples/WinForms/OrdersForm.cs'];
+  const wpf=isWpf();
+  const selected=wpf?'examples/Wpf/MainWindow.xaml':'examples/WinForms/CatalogForm.cs';
+  const archive=wpf?'prog-demo-wpf.zip':'prog-demo-example.zip';
+  const windowsBuild=wpf?D.wpfWindowsBuild:D.windowsBuild;
+  const shots=wpf
+    ? ['wpf-login','wpf-catalog','wpf-basket','wpf-orders']
+    : ['login','examples/WinForms/CatalogForm.cs','examples/WinForms/BasketForm.cs','examples/WinForms/OrdersForm.cs'];
   return `<section class="training-page example-page">
     ${header('Готовый пример','Скачайте рабочий проект «Чудо Обувь» с учебными данными.')}
     ${stackPicker()}
@@ -534,7 +539,7 @@ function examples() {
           <a class="btn primary" href="downloads/${archive}" download>Скачать готовый пример · ZIP</a>
           ${btn('Инструкция по запуску','id="example-launch" aria-haspopup="dialog"')}
         </div>
-        <div class="example-accounts"><p>Откройте окно «Вход» и введите учебный логин.</p>
+        <div class="example-accounts"><p>${wpf?'Введите учебный логин в поле «Логин покупателя» и нажмите «Войти».':'Откройте окно «Вход» и введите учебный логин.'}</p>
           <table aria-label="Учебные записи"><thead><tr><th scope="col">Роль</th><th scope="col">Логин</th></tr></thead>
           <tbody>${exampleAccounts.map(([role,login])=>`<tr><th scope="row">${role}</th><td><code>${login}</code></td></tr>`).join('')}</tbody></table>
         </div>
@@ -547,9 +552,9 @@ function examples() {
         ${btn('Открыть файл','id="open-file"')}
       </article>
     </div>
-    ${isWpf()?'':`<h2 class="example-gallery-heading">Работающая информационная система</h2>
+    <h2 class="example-gallery-heading">Работающая информационная система</h2>
     <p>Рассмотрите вход, каталог, корзину и список заказов на снимках из Windows.</p>
-    <div class="screenshot-index">${shots.map(key=>shot({shot:key})).join('')}</div>`}
+    <div class="screenshot-index">${shots.map(key=>shot({shot:key})).join('')}</div>
   </section>`;
 }
 function exampleInstructions() {

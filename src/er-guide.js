@@ -245,8 +245,9 @@ function mount(workspace, ctx) {
         <button class="btn" type="button" id="er-larger" aria-label="Увеличить схему" ${!layout?'disabled':''}>+</button>
         <button class="btn" type="button" id="er-fit" ${!layout?'disabled':''}>По ширине</button>
         <button class="btn" type="button" id="er-overview" ${!layout?'disabled':''}>Вся схема</button>
-        <button class="btn" type="button" id="er-focus" ${!layout?'disabled':''}>К элементу</button>
+        <button class="btn" type="button" id="er-focus" title="Увеличить выбранную таблицу, поле или связь" ${!layout?'disabled':''}>К элементу</button>
       </div>
+      <p class="er-overview-note" hidden>Выберите таблицу, поле или связь, чтобы рассмотреть её крупно.</p>
       <div class="er-body">
         <div class="er-diagram">
           <div class="er-scroll" role="region" aria-label="Диаграмма. Прокручивается по горизонтали и вертикали" tabindex="0" ${!layout?'data-empty':''}>
@@ -273,6 +274,7 @@ function mount(workspace, ctx) {
       syncControls();
       renderPanel();
       draw(layout,links,select);
+      if (state().fit==='overview') setZoom(1);
       focusCurrent();
     }
 
@@ -297,6 +299,7 @@ function mount(workspace, ctx) {
       if (settings.fit==='width') settings.zoom=Math.min(1,widthFit);
       canvas.style.zoom=String(settings.zoom);
       er('#er-scale').textContent=Math.round(settings.zoom*100)+'%';
+      er('.er-overview-note').hidden=settings.fit!=='overview' || settings.zoom>=.8;
       if (restore) scroll.scrollTo(settings.scroll.left,settings.scroll.top);
       if (settings.fit==='overview') scroll.scrollTo(0,0);
       else if (restore || settings.fit) focusCurrent();

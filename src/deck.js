@@ -17,7 +17,7 @@
   const savedIndex=get(positionKey,restored??0);
   let dark=get('dark',false), index=!audience&&Number.isInteger(savedIndex)
     ?Math.max(0,Math.min(deck.slides.length-1,savedIndex)):0;
-  let channel, target, laser=false, channelId;
+  let channel, target, closeCheck, laser=false;
   let lastFocus;
   const frame=by('frame'), form=by('profile'), status=by('status');
   by('back').href='./?mode=teacher&stack='+(deck.stack||'mysql');
@@ -81,13 +81,15 @@
     by('progress').max=deck.slides.length;
     by('progress').value=index+1;
     const speaker=by('speaker');
+    if(audience)return;
     speaker.innerHTML='<h2>Сценарий преподавателя</h2><h3>'+esc(slide.title)+'</h3>'+
+      (slide.script?'<p class="speaker-script">'+esc(slide.script)+'</p>':'')+
       (slide.body?'<p>'+esc(slide.body)+'</p>':'')+(slide.actions?.length?'<p><strong>Покажите группе</strong></p>'+actionList(slide.actions):'')+
       (slide.source?'<p>Файл для сверки: '+(/^(examples|content\/postgresql)\//.test(slide.source)
         ?'<a href="code/'+esc(slide.source)+'.txt" target="_blank" rel="noopener">'+esc(slide.source)+'</a>'
         :'<code>'+esc(slide.source)+'</code>')+'</p>':'')+
       (slide.note?'<p>'+esc(slide.note)+'</p>':'')+(slide.check?'<p class="speaker-check"><strong>Что проверить:</strong> '+esc(slide.check)+'</p>':'')+
-      (deck.slides[index+1]?'<p><strong>Далее:</strong> '+esc(deck.slides[index+1].title)+'</p>':'');
+      (deck.slides[index+1]?'<p><strong>Далее</strong> · '+esc(deck.slides[index+1].title)+'</p>':'');
     frame.querySelector('[data-picture]')?.addEventListener('click',()=>{
       by('visual').querySelector('figure').innerHTML='<img src="'+esc(slide.image.file)+'" alt="'+esc(slide.image.caption)+'"><figcaption>'+esc(slide.image.caption)+'</figcaption>';
       open('visual');
@@ -131,15 +133,27 @@
       }
       if(data.kind==='laser'&&audience)showLaser(data.x,data.y);
       if(data.kind==='stop'&&audience){showLaser();window.close();}
+      if(data.kind==='fullscreen'&&audience){
+        by('audience-full').hidden=false;
+        by('audience-full').focus();
+      }
     };
   }
   function stop(){
+    clearInterval(closeCheck);
     channel?.postMessage({kind:'stop'});
     target?.close();channel?.close();
     target=channel=undefined;
     document.body.classList.remove('speaking');
     by('speaker').hidden=true;
     by('present').textContent='Режим показа';
+    by('full').title='Во весь экран';
+    by('full').setAttribute('aria-label','Во весь экран');
+    announce('');
+  }
+  async function toggleFullscreen(view){
+    if(view.fullscreenElement)await view.exitFullscreen();
+    else await view.documentElement.requestFullscreen();
   }
   if(printable){
     document.body.classList.add('printing');
@@ -156,6 +170,13 @@
     document.body.classList.add('audience');
     attachChannel(params.get('audience'));
     channel.postMessage({kind:'sync'});
+    by('audience-full').onclick=async()=>{
+      try{
+        await toggleFullscreen(document);
+        by('audience-full').hidden=true;
+        announce('');
+      }catch{announce('Браузер не открыл полноэкранный режим.');}
+    };
     draw();return;
   }
   document.querySelectorAll('dialog').forEach(dialog=>{
@@ -163,20 +184,24 @@
     dialog.onclose=()=>lastFocus?.focus({preventScroll:true});
   });
   by('contents-open').onclick=()=>{
-    by('step-jump').value='';
+    const slide=deck.slides[index];
+    const chapter=deck.chapters.find(item=>item.id===slide.chapter);
+    const current=chapter?.steps?.[slide.step]?.index??chapter?.index??0;
+    by('chapters').querySelector('[aria-current]')?.removeAttribute('aria-current');
+    const selected=by('chapters').querySelector('[data-slide="'+current+'"]');
+    selected?.setAttribute('aria-current','true');
     open('contents');
+    selected?.focus();
   };
-  const stepJump=by('step-jump');
-  stepJump.innerHTML='<option value="">Выберите шаг</option>'+deck.chapters.filter(chapter=>chapter.steps?.length).map(chapter=>
-    '<optgroup label="'+esc(chapter.label)+'">'+chapter.steps.map(({title,index},i)=>
-      '<option value="'+index+'">'+(i+1)+'. '+esc(title)+'</option>').join('')+'</optgroup>').join('');
   function goFromContents(value){
     lastFocus=frame;
     by('contents').close();
     go(Number(value),true);
   }
-  stepJump.onchange=()=>{if(stepJump.value)goFromContents(stepJump.value);};
-  by('chapters').innerHTML=deck.chapters.map(x=>'<button type="button" data-slide="'+x.index+'">'+esc(x.label)+'</button>').join('');
+  const contentsButton=({title,index})=>'<button type="button" data-slide="'+index+'">'+esc(title)+'</button>';
+  by('chapters').innerHTML=deck.chapters.map(chapter=>chapter.steps?.length
+    ?'<section><h3>'+esc(chapter.label)+'</h3>'+chapter.steps.map(contentsButton).join('')+'</section>'
+    :contentsButton({title:chapter.label,index:chapter.index})).join('');
   by('chapters').querySelectorAll('button').forEach(button=>button.onclick=()=>goFromContents(button.dataset.slide));
   by('more-open').onclick=()=>{
     profileKeys.forEach(key=>{form.elements.namedItem(key).value=profile[key];});
@@ -202,17 +227,24 @@
   by('prev').onclick=()=>go(index-1);
   by('next').onclick=()=>go(index+1);
   by('full').onclick=async()=>{
+    if(target?.closed)stop();
     try{
-      if(document.fullscreenElement)await document.exitFullscreen();
-      else await document.documentElement.requestFullscreen();
-    }catch{announce('Браузер не открыл полноэкранный режим.');}
+      await toggleFullscreen(target?.document??document);
+      announce('');
+    }catch{
+      if(target){
+        channel.postMessage({kind:'fullscreen'});
+        target.focus();
+        announce('В окне аудитории нажмите «Во весь экран».');
+      }else announce('Браузер не открыл полноэкранный режим.');
+    }
   };
   by('present').onclick=()=>{
     announce('');
     if(target&&!target.closed){stop();return;}
     if(channel)stop();
     if(!('BroadcastChannel' in window)){announce('Этот браузер не поддерживает синхронизацию окон. Используйте обычный показ.');return;}
-    channelId='prog-demo-show-'+(crypto.randomUUID?.()||Date.now());
+    const channelId='prog-demo-show-'+(crypto.randomUUID?.()||Date.now());
     const url=new URL(location.href);
     url.searchParams.set('audience',channelId);
     target=window.open(url,'prog-demo-audience','popup,width=1152,height=648');
@@ -221,6 +253,9 @@
     document.body.classList.add('speaking');
     by('speaker').hidden=false;
     by('present').textContent='Завершить показ';
+    by('full').title='Во весь экран для аудитории';
+    by('full').setAttribute('aria-label',by('full').title);
+    closeCheck=setInterval(()=>{if(target?.closed)stop();},300);
   };
   window.addEventListener('pagehide',()=>{if(channel)stop();});
   by('pointer').onclick=()=>{

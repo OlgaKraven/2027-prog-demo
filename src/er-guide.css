@@ -107,6 +107,7 @@
 }
 .er-diagram, .er-info { min-width: 0; }
 .er-zoom { margin-bottom: 8px; }
+.er-overview-note { margin: 0 0 8px; color: var(--muted); font-size: .875rem; }
 .er-toolbar + .er-zoom { margin-top: 8px; }
 .er-scroll {
   height: var(--er-canvas-height);

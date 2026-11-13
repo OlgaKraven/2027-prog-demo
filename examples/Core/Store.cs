@@ -11,8 +11,16 @@ public sealed class Store(Func<DbConnection> createConnection, bool postgres)
     private DbConnection Open()
     {
         var connection = createConnection();
-        try { connection.Open(); return connection; }
-        catch { connection.Dispose(); throw; }
+        try
+        {
+            connection.Open();
+            return connection;
+        }
+        catch
+        {
+            connection.Dispose();
+            throw;
+        }
     }
     private static DbCommand Command(DbConnection c, DbTransaction? tx, string sql, params object?[] values)
     {
@@ -66,22 +74,29 @@ public sealed class Store(Func<DbConnection> createConnection, bool postgres)
     {
         using var c = Open();
         var (start, end) = Rules.PreviousMonth(date);
-        var match = postgres ? "ILIKE" : "LIKE";
-        using var cmd = Command(c, null, $"""
+        using var cmd = Command(c, null, """
             SELECT p.id,c.name,m.name,p.name,p.image,p.composition,p.description,p.price,
                 COALESCE((SELECT SUM(s.available) FROM stock_items s WHERE s.product_id=p.id),0),
                 EXISTS(SELECT 1 FROM order_items oi JOIN stock_items s ON s.id=oi.stock_id
                     JOIN orders o ON o.id=oi.order_id WHERE s.product_id=p.id AND o.order_date>=@p0 AND o.order_date<@p1)
             FROM products p JOIN subcategories sc ON sc.id=p.subcategory_id
                 JOIN categories c ON c.id=sc.category_id JOIN manufacturers m ON m.id=p.manufacturer_id
-            WHERE (@p2='' OR p.name {match} @p3 OR p.description {match} @p3) AND (@p4='' OR c.name=@p4)
-            """, start, end, search, "%" + search + "%", category);
+            WHERE (@p2='' OR c.name=@p2)
+            """, start, end, category);
         using var reader = cmd.ExecuteReader();
         var result = new List<Product>();
         while (reader.Read())
         {
+            var name = reader.GetString(3);
+            var description = reader.GetString(6);
+            // Catalog search must work with Cyrillic even when PostgreSQL uses the C locale.
+            if (!name.Contains(search, StringComparison.OrdinalIgnoreCase) &&
+                !description.Contains(search, StringComparison.OrdinalIgnoreCase))
+                continue;
             var price = reader.GetDecimal(7);
-            result.Add(new Product(reader.GetInt32(0),reader.GetString(1),reader.GetString(2),reader.GetString(3),reader.GetString(4),reader.GetString(5),reader.GetString(6),price,Rules.Price(price,reader.GetBoolean(9)),Convert.ToInt32(reader.GetValue(8))));
+            result.Add(new Product(reader.GetInt32(0), reader.GetString(1), reader.GetString(2), name,
+                reader.GetString(4), reader.GetString(5), description, price,
+                Rules.Price(price, reader.GetBoolean(9)), Convert.ToInt32(reader.GetValue(8))));
         }
         return descending ? result.OrderByDescending(p => p.Price).ThenBy(p => p.Id).ToList()
             : result.OrderBy(p => p.Price).ThenBy(p => p.Id).ToList();
@@ -94,6 +109,12 @@ public sealed class Store(Func<DbConnection> createConnection, bool postgres)
         var result = new List<Stock>();
         while (reader.Read()) result.Add(new Stock(reader.GetInt32(0),reader.GetInt32(1),reader.GetString(2),reader.GetInt32(3)));
         return result;
+    }
+    public int AvailableQuantity(int stockId)
+    {
+        using var connection = Open();
+        using var command = Command(connection, null, "SELECT available FROM stock_items WHERE id=@p0", stockId);
+        return Convert.ToInt32(command.ExecuteScalar());
     }
     public int PlaceOrder(User actor, int customerId, IEnumerable<BasketLine> lines, Guid requestId, DateTime date, DateTime? calculationDate = null)
     {
@@ -125,7 +146,9 @@ public sealed class Store(Func<DbConnection> createConnection, bool postgres)
                 {
                     using var reader = stock.ExecuteReader();
                     if (!reader.Read()) throw new InvalidOperationException("Товарная позиция не найдена. Обновите каталог.");
-                    available=reader.GetInt32(0);productId=reader.GetInt32(1);basePrice=reader.GetDecimal(2);
+                    available = reader.GetInt32(0);
+                    productId = reader.GetInt32(1);
+                    basePrice = reader.GetDecimal(2);
                 }
                 if (item.Quantity > available) throw new InvalidOperationException("Остаток изменился. Обновите каталог и уменьшите количество.");
                 bool ordered;
@@ -137,7 +160,11 @@ public sealed class Store(Func<DbConnection> createConnection, bool postgres)
             tx.Commit();
             return id;
         }
-        catch { tx.Rollback(); throw; }
+        catch
+        {
+            tx.Rollback();
+            throw;
+        }
     }
     private int InsertOrder(DbConnection c, DbTransaction tx, DateTime date, int customerId, int actorId, Guid requestId)
     {
@@ -211,6 +238,10 @@ public sealed class Store(Func<DbConnection> createConnection, bool postgres)
             }
             tx.Commit();
         }
-        catch {tx.Rollback();throw;}
+        catch
+        {
+            tx.Rollback();
+            throw;
+        }
     }
 }

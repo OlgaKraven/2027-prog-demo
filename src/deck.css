@@ -96,7 +96,11 @@ dialog h2{margin:0;font-size:1.28rem}
 #profile label{display:grid;gap:4px;font-weight:700}
 #profile input{border:1px solid var(--line);border-radius:8px;background:var(--surface);color:inherit;font:inherit;padding:8px 10px;min-width:0}
 .more-tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-#chapters button{justify-content:flex-start}
+#chapters section{display:grid;gap:5px}
+#chapters h3{margin:10px 0 3px;font-size:1rem}
+#chapters button{justify-content:flex-start;text-align:left;min-height:36px}
+#chapters button[aria-current=true]{border-color:var(--accent);background:var(--tint)}
+#audience-full{position:fixed;top:12px;right:12px;z-index:6}
 #visual{width:min(1080px,94vw)}
 #visual figure{margin:0}
 #visual img{display:block;max-width:100%;max-height:69dvh;margin:auto;object-fit:contain}
@@ -159,8 +163,6 @@ body.printing #print-pages{display:block}
   .dark .wordmark{filter:none;mix-blend-mode:multiply}
 }
 
-.step-jump { display: grid; gap: 6px; margin-block-start: 14px; }
-.step-jump select { font: inherit; font-weight: 600; font-size: .875rem; width: 100%; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 9px; }
 .slide-detail-body { min-width: 0; }
 .slide .slide-detail-body :is(th,td) { text-align: left; white-space: normal; overflow-wrap: anywhere; }
 .slide-detail-body td { font-variant-numeric: lining-nums tabular-nums; }

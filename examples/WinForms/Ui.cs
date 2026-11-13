@@ -6,10 +6,19 @@ public static class Ui
 {
     public static void Guard(Action action)
     {
-        try{action();}
-        catch(MySqlException){MessageBox.Show("Не удалось выполнить операцию с базой. Проверьте, запущен ли MySQL, импортирована ли база и верны ли настройки подключения. Изменения не подтверждены; обновите каталог перед повтором.","Ошибка базы данных",MessageBoxButtons.OK,MessageBoxIcon.Error);}
-        catch(Exception e) when(e is InvalidOperationException or UnauthorizedAccessException or ArgumentException or OverflowException)
-        {MessageBox.Show(e.Message,"Действие не выполнено",MessageBoxButtons.OK,MessageBoxIcon.Warning);}
+        try
+        {
+            action();
+        }
+        catch (MySqlException)
+        {
+            MessageBox.Show("Не удалось выполнить операцию с базой. Проверьте, запущен ли MySQL, импортирована ли база и верны ли настройки подключения. Изменения не подтверждены. Обновите каталог перед повтором.",
+                "Ошибка базы данных", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        catch (Exception e) when (e is InvalidOperationException or UnauthorizedAccessException or ArgumentException or OverflowException)
+        {
+            MessageBox.Show(e.Message, "Действие не выполнено", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
     }
     public static Image Picture(string filename)
     {

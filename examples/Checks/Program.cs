@@ -35,7 +35,19 @@ if(!string.IsNullOrWhiteSpace(connection))
     var products=store.Catalog(date);
     Check("both discount branches",()=>Assert(products.Any(p=>p.Price==p.BasePrice)&&products.Any(p=>p.Price<p.BasePrice),"Discount branches"));
     Check("combined filter search sort",()=>{var p=products[0];var list=store.Catalog(date,p.Name[..8],p.Category,true);Assert(list.Count>0&&list.All(x=>x.Category==p.Category)&&list.Select(x=>x.Price).SequenceEqual(list.Select(x=>x.Price).OrderByDescending(x=>x)),"Combined filters");});
+    Check("Cyrillic search works with either case and treats wildcard characters literally", () =>
+    {
+        var expected = store.Catalog(date, "Радуга", "Детская обувь", true);
+        Assert(expected.Count == 1, "Радуга should identify one model");
+        Assert(expected.SequenceEqual(store.Catalog(date, "радуга", "Детская обувь", true)), "Search depends on database locale");
+        Assert(store.Catalog(date, "%Радуга%").Count == 0, "Search should match literal text");
+    });
     var selected=products.First(p=>store.Sizes(p.Id).Any(s=>s.Available>2));var position=store.Sizes(selected.Id).First(s=>s.Available>2);var before=position.Available;
+    Check("quantity lookup reflects the current stock", () =>
+    {
+        Assert(store.AvailableQuantity(position.Id) == before, "Wrong available quantity");
+        Assert(store.AvailableQuantity(int.MaxValue) == 0, "A missing size should be unavailable");
+    });
     Check("roles enforced at operation boundary",()=>{Denied(()=>store.Orders(client));Denied(()=>store.Customers(client));Denied(()=>store.ChangeDate(manager,1,date));Denied(()=>store.DeleteLine(manager,1,1));Denied(()=>store.Orders(client with{Role="Администратор"}));Denied(()=>store.PlaceOrder(client,admin.Id,[new(position.Id,1)],Guid.NewGuid(),date));});
     Check("reject invalid quantities",()=>{Denied(()=>store.PlaceOrder(client,client.Id,[new(position.Id,0)],Guid.NewGuid(),date));Denied(()=>store.PlaceOrder(client,client.Id,[new(position.Id,before+1)],Guid.NewGuid(),date));});
     Check("atomic rollback when one position fails",()=>{int count=Convert.ToInt32(Scalar("SELECT COUNT(*) FROM orders"));Denied(()=>store.PlaceOrder(client,client.Id,[new(position.Id,1),new(int.MaxValue,1)],Guid.NewGuid(),date));Assert(Convert.ToInt32(Scalar("SELECT COUNT(*) FROM orders"))==count&&store.Sizes(selected.Id).Single(x=>x.Id==position.Id).Available==before,"Partial write");});

@@ -68,7 +68,14 @@ public partial class BasketForm : Form
     private void quantityButton_Click(object sender, EventArgs e) => Ui.Guard(() =>
     {
         int index = SelectedIndex();
-        basket[index] = basket[index] with { Quantity = (int)quantityNumericUpDown.Value };
+        var line = basket[index];
+        int quantity = (int)quantityNumericUpDown.Value;
+        int available = store.AvailableQuantity(line.StockId);
+        if (available == 0)
+            throw new InvalidOperationException("Размер закончился. Удалите позицию или вернитесь к выбору размера.");
+        if (quantity > available)
+            throw new InvalidOperationException($"Доступно пар: {available}. Уменьшите количество.");
+        basket[index] = line with { Quantity = quantity };
         Reload();
     });
 

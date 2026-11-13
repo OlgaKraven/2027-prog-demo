@@ -58,7 +58,7 @@ function demonstration(blocks){
   return pages;
 }
 
-export function buildLessonSlides(stage,step,index,screens,lessonBlocks,erImage='materials/ER.svg'){
+export function buildLessonSlides(stage,step,index,screens,lessonBlocks,erImages){
   const database=stage.id==='M1';
   const pages=[];
   const addText=(html,label='Порядок работы')=>{
@@ -85,18 +85,25 @@ export function buildLessonSlides(stage,step,index,screens,lessonBlocks,erImage=
       else pages.push(page);
     }
   }
-  if(step.erWorkspace)pages.push({
-    image:{file:erImage,caption:'Таблицы и связи схемы «Чудо Обувь».'},
-    label:'Готовая ER-схема'
-  });
+  if(step.erWorkspace)for(const image of erImages)pages.push({image,label:'ER-схема'});
   if(step.code)pages.push({code:step.code,label:'Код'});
-  const image=!step.details&&screens[step.shot||step.file];
-  if(image)pages.push({image,label:'Снимок'});
+  const imageKeys=step.demoShots??(step.details?[]:[step.shot||step.file]);
+  for(const key of imageKeys.filter(key=>screens[key])){
+    const image=screens[key];
+    pages.push({image,label:'Снимок'});
+    if(image.detail)pages.push({image:image.detail,label:'Фрагмент окна'});
+  }
   const result=check+(database?'<p><strong>Зачем это нужно.</strong> '+escape(step.why)+'</p>':'');
   addText(result,database?'Как проверить результат':'Проверьте себя');
   return pages.map(({label,...page},i)=>({
     ...page,kind:page.code?'code':'detail',chapter:stage.id,step:index,
-    title:i===0?step.title:label+' · '+(i+1),
+    title:i===0?step.title:page.image?.title||label+' · '+(i+1),
+    script:page.image?.script??(page.image
+      ? page.image.caption+' Сопоставьте показанное состояние с результатом этого шага. '+step.check
+      : i===0?step.why+' '+step.actions[0]
+      : page.code?step.why+' Проследите, какие значения получает этот фрагмент. '+step.check
+      : i===pages.length-1?step.check+' Попросите группу назвать, что должно измениться после выполнения шага.'
+      : step.why+' Выполните действия с этого экрана по порядку и сверяйте состояние после каждого изменения.'),
     ...(i?{eyebrow:'Шаг '+(index+1)+' · '+step.title}:{}),
     ...(i===pages.length-1?{check:step.check}:{}),
     ...(!i&&step.file&&!step.details?{source:step.file}:{})

@@ -32,7 +32,7 @@
     <button class="primary" id="next">Вперёд →</button>
   </footer>
   <p class="status" id="status" role="status" hidden></p>
-  <dialog id="contents"><header><h2>Содержание</h2><button data-close>Закрыть</button></header><nav id="chapters" aria-label="Разделы презентации"></nav><label class="step-jump">Шаг маршрута<select id="step-jump"></select></label></dialog>
+  <dialog id="contents"><header><h2>Содержание</h2><button data-close>Закрыть</button></header><nav id="chapters" aria-label="Разделы презентации"></nav></dialog>
   <dialog id="more"><header><h2>Настройки показа</h2><button data-close>Закрыть</button></header>
     <form id="profile">
       <label>ФИО преподавателя<input name="name" autocomplete="name" maxlength="120"></label>
@@ -43,6 +43,7 @@
     <div class="more-tools"><button id="theme">Включить тёмную тему</button><button id="export">Печать / сохранить PDF</button></div>
   </dialog>
   <dialog id="visual"><header><h2>Иллюстрация</h2><button data-close>Закрыть</button></header><figure></figure></dialog>
+  <button id="audience-full" class="primary" type="button" hidden>Во весь экран</button>
   <div id="print-pages"></div>
   <i id="laser" aria-hidden="true" hidden></i>
 </body>
